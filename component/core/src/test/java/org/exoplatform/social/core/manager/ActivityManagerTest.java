@@ -16,6 +16,7 @@
  */
 package org.exoplatform.social.core.manager;
 
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
@@ -70,6 +71,7 @@ public class ActivityManagerTest extends AbstractCoreTest {
 
   @Override
   public void setUp() throws Exception {
+    PropertyManager.setProperty("exo.activity-type.SPACE_ACTIVITY.enabled","false");
     super.setUp();
     identityManager = (IdentityManager) getContainer().getComponentInstanceOfType(IdentityManager.class);
     activityManager =  (ActivityManager) getContainer().getComponentInstanceOfType(ActivityManager.class);
@@ -1547,6 +1549,25 @@ public class ActivityManagerTest extends AbstractCoreTest {
     assertEquals(1, mentioners.length);
     assertEquals("1", commenters[0].split("@")[1]);
     assertEquals("1", mentioners[0].split("@")[1]);
+  }
+
+  public void testDisableActivityType(){
+    String activityTitle = "activity title";
+    String userId = johnIdentity.getId();
+    ExoSocialActivity activity = new ExoSocialActivityImpl();
+    activity.setTitle(activityTitle);
+    activity.setUserId(userId);
+    activity.setType("SPACE_ACTIVITY");
+
+    activityManager.saveActivityNoReturn(johnIdentity, activity);
+    assertNull(activity.getId());
+
+    activity.setType("DEFAULT_ACTIVITY");
+    activityManager.saveActivityNoReturn(johnIdentity, activity);
+    assertNotNull(activity.getId());
+    activity= activityManager.getActivity(activity.getId());
+    assertNotNull(activity);
+    tearDownActivityList.add(activity);
   }
   
   public void testMentionActivityOnOthersStream() throws Exception {

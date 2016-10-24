@@ -16,24 +16,19 @@
  */
 package org.exoplatform.social.core.manager;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.common.RealtimeListAccess;
 import org.exoplatform.social.core.ActivityProcessor;
 import org.exoplatform.social.core.BaseActivityProcessorPlugin;
-import org.exoplatform.social.core.activity.ActivitiesRealtimeListAccess;
+import org.exoplatform.social.core.activity.*;
 import org.exoplatform.social.core.activity.ActivitiesRealtimeListAccess.ActivityType;
-import org.exoplatform.social.core.activity.ActivityLifeCycle;
-import org.exoplatform.social.core.activity.ActivityListener;
-import org.exoplatform.social.core.activity.ActivityListenerPlugin;
-import org.exoplatform.social.core.activity.CommentsRealtimeListAccess;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -70,6 +65,16 @@ public class ActivityManagerImpl implements ActivityManager {
   private static final int DEFAULT_LIMIT = 20;
 
   /**
+   * The list of registred activity types.
+   */
+  private static Map<String,Boolean> activityTypesRegister= new HashMap<>();
+
+  /**
+   * Exo property pattern used for disable activity type
+   */
+  private static final String ACTIVITY_TYPE_PROPERTY_PATTERN = "exo.activity-type.{}.enabled";
+
+  /**
    * Instantiates a new activity manager.
    *
    * @param activityStorage
@@ -86,6 +91,12 @@ public class ActivityManagerImpl implements ActivityManager {
   public void saveActivityNoReturn(Identity streamOwner, ExoSocialActivity newActivity) {
     if (!streamOwner.isEnable()) {
       LOG.warn("Activity could not be saved. Owner has been disabled.");
+      return;
+    }
+    if(newActivity.getType() != null && !activityTypesRegister.get(newActivity.getType())){
+      if(LOG.isDebugEnabled()){
+        LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", newActivity.getType());
+      }
       return;
     }
     activityStorage.saveActivity(streamOwner, newActivity);
@@ -107,6 +118,12 @@ public class ActivityManagerImpl implements ActivityManager {
    * {@inheritDoc}
    */
   public void saveActivity(Identity streamOwner, String activityType, String activityTitle) {
+    if(activityType != null && !activityTypesRegister.get(activityType)){
+      if(LOG.isDebugEnabled()){
+        LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", activityType);
+      }
+      return;
+    }
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setType(activityType);
     activity.setTitle(activityTitle);
@@ -310,6 +327,24 @@ public class ActivityManagerImpl implements ActivityManager {
    */
   public void addProcessorPlugin(BaseActivityProcessorPlugin plugin) {
     this.addProcessor(plugin);
+  }
+
+  @Override
+  public void registerActivityTypes(ActivityTypesPlugin activityTypesPlugin) {
+    for(String type : activityTypesPlugin.getActivityTypes()){
+      String value = PropertyManager.getProperty(ACTIVITY_TYPE_PROPERTY_PATTERN.replace("{}", type));
+      if(value != null && value.equalsIgnoreCase("false")){
+        if(activityTypesRegister.get(type) == null){
+          LOG.info("Activity Type key:  {},  registration status: disabled", type);
+        }
+        activityTypesRegister.putIfAbsent(type, false);
+      }else{
+        if(activityTypesRegister.get(type) == null){
+          LOG.info("Activity Type key:  {},  registration status: enabled", type);
+        }
+        activityTypesRegister.putIfAbsent(type, true);
+      }
+    }
   }
 
   /**

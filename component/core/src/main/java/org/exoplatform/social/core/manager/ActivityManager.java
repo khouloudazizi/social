@@ -22,6 +22,7 @@ import org.exoplatform.social.common.RealtimeListAccess;
 import org.exoplatform.social.core.ActivityProcessor;
 import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.ActivityListenerPlugin;
+import org.exoplatform.social.core.activity.ActivityTypesPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.storage.ActivityStorageException;
@@ -285,6 +286,13 @@ public interface ActivityManager {
    * @LevelAPI Platform
    */
   void addProcessorPlugin(BaseActivityProcessorPlugin activityProcessorPlugin);
+
+  /**
+   * register activity types.
+   *
+   * @param activityTypesPlugin The activity types register plugin.
+   */
+  void registerActivityTypes(ActivityTypesPlugin activityTypesPlugin);
 
   void addActivityEventListener(ActivityListenerPlugin activityListenerPlugin);
   

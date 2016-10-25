@@ -93,7 +93,7 @@ public class ActivityManagerImpl implements ActivityManager {
       LOG.warn("Activity could not be saved. Owner has been disabled.");
       return;
     }
-    if(newActivity.getType() != null && !activityTypesRegister.get(newActivity.getType())){
+    if(newActivity.getType() != null && activityTypesRegister.get(newActivity.getType()) != null&& !activityTypesRegister.get(newActivity.getType())){
       if(LOG.isDebugEnabled()){
         LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", newActivity.getType());
       }
@@ -118,7 +118,7 @@ public class ActivityManagerImpl implements ActivityManager {
    * {@inheritDoc}
    */
   public void saveActivity(Identity streamOwner, String activityType, String activityTitle) {
-    if(activityType != null && !activityTypesRegister.get(activityType)){
+    if(activityType != null && activityTypesRegister.get(activityType) != null && !activityTypesRegister.get(activityType)){
       if(LOG.isDebugEnabled()){
         LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", activityType);
       }

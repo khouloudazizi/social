@@ -286,7 +286,7 @@
           <value-param>
             <name>activity.types</name>
             <description>The list of activity Types</description>
-            <value>${exo.social.activity.types:DEFAULT_ACTIVITY,SPACE_ACTIVITY,USER_PROFILE_ACTIVITY}</value>
+            <value>${exo.social.activity.types:DEFAULT_ACTIVITY,SPACE_ACTIVITY,USER_PROFILE_ACTIVITY,cs-calendar:spaces}</value>
           </value-param>
         </init-params>
       </component-plugin>

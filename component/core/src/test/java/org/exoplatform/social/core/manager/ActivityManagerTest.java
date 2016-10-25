@@ -16,7 +16,6 @@
  */
 package org.exoplatform.social.core.manager;
 
-import org.exoplatform.commons.utils.PropertyManager;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
@@ -71,7 +70,6 @@ public class ActivityManagerTest extends AbstractCoreTest {
 
   @Override
   public void setUp() throws Exception {
-    PropertyManager.setProperty("exo.activity-type.SPACE_ACTIVITY.enabled","false");
     super.setUp();
     identityManager = (IdentityManager) getContainer().getComponentInstanceOfType(IdentityManager.class);
     activityManager =  (ActivityManager) getContainer().getComponentInstanceOfType(ActivityManager.class);
@@ -1557,7 +1555,7 @@ public class ActivityManagerTest extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle(activityTitle);
     activity.setUserId(userId);
-    activity.setType("SPACE_ACTIVITY");
+    activity.setType("cs-calendar:spaces");
 
     activityManager.saveActivityNoReturn(johnIdentity, activity);
     assertNull(activity.getId());

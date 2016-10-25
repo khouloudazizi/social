@@ -218,7 +218,7 @@
           <value-param>
             <name>activity.types</name>
             <description>The list of activity Types</description>
-            <value>${exo.social.activity.types:DEFAULT_ACTIVITY,SPACE_ACTIVITY,USER_PROFILE_ACTIVITY,DOC_ACTIVITY,files:spaces,sharefiles:spaces,contents:spaces,cs-calendar:spaces,TaskAdded,ks-forum:spaces,ks-answer:spaces,ks-poll:spaces,ks-wiki:spaces}</value>
+            <value>${exo.social.activity.types:DEFAULT_ACTIVITY,SPACE_ACTIVITY,USER_ACTIVITIES_FOR_SPACE,exosocial:relationship,LINK_ACTIVITY,sharecontents:spaces,USER_PROFILE_ACTIVITY,DOC_ACTIVITY,files:spaces,sharefiles:spaces,contents:spaces,cs-calendar:spaces,TaskAdded,ks-forum:spaces,ks-answer:spaces,ks-poll:spaces,ks-wiki:spaces,USER_ACTIVITIES_FOR_RELATIONSHIP}</value>
           </value-param>
         </init-params>
       </component-plugin>

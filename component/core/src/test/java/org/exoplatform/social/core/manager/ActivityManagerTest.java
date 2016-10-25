@@ -1555,11 +1555,20 @@ public class ActivityManagerTest extends AbstractCoreTest {
     ExoSocialActivity activity = new ExoSocialActivityImpl();
     activity.setTitle(activityTitle);
     activity.setUserId(userId);
+
+    //Disabled activity Type
     activity.setType("cs-calendar:spaces");
 
     activityManager.saveActivityNoReturn(johnIdentity, activity);
     assertNull(activity.getId());
 
+    //Disabled Custom activity Type
+    activity.setType("MY_ACTIVITY");
+
+    activityManager.saveActivityNoReturn(johnIdentity, activity);
+    assertNull(activity.getId());
+
+    //enabled activity Types
     activity.setType("DEFAULT_ACTIVITY");
     activityManager.saveActivityNoReturn(johnIdentity, activity);
     assertNotNull(activity.getId());

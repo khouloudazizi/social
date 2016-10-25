@@ -75,6 +75,7 @@ public abstract class AbstractCoreTest extends BaseExoTestCase {
   @Override
   protected void setUp() throws Exception {
     PropertyManager.setProperty("exo.activity-type.cs-calendar:spaces.enabled","false");
+    PropertyManager.setProperty("exo.activity-type.MY_ACTIVITY.enabled","false");
 
     begin();
     session = getSession();

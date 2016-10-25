@@ -13,18 +13,29 @@ import java.util.List;
  */
 public class ActivityTypesPlugin extends BaseComponentPlugin {
     private static final String ACTIVITY_TYPES_PARAM ="activity.types";
+    private static final String ACTIVITY_CUSTOM_TYPES_PARAM ="custom.types";
     private final String SEPARATOR =",";
-
-    private String[]  activityTypes ;
+    private List<String> activityTypes ;
 
     public ActivityTypesPlugin(InitParams initParams) {
+        activityTypes = new ArrayList<>();
         ValueParam valueParam = initParams.getValueParam(ACTIVITY_TYPES_PARAM);
         if(valueParam != null && !valueParam.getValue().isEmpty()){
-            activityTypes =valueParam.getValue().split(SEPARATOR);
+           String[] types= valueParam.getValue().split(SEPARATOR);
+            if(types.length > 0) {
+                activityTypes.addAll(Arrays.asList(types));
+            }
+        }
+        valueParam = initParams.getValueParam(ACTIVITY_CUSTOM_TYPES_PARAM);
+        if(valueParam != null && !valueParam.getValue().isEmpty()){
+            String[] types= valueParam.getValue().split(SEPARATOR);
+            if(types.length > 0) {
+                activityTypes.addAll(Arrays.asList(types));
+            }
         }
     }
 
     public List<String> getActivityTypes() {
-        return new ArrayList(Arrays.asList(activityTypes));
+        return activityTypes;
     }
 }

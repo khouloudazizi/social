@@ -305,15 +305,17 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
 
   private Identity migrateIdentity(Node node, String jcrId) throws Exception {
     String providerId = node.getProperty("soc:providerId").getString();
-    String remoteId = node.getProperty("soc:remoteId").getString();
+    // The node name is the identity id.
+    // Node name is soc:<name>, only the <name> is relevant
+    String name = IdentityUtil.getIdentityName(node.getName());
 
-    Identity identity = identityStorage.findIdentity(providerId, remoteId);
+    Identity identity = identityStorage.findIdentity(providerId, name);
     if (identity != null) {
       LOG.info("Identity with providerId = " + identity.getProviderId() + " and remoteId=" + identity.getRemoteId() + " has already been migrated.");
       return identity;
     }
 
-    identity = new Identity(providerId, remoteId);
+    identity = new Identity(providerId, name);
     identity.setDeleted(node.getProperty("soc:isDeleted").getBoolean());
 
     if (node.isNodeType("soc:isDisabled")) {

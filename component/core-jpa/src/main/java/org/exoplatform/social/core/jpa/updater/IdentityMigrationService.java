@@ -51,6 +51,7 @@ import org.exoplatform.social.core.chromattic.entity.ProfileEntity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
+import org.exoplatform.social.core.jpa.updater.utils.IdentityUtil;
 import org.exoplatform.social.core.model.AvatarAttachment;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
@@ -140,12 +141,12 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
               offset++;
               Node identityNode = nodeIter.nextNode();
               String identityName = identityNode.getName();
+              String jcrid = identityNode.getUUID();
               transactionList.add(identityName);
 
-              LOG.info(String.format("|  \\ START::identity number: %s/%s (%s identity)", offset, totalIdentities, identityName));
+              LOG.info("|  \\ START::identity number: {}/{} node_name={} uuid={}", offset, totalIdentities, identityName, jcrid);
               long t1 = System.currentTimeMillis();
 
-              String jcrid = identityNode.getUUID();
               try {
                 Identity identity = migrateIdentity(identityNode, jcrid);
 
@@ -153,13 +154,14 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
                   String newId = identity.getId();
                   identity.setId(jcrid);
                   broadcastListener(identity, newId);
+                  LOG.info("|      Identity migrated jcr_uid={} id={}", jcrid, newId);
                 }
                 numberSuccessful++;
               } catch (Exception ex) {
                 identitiesMigrateFailed.add(identityName);
-                LOG.error("Error while migrate identity " + identityName, ex);
+                LOG.error(String.format("Error during migration of identity node_name=%s uuid=%s", identityName, jcrid), ex);
               }
-              LOG.info(String.format("|  / END::identity number %s (%s identity) consumed %s(ms)", offset, identityNode.getName(), System.currentTimeMillis() - t1));
+              LOG.info("|  / END::identity number {} node_name={} duration_ms={}", offset, identityNode.getName(), System.currentTimeMillis() - t1);
             }
           }
 
@@ -180,9 +182,9 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
 
     numberIdentities = offset;
     if (identitiesMigrateFailed.size() > 0) {
-      LOG.info(String.format("| / END::Identity migration failed for (%s) identity(s)", identitiesMigrateFailed.size()));
+      LOG.info("| / END::Identity migration failed for {} identity(s)", identitiesMigrateFailed.size());
     }
-    LOG.info(String.format("|// END::Identity migration for (%s) identity(s) consumed %s(ms)", numberSuccessful, System.currentTimeMillis() - t));
+    LOG.info("|// END::Identity migration of {} identity(s) duration_ms={}", numberSuccessful, System.currentTimeMillis() - t);
 
     LOG.info("| \\ START::Re-indexing identity(s) ---------------------------------");
     IndexingService indexingService = CommonsUtils.getService(IndexingService.class);
@@ -240,13 +242,13 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
 
               Node node = nodeIter.nextNode();
               timePerIdentity = System.currentTimeMillis();
-              LOG.info(String.format("|  \\ START::cleanup Identity number: %s/%s (%s identity)", offset, totalIdentities, node.getName()));
+              LOG.info("|  \\ START::cleanup Identity number: {}/{} name={}", offset, totalIdentities, node.getName());
 
               String name = node.getName();
               if (!MigrationContext.isForceCleanup() && (MigrationContext.getIdentitiesCleanupConnectionFailed().contains(name)
                       || MigrationContext.getIdentitiesCleanupActivityFailed().contains(name))) {
                 identitiesCleanupFailed.add(name);
-                LOG.warn("Will not remove this identity because the cleanup connection or activities were failed for it");
+                LOG.warn("Will not remove this identity because its connection or activities cleanup failed");
                 continue;
               }
 
@@ -256,7 +258,7 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
               String connectionMigrated = identityEntity.getProperty(MigrationContext.KEY_MIGRATE_CONNECTION);
               if (!MigrationContext.TRUE_STRING.equalsIgnoreCase(activityMigrated)
                       || (OrganizationIdentityProvider.NAME.equals(provider) && !MigrationContext.TRUE_STRING.equalsIgnoreCase(connectionMigrated))) {
-                LOG.warn("Can not remove identity " + name + " due to migration was not successful for activities and connections");
+                LOG.warn("Can not remove identity {} because the migration was not successful for activities and connections", name);
                 identitiesCleanupFailed.add(name);
                 continue;
               }
@@ -285,7 +287,7 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
                 getSession().getJCRSession().refresh(false);
               }
 
-              LOG.info(String.format("|  / END::cleanup (%s identity) consumed time %s(ms)", node.getName(), System.currentTimeMillis() - timePerIdentity));
+              LOG.info("|  / END::cleanup Identity ({}) identities duration_ms={}", node.getName(), System.currentTimeMillis() - timePerIdentity);
             }
           }
 
@@ -297,9 +299,9 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
     } finally {
       MigrationContext.setIdentitiesCleanupFailed(identitiesCleanupFailed);
       if (identitiesCleanupFailed.size() > 0) {
-        LOG.warn("Cleanup failed for " + identitiesCleanupFailed.size() + " identities");
+        LOG.warn("Cleanup failed for {} identities", identitiesCleanupFailed.size());
       }
-      LOG.info(String.format("| / END::cleanup Identities migration for (%s) identity consumed %s(ms)", offset, System.currentTimeMillis() - t));
+      LOG.info("| / END::cleanup {} identities duration_ms={}", offset, System.currentTimeMillis() - t);
     }
   }
 
@@ -311,7 +313,7 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
 
     Identity identity = identityStorage.findIdentity(providerId, name);
     if (identity != null) {
-      LOG.info("Identity with providerId = " + identity.getProviderId() + " and remoteId=" + identity.getRemoteId() + " has already been migrated.");
+      LOG.info("Identity with provider_id={} and remote_id={} has already been migrated. Identity id={} will be used.", identity.getProviderId(), identity.getRemoteId(), identity.getId());
       return identity;
     }
 
@@ -398,7 +400,6 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
           profile.setProperty(Profile.AVATAR, attachment);
         }
 
-
         identityStorage.saveProfile(profile);
 
         identity.setProfile(profile);
@@ -413,16 +414,16 @@ public class IdentityMigrationService extends AbstractMigrationService<Identity>
 
       return identity;
     } catch (NodeNotFoundException ex) {
-      LOG.error("Can not find indentity with oldId: " + oldId, ex);
+      LOG.error("Can not find indentity with oldId=" + oldId, ex);
       return null;
     } catch (Exception ex) {
-      LOG.error("Exception while migrate identity with oldId: " + oldId, ex);
+      LOG.error("Exception while migrate identity with oldId=" + oldId, ex);
       return null;
     } finally {
       try {
         endTx(begun);
       } catch (Exception ex) {
-        LOG.error("Error while commit transaction", ex);
+        LOG.error("Error during transaction commit", ex);
       }
       RequestLifeCycle.end();
     }

@@ -77,7 +77,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
 
   @Override
   @Managed
-  @ManagedDescription("Manual to start run migration data of relationships from JCR to RDBMS.")
+  @ManagedDescription("Start a migration of the relationships from JCR to RDBMS.")
   public void doMigration() throws Exception {
     RequestLifeCycle.end();
 
@@ -113,7 +113,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
             String identityName = identityNode.getName();
             transactionList.add(identityName);
 
-            LOG.info(String.format("|  \\ START::user number: %s/%s (%s user)", offset, totalIdentities, identityNode.getName()));
+            LOG.info("|  \\ START::user number: {}/{} name={}", offset, totalIdentities, identityNode.getName());
             long t1 = System.currentTimeMillis();
 
             try {
@@ -150,7 +150,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
               IdentityEntity identityEntity = _findById(IdentityEntity.class, identityNode.getUUID());
               identityEntity.setProperty(MigrationContext.KEY_MIGRATE_CONNECTION, MigrationContext.TRUE_STRING);
             } catch (Exception ex) {
-              LOG.error("Exception while migrate relationship for " + identityName, ex);
+              LOG.error("Exception while migrating relationship for " + identityName, ex);
               identitiesMigrateFailed.add(identityName);
             }
 
@@ -169,7 +169,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
               nodeIter = getIdentityNodes(offset, LIMIT_THRESHOLD);
             }
 
-            LOG.info(String.format("|  / END::user number %s (%s user) with %s relationship(s) user consumed %s(ms)", relationshipNo, identityNode.getName(), relationshipNo, System.currentTimeMillis() - t1));
+            LOG.info("|  / END::user number {} name={} with {} relationship(s) duration_ms={}", relationshipNo, identityNode.getName(), relationshipNo, System.currentTimeMillis() - t1);
           }
         }
 
@@ -184,7 +184,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
       }
     }
 
-    LOG.info(String.format("| / END::Relationships migration for (%s) user(s) with %s relationship(s) consumed %s(ms)", offset, total, System.currentTimeMillis() - t));
+    LOG.info("| / END::Relationships migration for {} user(s) with {} relationship(s) duration_ms={}", offset, total, System.currentTimeMillis() - t);
     RequestLifeCycle.begin(PortalContainer.getInstance());
 
     LOG.info("| \\ START::Re-indexing identity(s) ---------------------------------");
@@ -237,7 +237,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
       }
       
       if(doneConnectionNo % LIMIT_THRESHOLD == 0) {
-        LOG.info(String.format("|     - BATCH MIGRATION::relationship number: %s (%s user)", doneConnectionNo,  userName));
+        LOG.info("|     - BATCH MIGRATION::relationship number: {} user_name={}", doneConnectionNo,  userName);
         endTx(true);
         entityManagerService.endRequest(PortalContainer.getInstance());
         entityManagerService.startRequest(PortalContainer.getInstance());
@@ -284,16 +284,16 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
           continue;
         }
 
-        transactionList.add(node.getName());
+        transactionList.add(name);
         offset++;
 
-        LOG.info(String.format("|  \\ START::cleanup Relationship of user number: %s/%s (%s user)", offset, totalIdentities, node.getName()));
+        LOG.info("|  \\ START::cleanup User Relationship number: {}/{} user_name={}", offset, totalIdentities, name);
         IdentityEntity identityEntity = _findById(IdentityEntity.class, node.getUUID());
 
         String migrated = identityEntity.getProperty(MigrationContext.KEY_MIGRATE_CONNECTION);
         if (!MigrationContext.TRUE_STRING.equalsIgnoreCase(migrated)) {
           identitiesCleanupFailed.add(name);
-          LOG.warn("Can not clean connection for " + name + " due to migration was not successful");
+          LOG.warn("Can not clean connection for user_name={} due to migration was not successful", name);
           continue;
         }
         
@@ -305,15 +305,15 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
         //
         entities = identityEntity.getReceiver().getRelationships().values();
         removeRelationshipEntity(entities);
-        
-        LOG.info(String.format("|  / END::cleanup (%s user) consumed time %s(ms)", node.getName(), System.currentTimeMillis() - timePerUser));
+
+        LOG.info("| / END::cleanup User Relationships for {} users duration_ms={}", offset, System.currentTimeMillis() - t);
         
         timePerUser = System.currentTimeMillis();
         if(offset % LIMIT_THRESHOLD == 0) {
           try {
             getSession().save();
           } catch (Exception ex) {
-            LOG.error("Failed when commit the cleanup connections", ex);
+            LOG.error("Failed during commit of the cleaned connections", ex);
             identitiesCleanupFailed.addAll(transactionList);
           }
           RequestLifeCycle.end();
@@ -322,12 +322,12 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
           transactionList = new ArrayList<>();
         }
       }
-      LOG.info(String.format("| / END::cleanup Relationships migration for (%s) user consumed %s(ms)", offset, System.currentTimeMillis() - t));
+      LOG.info("| / END::cleanup User Relationships for {} users duration_ms={}", offset, System.currentTimeMillis() - t);
     } finally {
       try {
         getSession().save();
       } catch (Exception ex) {
-        LOG.error("Failed when commit the cleanup connections", ex);
+        LOG.error("Failed during commit of the cleaned connections", ex);
         identitiesCleanupFailed.addAll(transactionList);
       }
       RequestLifeCycle.end();
@@ -345,7 +345,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
         getSession().remove(relationshipEntity);
         ++offset;
         if (offset % LIMIT_REMOVED_THRESHOLD == 0) {
-          LOG.info(String.format("|     - BATCH CLEANUP::relationship number: %s", offset));
+          LOG.info("|     - BATCH CLEANUP::relationship number: {}", offset);
           getSession().save();
         }
       }
@@ -358,7 +358,7 @@ public class RelationshipMigrationService extends AbstractMigrationService<Relat
 
   @Override
   @Managed
-  @ManagedDescription("Manual to stop run miguration data of relationships from JCR to RDBMS.")
+  @ManagedDescription("Stop a running relationships migration from JCR to RDBMS.")
   public void stop() {
     super.stop();
   }

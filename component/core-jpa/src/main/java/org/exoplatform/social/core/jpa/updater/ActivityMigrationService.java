@@ -95,7 +95,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
   }
 
   @Managed
-  @ManagedDescription("Manual to start run miguration data of activities from JCR to RDBMS.")
+  @ManagedDescription("Start the migration of JCR activities to RDBMS.")
   public void doMigration() throws Exception {
     RequestLifeCycle.end();
 
@@ -107,7 +107,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
   }
 
   private long migrateUserActivities() throws Exception {
-    LOG.info("| \\ Start:: migrate activity of users -------------");
+    LOG.info("| \\ Start:: user activities migration -------------");
 
     long totalUsers = getNumberUserIdentities();
 
@@ -142,16 +142,16 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
             counter.newBatchAndWatch();
             counter.getAndIncrementTotal();
 
-            LOG.info(String.format("|  \\ START::user number: %s/%s (%s user)", counter.getTotal(), totalUsers, owner.getRemoteId()));
+            LOG.info("|  \\ START::User activities number: {}/{} remote_id={}", counter.getTotal(), totalUsers, owner.getRemoteId());
             IdentityEntity identityEntity = _findById(IdentityEntity.class, owner.getId());
             try {
               migrationByIdentity(null, identityEntity);
             } catch (Exception ex) {
               numberUserFailed++;
               identitiesMigrateFailed.add(node.getName());
-              LOG.error(String.format("Failed migrate user %s", owner.getRemoteId()), ex);
+              LOG.error("Failed to migrate user remote_id=" + owner.getRemoteId(), ex);
             }
-            LOG.info(String.format("|  / END:: migrate activity of user %s consumed %s(ms) -------------", owner.getRemoteId(), counter.endBatchWatch()));
+            LOG.info("|  / END::User Activities remote_id={} duration_ms={} -------------", owner.getRemoteId(), counter.endBatchWatch());
 
             if (counter.isPersistPoint()) {
               RequestLifeCycle.end();
@@ -169,15 +169,15 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     }
 
     if (numberUserFailed > 0) {
-      LOG.error(String.format("|   Failed in migrate activities of %s user(s)", numberUserFailed));
+      LOG.error("|   Failed to migrate activities of {} user(s)", numberUserFailed);
     }
-    LOG.info(String.format("| / END:: %s user(s) consumed %s(ms) -------------", counter.getTotal(), counter.endTotalWatch()));
+    LOG.info("| / END:: user activities migration {} user(s) duration_ms={} -------------", counter.getTotal(), counter.endTotalWatch());
 
     return numberUserFailed;
   }
 
   private long migrateSpaceActivities() throws Exception {
-    LOG.info("Start to migration space activities from JCR to RDBMS");
+    LOG.info("Starting to migrate space activities from JCR to RDBMS");
     long t = System.currentTimeMillis();
     long totalSpaces = getNumberSpaceIdentities();
 
@@ -210,16 +210,15 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
             long t1 = System.currentTimeMillis();
             //
             IdentityEntity spaceEntity = _findById(IdentityEntity.class, node.getUUID());
-            LOG.info(String.format("|  \\ START::space number: %s/%s (%s space)", offset, totalSpaces, owner.getRemoteId()));
+            LOG.info("|  \\ START::space number: {}/{} remote_id={} uuid={}", offset, totalSpaces, owner.getRemoteId(), owner.getId());
             try {
               migrationByIdentity(null, spaceEntity);
             } catch (Exception ex) {
               numberSpaceFailed++;
               identitiesMigrateFailed.add(node.getName());
-              LOG.error(String.format("Failed migrate space %s", owner.getRemoteId()), ex);
+              LOG.error("Failed migrate space remote_id=" + owner.getRemoteId(), ex);
             }
-            LOG.info(String.format("|  / END:: migrate activity of space %s consumed %s(ms) -------------", owner.getRemoteId(), (System.currentTimeMillis() - t1)));
-
+            LOG.info("|  / END:: migrate activity of space remote_id={} duration_ms={} -------------", owner.getRemoteId(), (System.currentTimeMillis() - t1));
           }
         }
 
@@ -231,16 +230,16 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     }
 
     if (numberSpaceFailed > 0) {
-      LOG.info(" Failed migration for " + numberSpaceFailed + " space(s)");
+      LOG.info(" Failed migration of " + numberSpaceFailed + " space(s)");
     }
 
-    LOG.info(String.format("Done to migration %s space activities from JCR to RDBMS on %s(ms)", offset, (System.currentTimeMillis() - t)));
+    LOG.info("Done to migrate {} space activities from JCR to RDBMS duration_ms={}", offset, (System.currentTimeMillis() - t));
     return numberSpaceFailed;
   }
 
   @Override
   @Managed
-  @ManagedDescription("Manual to stop run miguration data of activities from JCR to RDBMS.")
+  @ManagedDescription("To stop running activities migration from JCR to RDBMS.")
   public void stop() {
     super.stop();
   }
@@ -249,7 +248,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     MigrationContext.setActivityDone(false);
     identitiesMigrateFailed = new HashSet<>();
 
-    LOG.info("Stating to migration activities from JCR to RDBMS........");
+    LOG.info("Starting the migration of activities from JCR to RDBMS........");
   }
 
   private void migrationByIdentity(String userName, IdentityEntity identityEntity) throws Exception {
@@ -265,7 +264,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
       try {
         identityEntity = _findById(IdentityEntity.class, poster.getId());
       } catch (Exception e) {
-        LOG.warn("The user " + userName + " has not identity. Do not migration for this user.");
+        LOG.warn("The user name={} can't be migrated because he has no identity.", userName);
         return;
       }
     }
@@ -286,7 +285,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     Identity jpaIdentity = identityJPAStorage.findIdentity(identityEntity.getProviderId(), identityEntity.getRemoteId());
 
     String type = (OrganizationIdentityProvider.NAME.equals(providerId)) ? "user" : "space";
-    LOG.info(String.format("    Migration activities for %s: %s", type, identityEntity.getRemoteId()));
+    LOG.info("    Migrate activities for {} remote_id={}", type, identityEntity.getRemoteId());
     //
     ActivityListEntity activityListEntity = identityEntity.getActivityList();
     ActivityIterator activityIterator = new ActivityIterator(activityListEntity);
@@ -301,7 +300,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         ActivityEntity activityEntity = getSession().findById(ActivityEntity.class, activityId);
         ActivityUpdaterEntity updater = _getMixin(activityEntity, ActivityUpdaterEntity.class, false);
         if (updater != null) {
-          LOG.info("Activity with ID=" + activityId + " was migrated before");
+          LOG.info("Activity id={} was migrated before", activityId);
           continue;
         }
 
@@ -315,7 +314,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
             String value = entry.getValue();
 
             if (value.length() >= 1024) {
-              LOG.info("===================== activity id " + activity.getId() + " new value length = " +  value.length());
+              LOG.info("===================== activity id={} new value length={}", activity.getId(), value.length());
               params.put(entry.getKey(), "");
             }
 
@@ -362,7 +361,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
                   String value = entry.getValue();
 
                   if (value.length() >= 1024) {
-                    LOG.info("===================== comment id " + oldCommentId + " new value length = " + value.length());
+                    LOG.info("===================== comment id={} new value length={}", oldCommentId, value.length());
                     commentParams.put(entry.getKey(), "");
                   }
 
@@ -398,22 +397,22 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         getSession().save();
 
       } catch (Exception e) {
-        LOG.error("Failed to migrate activity id : " + activityId, e);
+        LOG.error("Failed to migrate activity id=" + activityId, e);
         numberActivitiesFailed++;
       } finally {
         try {
           endTx(begunTx);
         } catch (Exception ex) {
-          LOG.error("Failed to migrate activity id : " + activityId);
+          LOG.error("Failed to migrate activity id=" + activityId);
           numberActivitiesFailed++;
         }
       }
     }
 
-    LOG.info(String.format("    Done migration %s activitie(s) for %s consumed %s(ms) ", count, providerId + "/" +remoteId, System.currentTimeMillis() - t));
+    LOG.info("    Done migration of {} activitie(s) for provider_id={} remote_id={} duration_ms={}", count, providerId, remoteId, System.currentTimeMillis() - t);
     if (numberActivitiesFailed > 0) {
-      LOG.error(String.format("    Failed migration for %s activitie(s)", numberActivitiesFailed));
-      throw new Exception("Migration is failed for " + numberActivitiesFailed + " activities of identity " + providerId + "/" + remoteId);
+      LOG.error("    Failed to migrate {} activitie(s)", numberActivitiesFailed);
+      throw new Exception("Migration is failing for " + numberActivitiesFailed + " activities for identity provider_id=" + providerId + " remote_id=" + remoteId);
     } else if (!forceStop){
       try {
         identityEntity.setProperty(MigrationContext.KEY_MIGRATE_ACTIVITIES, MigrationContext.TRUE_STRING);
@@ -438,18 +437,18 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
       MigrationContext.setActivityDone(true);
     }
 
-    LOG.info("Done to migration activities from JCR to RDBMS");
+    LOG.info("Migration of activities from JCR to RDBMS done");
   }
 
   public void doRemove() throws Exception {
-    LOG.info("Start remove activities from JCR to RDBMS");
+    LOG.info("Starting to remove activities from JCR");
     try {
       RequestLifeCycle.begin(PortalContainer.getInstance());
       removeActivity();
     } finally {
       RequestLifeCycle.end();
     }
-    LOG.info("Done to removed activities from JCR");
+    LOG.info("Done to remove activities from JCR");
   }
 
   private void removeActivity() throws Exception {
@@ -464,7 +463,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     Node node = null;
     boolean isDone = false;
     try {
-      LOG.info("| \\ START::cleanup User Activity ---------------------------------");
+      LOG.info("| \\ START::cleanup User Activities ---------------------------------");
       NodeIterator it = getIdentityNodes(offset, LIMIT_REMOVED_THRESHOLD);
       while (it != null && it.hasNext()) {
         node = (Node) it.next();
@@ -475,12 +474,12 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
           continue;
         }
         offset++;
-        LOG.info(String.format("|  \\ START::cleanup user number: %s/%s (%s user)", offset, totalUsers, node.getName()));
+        LOG.info("|  \\ START::cleanup user number: {}/{} name={}", offset, totalUsers, name);
         isDone = cleanupActivity(node);
         if (!isDone) {
           identitiesCleanupFailed.add(name);
         }
-        LOG.info(String.format("|  / END::cleanup (%s user)", node.getName()));
+        LOG.info("|  / END::cleanup user name={}", name);
         //
         if (offset % LIMIT_REMOVED_THRESHOLD == 0 || isDone == false) {
           RequestLifeCycle.end();
@@ -489,11 +488,11 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to cleanup for Activity Reference.", e);
+      LOG.error("Failed to cleanup user activities.", e);
     } finally {
       RequestLifeCycle.end();
       RequestLifeCycle.begin(PortalContainer.getInstance());
-      LOG.info(String.format("| / END::cleanup Activity for (%s) user consumed %s(ms) -------------", offset, System.currentTimeMillis() - t));
+      LOG.info("| / END::cleanup User Activities for {} users duration_ms={} -------------", offset, System.currentTimeMillis() - t);
     }
     
     //cleanup activity
@@ -501,7 +500,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     node = null;
     offset = 0;
     try {
-      LOG.info("| \\ START::cleanup Space Activity ---------------------------------");
+      LOG.info("| \\ START::cleanup Space activities ---------------------------------");
       NodeIterator it = getSpaceIdentityNodes(offset, LIMIT_REMOVED_THRESHOLD);
       while (it != null && it.hasNext()) {
         node = (Node) it.next();
@@ -513,13 +512,13 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
           continue;
         }
 
-        LOG.info(String.format("|  \\ START::cleanup space number: %s/%s (%s space)", offset, totalSpaces, node.getName()));
+        LOG.info("|  \\ START::cleanup space number: {}/{} name={}", offset, totalSpaces, name);
         isDone = cleanupActivity(node);
         if (!isDone) {
           identitiesCleanupFailed.add(name);
         }
         offset++;
-        LOG.info(String.format("|  / END::cleanup (%s space)", node.getName()));
+        LOG.info("|  / END::cleanup space name={}", name);
         //
         if (offset % LIMIT_REMOVED_THRESHOLD == 0 || isDone == false) {
           RequestLifeCycle.end();
@@ -528,12 +527,12 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to cleanup for user Activities.", e);
+      LOG.error("Failed to cleanup space activities.", e);
     } finally {
       MigrationContext.setIdentitiesCleanupActivityFailed(identitiesCleanupFailed);
       RequestLifeCycle.end();
       RequestLifeCycle.begin(PortalContainer.getInstance());
-      LOG.info(String.format("| / END::cleanup Activity for (%s) space consumed %s(ms) -------------", offset, System.currentTimeMillis() - t));
+      LOG.info("| / END::cleanup Activities for {} spaces duration_ms={} -------------", offset, System.currentTimeMillis() - t);
     }
 
   }
@@ -565,7 +564,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
       }
       getSession().save();
     } catch (Exception e) {
-      LOG.error("Failed to cleanup sub node for Activity Reference, activity id =" + nodeId + " path=" + nodePath, e);
+      LOG.error("Failed to cleanup sub node for Activity Reference, activity id=" + nodeId + " path=" + nodePath, e);
       try {
         getSession().getJCRSession().refresh(false);
       } catch (RepositoryException ex) {
@@ -573,7 +572,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
       }
       return false;
     } finally {
-      LOG.info(String.format("|     - Done cleanup: %s ref(s) of (%s) consumed time %s(ms) ", offset, userName, System.currentTimeMillis() - totalTime));
+      LOG.info("|     - Done cleanup: {} ref(s) of user name={} duration_ms={}", offset, userName, System.currentTimeMillis() - totalTime);
     }
     return true;
   }
@@ -601,7 +600,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         return false;
       }
 
-
+      LOG.info("|   | Searching activities to clean for identity name={}", identityName);
       StringBuffer sb = new StringBuffer().append("SELECT * FROM soc:activity WHERE ");
       try {
         String nodeStreamsPath = XPathUtils.escapeIllegalSQLName(identityNode.getNode("soc:activities").getPath());
@@ -615,7 +614,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         long t = System.currentTimeMillis();
         long offset = 0;
 
-        LOG.info(String.format("|   \\ START::cleanup: %d (Activity) for %s identity", size, identityName));
+        LOG.info("|   \\ START::cleanup Activities {} activities for identity name={}", size, identityName);
         try {
           NodeIterator it = nodes(sb.toString(), failed, LIMIT_ACTIVITY_SAVE_THRESHOLD);
           while(it != null && it.hasNext()) {
@@ -629,14 +628,14 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
               }
               //activityJCRStorage.deleteActivity(n.getUUID());
             } catch (Exception ex) {
-              LOG.error("Failed to cleanup activity ID: " + n.getUUID() + " path: " + n.getPath(), ex);
+              LOG.error("Failed clean activity id=" + n.getUUID() + " path=" + n.getPath(), ex);
               failed++;
             }
 
             if (offset % LIMIT_ACTIVITY_SAVE_THRESHOLD == 0) {
               try {
                 getSession().save();
-                LOG.info(String.format("|     - Persist deleted: %s activity consumed time %s(ms) ", LIMIT_ACTIVITY_SAVE_THRESHOLD, System.currentTimeMillis() - t));
+                LOG.info("|     - Persist {} deleted activities duration_ms={}", LIMIT_ACTIVITY_SAVE_THRESHOLD, System.currentTimeMillis() - t);
               } catch (Exception ex) {
                 LOG.error("Failed, can not persist deleted activities", ex);
                 getSession().getJCRSession().refresh(false);
@@ -650,17 +649,17 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
 
           getSession().save();
           if (offset % LIMIT_ACTIVITY_SAVE_THRESHOLD != 0) {
-            LOG.info(String.format("|     - Persist deleted: %s activity consumed time %s(ms) ", offset % LIMIT_ACTIVITY_SAVE_THRESHOLD, System.currentTimeMillis() - t));
+            LOG.info("|     - Persist {} deleted activities duration_ms={}", offset % LIMIT_ACTIVITY_SAVE_THRESHOLD, System.currentTimeMillis() - t);
           }
         } finally {
-          LOG.info(String.format("|   / END::cleanup: %d (Activity) for %s identity consumed time %s(ms) ", size, identityName, System.currentTimeMillis() - totalTime));
+          LOG.info("|   / END::cleanup Activities {} activities for identity name={} duration_ms={} ", size, identityName, System.currentTimeMillis() - totalTime);
         }
       } else {
-        LOG.info("There is not any activity for identity: " + identityName);
+        LOG.info("There is no activities to clean for identity name={}", identityName);
       }
 
     } catch (Exception e) {
-      LOG.error("Failed to cleanup activities for identity: " + identityName, e);
+      LOG.error("Failed to clean activities for identity name=" + identityName, e);
       try {
         getSession().getJCRSession().refresh(false);
       } catch (RepositoryException ex) {

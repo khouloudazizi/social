@@ -120,7 +120,7 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
 
             spaceInTransaction.add(spaceName);
 
-            LOG.info(String.format("|  \\ START::space number: %s/%s (%s space)", offset, totalSpace, spaceName));
+            LOG.info("|  \\ START::space migration number: {}/{} name={}", offset, totalSpace, spaceName);
             long t1 = System.currentTimeMillis();
 
             try {
@@ -131,7 +131,7 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
               LOG.error("Error while migrate the space " + spaceName, ex);
               spaceMigrateFailed.add(spaceName);
             }
-            LOG.info(String.format("|  / END::space number %s (%s space) consumed %s(ms)", offset, spaceNode.getName(), System.currentTimeMillis() - t1));
+            LOG.info("|  / END::space migration number {} name={} duration_ms={}", offset, spaceNode.getName(), System.currentTimeMillis() - t1);
           }
         }
 
@@ -149,9 +149,9 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
     RequestLifeCycle.begin(PortalContainer.getInstance());
 
     if (numberFailed > 0) {
-      LOG.info(String.format("|   Space migration failed for (%s) space(s)", numberFailed));
+      LOG.info("|   Space migration failed for {} space(s)", numberFailed);
     }
-    LOG.info(String.format("| / END::Space migration for (%s) space(s) consumed %s(ms)", numberSuccessful, System.currentTimeMillis() - t));
+    LOG.info("| / END::Space migration of {} space(s) duration_ms={}", numberSuccessful, System.currentTimeMillis() - t);
 
     LOG.info("| \\ START::Re-indexing space(s) ---------------------------------");
     //To be sure all of the space will be indexed in ES after migrated
@@ -242,7 +242,7 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
         if (!MigrationContext.isForceCleanup() &&  (MigrationContext.getSpaceMigrateFailed().contains(name)
                 || MigrationContext.getIdentitiesCleanupFailed().contains(name))) {
           spaceCleanupFailed.add(name);
-          LOG.warn("Will not remove this space because the migration or cleanup identity failed");
+          LOG.warn("Will not remove this space because the identity migration or cleanup failed");
           continue;
         }
 
@@ -250,14 +250,14 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
         String prettyName = this.getProperty(node, "soc:name");
         Space sp = spaceStorage.getSpaceByPrettyName(prettyName);
         if (sp == null) {
-          LOG.warn("Will not remove this space because the migration or cleanup identity failed");
+          LOG.warn("Will not remove this space because the identity migration or cleanup failed");
           spaceCleanupFailed.add(name);
           continue;
         }
 
         transactionList.add(name);
 
-        LOG.info(String.format("|  \\ START::cleanup Space number: %s/%s (%s space)", offset, totalSpace, node.getName()));
+        LOG.info("|  \\ START::cleanup space number: {}/{} name={}", offset, totalSpace, node.getName());
 
         try {
 
@@ -278,17 +278,17 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
           node.remove();
         } catch (Exception ex) {
           spaceCleanupFailed.add(name);
-          LOG.error("Error while remove the space " + name, ex);
+          LOG.error("Error while removing the space " + name, ex);
         }
 
-        LOG.info(String.format("|  / END::cleanup (%s space) consumed time %s(ms)", node.getName(), System.currentTimeMillis() - timePerSpace));
-        
+        LOG.info("|  / END::cleanup space name={} duration_ms={}", node.getName(), System.currentTimeMillis() - timePerSpace);
+
         timePerSpace = System.currentTimeMillis();
         if(offset % REMOVE_LIMIT_THRESHOLD == 0) {
           try {
             getSession().save();
           } catch (Exception ex) {
-            LOG.error("Exception while cleanup spaces", ex);
+            LOG.error("Exception during commit of spaces cleanup", ex);
             spaceCleanupFailed.addAll(transactionList);
           }
           RequestLifeCycle.end();
@@ -298,12 +298,12 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
           transactionList = new ArrayList<>();
         }
       }
-      LOG.info(String.format("| / END::cleanup Spaces migration for (%s) space consumed %s(ms)", offset, System.currentTimeMillis() - t));
+      LOG.info("| / END::cleanup {} spaces duration_ms={}", offset, System.currentTimeMillis() - t);
     } finally {
       try {
         getSession().save();
       } catch (Exception ex) {
-        LOG.error("Exception while cleanup spaces", ex);
+        LOG.error("Exception during commit spaces cleanup", ex);
         spaceCleanupFailed.addAll(transactionList);
         getSession().getJCRSession().refresh(false);
       }
@@ -315,7 +315,7 @@ public class SpaceMigrationService extends AbstractMigrationService<Space> {
 
   @Override
   @Managed
-  @ManagedDescription("Manual to stop run miguration data of spaces from JCR to RDBMS.")
+  @ManagedDescription("Stop a running migration of spaces from JCR to RDBMS.")
   public void stop() {
     super.stop();
   }

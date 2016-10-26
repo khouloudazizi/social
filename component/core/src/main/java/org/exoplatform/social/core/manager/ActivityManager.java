@@ -286,7 +286,6 @@ public interface ActivityManager {
    */
   void addProcessorPlugin(BaseActivityProcessorPlugin activityProcessorPlugin);
 
-
   void addActivityEventListener(ActivityListenerPlugin activityListenerPlugin);
   
   /**

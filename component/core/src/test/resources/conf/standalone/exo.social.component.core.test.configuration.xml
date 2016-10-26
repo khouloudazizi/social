@@ -278,23 +278,6 @@
           </value-param>
         </init-params>
       </component-plugin>
-      <component-plugin>
-        <name>RegisterActivityTypes</name>
-        <set-method>registerActivityTypes</set-method>
-        <type>org.exoplatform.social.core.activity.ActivityTypesPlugin</type>
-        <init-params>
-          <value-param>
-            <name>activity.types</name>
-            <description>The list of activity Types</description>
-            <value>${exo.social.activity.types:DEFAULT_ACTIVITY,SPACE_ACTIVITY,USER_PROFILE_ACTIVITY,cs-calendar:spaces}</value>
-          </value-param>
-          <value-param>
-                <name>custom.types</name>
-                <description>The list of custom activity Types</description>
-                <value>MY_ACTIVITY</value>
-          </value-param>
-        </init-params>
-      </component-plugin>
     </component-plugins>
   </component>
 

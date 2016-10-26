@@ -65,14 +65,14 @@ public class ActivityManagerImpl implements ActivityManager {
   private static final int DEFAULT_LIMIT = 20;
 
   /**
-   * The list of registred activity types.
+   * The list of enabled/disabled activity types by exo properties.
    */
   private static Map<String,Boolean> activityTypesRegister= new HashMap<>();
 
   /**
    * Exo property pattern used for disable activity type
    */
-  private static final String ACTIVITY_TYPE_PROPERTY_PATTERN = "exo.activity-type.{}.enabled";
+  private static final String ACTIVITY_TYPE_PROPERTY_PATTERN = "exo\\.activity-type\\..*\\.enabled";
 
   /**
    * Instantiates a new activity manager.
@@ -83,6 +83,7 @@ public class ActivityManagerImpl implements ActivityManager {
   public ActivityManagerImpl(ActivityStorage activityStorage, IdentityManager identityManager) {
     this.activityStorage = activityStorage;
     this.identityManager = identityManager;
+    intActivityTypes();
   }
 
   /**
@@ -329,20 +330,16 @@ public class ActivityManagerImpl implements ActivityManager {
     this.addProcessor(plugin);
   }
 
-  @Override
-  public void registerActivityTypes(ActivityTypesPlugin activityTypesPlugin) {
-    for(String type : activityTypesPlugin.getActivityTypes()){
-      String value = PropertyManager.getProperty(ACTIVITY_TYPE_PROPERTY_PATTERN.replace("{}", type));
+  public void intActivityTypes() {
+    for(String propertyName : PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN)){
+      String value = PropertyManager.getProperty(propertyName);
+      String name = propertyName.substring(18, propertyName.lastIndexOf(".enabled"));
       if(value != null && value.equalsIgnoreCase("false")){
-        if(activityTypesRegister.get(type) == null){
-          LOG.info("Activity Type key:  {},  registration status: disabled", type);
-        }
-        activityTypesRegister.putIfAbsent(type, false);
+        LOG.info("Activity Type key:  {},  registration status: disabled", name);
+        activityTypesRegister.putIfAbsent(name, false);
       }else{
-        if(activityTypesRegister.get(type) == null){
-          LOG.info("Activity Type key:  {},  registration status: enabled", type);
-        }
-        activityTypesRegister.putIfAbsent(type, true);
+        LOG.info("Activity Type key:  {},  registration status: enabled", name);
+        activityTypesRegister.putIfAbsent(name, true);
       }
     }
   }

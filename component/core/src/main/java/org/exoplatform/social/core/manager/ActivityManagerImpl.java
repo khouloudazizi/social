@@ -343,8 +343,9 @@ public class ActivityManagerImpl implements ActivityManager {
   }
 
   public void initActivityTypes() {
-    for(String propertyName : PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN)){
-      String value = PropertyManager.getProperty(propertyName);
+    Map<String, String> properties = PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN);
+    for(String propertyName : properties.keySet()){
+      String value = properties.get(propertyName);
       String name = propertyName.substring(PREFIX.length(), propertyName.lastIndexOf(SUFFIX));
       if(value != null && value.equalsIgnoreCase("false")){
         LOG.info("Activity Type key:  {},  registration status: disabled", name);

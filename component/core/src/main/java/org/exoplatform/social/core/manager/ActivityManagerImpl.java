@@ -67,12 +67,24 @@ public class ActivityManagerImpl implements ActivityManager {
   /**
    * The list of enabled/disabled activity types by exo properties.
    */
-  private static Map<String,Boolean> activityTypesRegister= new HashMap<>();
+  private static Map<String,Boolean> activityTypesRegistry= new HashMap<>();
 
   /**
    * Exo property pattern used for disable activity type
    */
   private static final String ACTIVITY_TYPE_PROPERTY_PATTERN = "exo\\.activity-type\\..*\\.enabled";
+
+  /**
+   * Exo property pattern prefix
+   */
+  private static final String PREFIX = "exo.activity-type.";
+
+
+  /**
+   * Exo property pattern suffix
+   */
+  private static final String SUFFIX = ".enabled";
+
 
   /**
    * Instantiates a new activity manager.
@@ -83,7 +95,7 @@ public class ActivityManagerImpl implements ActivityManager {
   public ActivityManagerImpl(ActivityStorage activityStorage, IdentityManager identityManager) {
     this.activityStorage = activityStorage;
     this.identityManager = identityManager;
-    intActivityTypes();
+    initActivityTypes();
   }
 
   /**
@@ -94,7 +106,7 @@ public class ActivityManagerImpl implements ActivityManager {
       LOG.warn("Activity could not be saved. Owner has been disabled.");
       return;
     }
-    if(newActivity.getType() != null && activityTypesRegister.get(newActivity.getType()) != null&& !activityTypesRegister.get(newActivity.getType())){
+    if(newActivity.getType() != null && activityTypesRegistry.get(newActivity.getType()) != null&& !activityTypesRegistry.get(newActivity.getType())){
       if(LOG.isDebugEnabled()){
         LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", newActivity.getType());
       }
@@ -119,7 +131,7 @@ public class ActivityManagerImpl implements ActivityManager {
    * {@inheritDoc}
    */
   public void saveActivity(Identity streamOwner, String activityType, String activityTitle) {
-    if(activityType != null && activityTypesRegister.get(activityType) != null && !activityTypesRegister.get(activityType)){
+    if(activityType != null && activityTypesRegistry.get(activityType) != null && !activityTypesRegistry.get(activityType)){
       if(LOG.isDebugEnabled()){
         LOG.debug("Activity could not be saved. Activity Type {} has been disabled.", activityType);
       }
@@ -330,16 +342,16 @@ public class ActivityManagerImpl implements ActivityManager {
     this.addProcessor(plugin);
   }
 
-  public void intActivityTypes() {
+  public void initActivityTypes() {
     for(String propertyName : PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN)){
       String value = PropertyManager.getProperty(propertyName);
-      String name = propertyName.substring(18, propertyName.lastIndexOf(".enabled"));
+      String name = propertyName.substring(PREFIX.length(), propertyName.lastIndexOf(SUFFIX));
       if(value != null && value.equalsIgnoreCase("false")){
         LOG.info("Activity Type key:  {},  registration status: disabled", name);
-        activityTypesRegister.putIfAbsent(name, false);
+        activityTypesRegistry.putIfAbsent(name, false);
       }else{
         LOG.info("Activity Type key:  {},  registration status: enabled", name);
-        activityTypesRegister.putIfAbsent(name, true);
+        activityTypesRegistry.putIfAbsent(name, true);
       }
     }
   }

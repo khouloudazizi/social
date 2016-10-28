@@ -343,10 +343,10 @@ public class ActivityManagerImpl implements ActivityManager {
   }
 
   public void initActivityTypes() {
-    Map<String, String> properties = PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN);
-    for(String propertyName : properties.keySet()){
-      String value = properties.get(propertyName);
-      String name = propertyName.substring(PREFIX.length(), propertyName.lastIndexOf(SUFFIX));
+    Properties properties = PropertyManager.getPropertiesByPattern(ACTIVITY_TYPE_PROPERTY_PATTERN);
+    properties.forEach((k,v)->{
+      String value = properties.getProperty(k.toString());
+      String name = k.toString().substring(PREFIX.length(), k.toString().lastIndexOf(SUFFIX));
       if(value != null && value.equalsIgnoreCase("false")){
         LOG.info("Activity Type key:  {},  registration status: disabled", name);
         activityTypesRegistry.putIfAbsent(name, false);
@@ -354,7 +354,7 @@ public class ActivityManagerImpl implements ActivityManager {
         LOG.info("Activity Type key:  {},  registration status: enabled", name);
         activityTypesRegistry.putIfAbsent(name, true);
       }
-    }
+    });
   }
 
   /**

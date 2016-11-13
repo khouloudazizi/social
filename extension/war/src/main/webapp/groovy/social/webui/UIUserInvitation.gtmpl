@@ -34,6 +34,6 @@ String placeholder = _ctx.appRes("UIUserInvitation.input.placeholder");
   <% uiform.end();%>
   <%
    requireJs.require("SHARED/userInvitation", "invite");
-   requireJs.addScripts("invite.build('user', '$restUrl', '$placeholder');");
+   requireJs.addScripts("invite.build('user', '$restUrl', \"$placeholder\");");
   %>
 </div>

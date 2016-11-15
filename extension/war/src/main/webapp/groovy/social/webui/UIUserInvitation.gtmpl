@@ -4,6 +4,9 @@ String inviteAction = uicomponent.event("Invite") + "; return false;";
 String restUrl = uicomponent.getRestURL();
 String value = uicomponent.getValue();
 String placeholder = _ctx.appRes("UIUserInvitation.input.placeholder");
+if(placeholder != null) {
+	placeholder = placeholder.replace("'", "\\'").replace("&#39;", "\\&#39;")
+}
 %>
 <div class="uiUserInvitation">
   <%
@@ -34,6 +37,6 @@ String placeholder = _ctx.appRes("UIUserInvitation.input.placeholder");
   <% uiform.end();%>
   <%
    requireJs.require("SHARED/userInvitation", "invite");
-   requireJs.addScripts("invite.build('user', '$restUrl', \"$placeholder\");");
+   requireJs.addScripts("invite.build('user', '$restUrl', '$placeholder');");
   %>
 </div>

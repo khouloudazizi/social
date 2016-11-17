@@ -56,6 +56,7 @@
   def labelYouLikeThis=_ctx.appRes("UIActivity.label.You_Like_This");
   def labelYouAndOnePersonLikeThis=_ctx.appRes("UIActivity.label.You_And_One_Person_Like_This");
   def labelYouAndOthersLikeThis=_ctx.appRes("UIActivity.label.You_And_Others_Like_This");
+  def lengthExceed = _ctx.appRes("UIActivity.msg.error.lengthExceed");
 
   def likeActivityAction = uicomponent.event("LikeActivity", "true");
   def unlikeActivityAction = uicomponent.event("LikeActivity", "false");
@@ -327,6 +328,9 @@
           <span class="BorderBottomCM"></span>
         </a>
         <div class="CommentInputBox"><% uicomponent.renderChild(UIFormTextAreaInput.class); %></div>
+        <div class="commentLimited hide">
+          <span class="error">$lengthExceed</span>
+        </div>
         <input type="button" onclick="<%= uicomponent.event("PostComment") %>" value="$labelComment" class="CommentButton DisplayNone" id="CommentButton${activity.id}" />
       </div>
     </div>

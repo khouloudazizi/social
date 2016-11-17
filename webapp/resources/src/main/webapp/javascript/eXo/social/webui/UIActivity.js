@@ -128,8 +128,10 @@
 
             if (pureText.length <= MAX_LENGTH) {
               evt.editor.getCommand('simpleImage').enable();
+              $('.commentLimited').addClass('hide');
             } else {
               evt.editor.getCommand('simpleImage').disable();
+              $('.commentLimited').removeClass('hide');
             }
           },
           key: function( evt) {
@@ -184,6 +186,7 @@
         commentLinkEl.off('click').on('click', function (evt) {
           var currentActivityId = $(this).attr('id').replace('CommentLink', '');
           $('#cke_CommentTextarea' + currentActivityId + ' .cke_contents')[0].style.height = "110px";
+          $('.commentLimited').addClass('hide');
           var inputContainer = $('#InputContainer' + currentActivityId).fadeToggle('fast', function () {
             var thiz = $(this);
             if(thiz.css('display') === 'block') {

@@ -71,6 +71,7 @@
   def labelConfirmbutton=StringEscapeUtils.escapeHtml(_ctx.appRes("UIActivity.label.Confirm_Delete_Activity-Button"));
   def labelClosebutton=StringEscapeUtils.escapeHtml(_ctx.appRes("UIActivity.label.Cancel_Delete_Activity-Button"));
   def labelToDeleteThisComment=StringEscapeUtils.escapeHtml(_ctx.appRes("UIActivity.msg.Are_You_Sure_To_Delete_This_Comment"));
+  def lengthExceed = _ctx.appRes("UIActivity.msg.error.lengthExceed");
 
   def likeActivityAction = uicomponent.event("LikeActivity", "true");
   def unlikeActivityAction = uicomponent.event("LikeActivity", "false");
@@ -399,6 +400,9 @@
                     <div class="commentRight">
                         <div class="commentInputBox ">
                             <div class="commentInput"><% uicomponent.renderChild(UIFormTextAreaInput.class); %></div>
+                            <div class="commentLimited hide">
+                                <span class="error">$lengthExceed</span>
+                            </div>
                             <button class="btn pull-left btn-primary" onclick="<%= uicomponent.event("PostComment") %>" id="CommentButton${activity.id}" disabled>$labelComment</button>
                             <button class="btn visible-phone" id="CancelButton${activity.id}">$labelCancel</button>
                         </div>

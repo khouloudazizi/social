@@ -17,10 +17,10 @@ getActivityComposers * Copyright (C) 2003-2010 eXo Platform SAS.
 package org.exoplatform.social.webui.composer;
 
 
-import java.util.List;
-
-import org.exoplatform.commons.utils.HTMLSanitizer;
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.services.resources.ResourceBundleService;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.webui.Utils;
 import org.exoplatform.social.webui.activity.BaseUIActivity;
@@ -39,6 +39,10 @@ import org.exoplatform.webui.ext.UIExtension;
 import org.exoplatform.webui.ext.UIExtensionManager;
 import org.exoplatform.webui.form.UIForm;
 import org.exoplatform.webui.form.UIFormTextAreaInput;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -78,6 +82,12 @@ public class UIComposer extends UIForm {
     if(this.getId() == null) this.setId("UIComposer");
     //add textbox for inputting message
     UIFormTextAreaInput messageInput = new UIFormTextAreaInput(COMPOSER_TEXT_AREA_INPUT, COMPOSER_TEXT_AREA_INPUT, null);
+    Locale locale = WebuiRequestContext.getCurrentInstance().getLocale();
+    ExoContainer appContainer = ExoContainerContext.getCurrentContainer();
+    ResourceBundleService service = (ResourceBundleService) appContainer.getComponentInstanceOfType(ResourceBundleService.class);
+    ResourceBundle res = service.getResourceBundle("locale.social.Webui", locale);
+    String placeholder =  res.getString("UIComposer.label.DefaultMessage").replace("'", "\\'");
+    messageInput.setHTMLAttribute("placeholder", placeholder);
     addUIFormInput(messageInput);
 
     //add composer container

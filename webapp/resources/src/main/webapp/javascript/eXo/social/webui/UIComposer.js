@@ -56,72 +56,75 @@
       UIComposer.mentionBtnLabel = params.mentionBtnLabel;
       UIComposer.userTyped = false;
     },
-    init : function() {
-
-        UIComposer.composer = $('#' + UIComposer.composerId);
-
+    initCKEditor : function(element) {
         var windowWidth = $(window).width();
         var windowHeight = $(window).height();
 
-        var composerInput = $('#composerInput');
         var extraPlugins = 'simpleLink,simpleImage,suggester,hideBottomToolbar';
         if (windowWidth > windowHeight && windowWidth < 768) {
-          // Disable suggester on smart-phone landscape
-          extraPlugins = 'simpleLink,simpleImage';
+            // Disable suggester on smart-phone landscape
+            extraPlugins = 'simpleLink,simpleImage';
         }
 
         // TODO this line is mandatory when a custom skin is defined, it should not be mandatory
         CKEDITOR.basePath = '/commons-extension/ckeditor/';
-        composerInput.ckeditor({
-          customConfig: '/commons-extension/ckeditorCustom/config.js',
-          extraPlugins: extraPlugins,
-          placeholder: window.eXo.social.I18n.mentions.defaultMessage,
-          on : {
-            instanceReady : function ( evt ) {
-              // Hide the editor toolbar
-              $("#ShareButton").prop("disabled", true);
-            },
-            change: function( evt) {
-                var newData = evt.editor.getData();
-                var pureText = newData? newData.replace(/<[^>]*>/g, "").replace(/&nbsp;/g,"").trim() : "";
+        element.ckeditor({
+            customConfig: '/commons-extension/ckeditorCustom/config.js',
+            extraPlugins: extraPlugins,
+            placeholder: window.eXo.social.I18n.mentions.defaultMessage,
+            on : {
+                instanceReady : function ( evt ) {
+                    // Hide the editor toolbar
+                    $("#ShareButton").prop("disabled", true);
+                    this.focus();
+                },
+                change: function( evt) {
+                    var newData = evt.editor.getData();
+                    var pureText = newData? newData.replace(/<[^>]*>/g, "").replace(/&nbsp;/g,"").trim() : "";
 
-                if (pureText.length > 0 && pureText.length <= UIComposer.MAX_LENGTH) {
-                    $(".share-button").removeAttr("disabled");
-                } else {
-                    $(".share-button").prop("disabled", true);
-                }
-                
-                if (pureText.length <= UIComposer.MAX_LENGTH) {
-                    evt.editor.getCommand('simpleImage').enable();
-                    $('.composerLimited').addClass('hide');
-                } else {
-                    evt.editor.getCommand('simpleImage').disable();
-                    $('.composerLimited').removeClass('hide');
-                }
-            },
-            key: function( evt) {
-                var newData = evt.editor.getData();
-                var pureText = newData? newData.replace(/<[^>]*>/g, "").replace(/&nbsp;/g,"").trim() : "";
-                if (pureText.length > UIComposer.MAX_LENGTH) {
-                    if ([8, 46, 33, 34, 35, 36, 37,38,39,40].indexOf(evt.data.keyCode) < 0) {
-                        evt.cancel();
+                    if (pureText.length > 0 && pureText.length <= UIComposer.MAX_LENGTH) {
+                        $(".share-button").removeAttr("disabled");
+                    } else {
+                        $(".share-button").prop("disabled", true);
                     }
-                }
-                if (!$(".uiLinkShareDisplay").length && (evt.data.keyCode == 32 || evt.data.keyCode == 13)) {
-                    var firstUrl = UIComposer.searchFirstURL(pureText);
-                    if (firstUrl !== "") {
-                        console.log(firstUrl);
-                        $('#InputLink').val(firstUrl);
-                        $('#AttachButton').trigger('click');
-                        UIComposer.showedLink = true;
+
+                    if (pureText.length <= UIComposer.MAX_LENGTH) {
+                        evt.editor.getCommand('simpleImage').enable();
+                        $('.composerLimited').addClass('hide');
+                    } else {
+                        evt.editor.getCommand('simpleImage').disable();
+                        $('.composerLimited').removeClass('hide');
+                    }
+                },
+                key: function( evt) {
+                    var newData = evt.editor.getData();
+                    var pureText = newData? newData.replace(/<[^>]*>/g, "").replace(/&nbsp;/g,"").trim() : "";
+                    if (pureText.length > UIComposer.MAX_LENGTH) {
+                        if ([8, 46, 33, 34, 35, 36, 37,38,39,40].indexOf(evt.data.keyCode) < 0) {
+                            evt.cancel();
+                        }
+                    }
+                    if (!$(".uiLinkShareDisplay").length && (evt.data.keyCode == 32 || evt.data.keyCode == 13)) {
+                        var firstUrl = UIComposer.searchFirstURL(pureText);
+                        if (firstUrl !== "") {
+                            console.log(firstUrl);
+                            $('#InputLink').val(firstUrl);
+                            $('#AttachButton').trigger('click');
+                            UIComposer.showedLink = true;
+                        }
                     }
                 }
             }
-            
-          }
         });
+    },
+    init : function() {
 
+        UIComposer.composer = $('#' + UIComposer.composerId);
 
+        var composerInput = $('#composerInput');
+        composerInput.on('focus', function (e) {
+            UIComposer.initCKEditor(composerInput);
+        });
 
         var actionLink = $('#actionLink');
         if(actionLink.length > 0 && $(UIComposer.clickOn).hasClass('uidocactivitycomposer') === false) {

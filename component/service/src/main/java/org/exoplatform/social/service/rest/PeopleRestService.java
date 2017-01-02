@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -165,6 +164,8 @@ public class PeopleRestService implements ResourceContainer{
                     @QueryParam("activityId") String activityId,
                     @QueryParam("spaceURL") String spaceURL,
                     @PathParam("format") String format) throws Exception {
+    identityManager = Util.getIdentityManager(PortalContainer.getCurrentPortalContainerName());
+
     String[] mediaTypes = new String[] { "json", "xml" };
     MediaType mediaType = Util.getMediaType(format, mediaTypes);
 
@@ -180,6 +181,7 @@ public class PeopleRestService implements ResourceContainer{
     List<Identity> excludedIdentityList = identityFilter.getExcludedIdentityList();
     if (excludedIdentityList == null) {
       excludedIdentityList = new ArrayList<Identity>();
+      identityFilter.setExcludedIdentityList(excludedIdentityList);
     }
     IdentityNameList nameList = new IdentityNameList();
     Identity currentIdentity = Util.getViewerIdentity(currentUser);
@@ -203,20 +205,6 @@ public class PeopleRestService implements ResourceContainer{
       Space space = getSpaceService().getSpaceByUrl(spaceURL);
       addSpaceOrUserToList(identities, nameList, space, typeOfRelation, 0);
     } else if (USER_TO_INVITE.equals(typeOfRelation)) {
-      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
-
-      // Add connections in the suggestions
-      long remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
-      if (remain > 0) {
-        userInfos = addUserConnections(currentIdentity, identityFilter, userInfos, currentUser, remain);
-      }
-
-      // finally add others users in the suggestions
-      remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
-      if (remain > 0) {
-        userInfos = addOtherUsers(identityFilter, excludedIdentityList, userInfos, currentUser, remain);
-      }
-
       if(currentSpace == null) {
         LOG.warn("Suggester is user to invite user to a space, but the space with URL '{}' wasn't found.", spaceURL);
       } else {
@@ -229,13 +217,20 @@ public class PeopleRestService implements ResourceContainer{
         addArrayToCollection(usersToIgnore, currentSpace.getManagers());
         addArrayToCollection(usersToIgnore, currentSpace.getInvitedUsers());
 
-        Iterator<UserInfo> usersIterator = userInfos.iterator();
-        while (usersIterator.hasNext()) {
-          PeopleRestService.UserInfo userInfo = usersIterator.next();
-          if (StringUtils.isNotBlank(userInfo.getUsername()) && usersToIgnore.contains(userInfo.getUsername())) {
-            usersIterator.remove();
-          }
+        for (String userToIgnore : usersToIgnore) {
+          excludedIdentityList.add(identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, userToIgnore, true));
         }
+      }
+
+      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
+
+      // Add connections in the suggestions
+      userInfos = addUserConnections(currentIdentity, identityFilter, userInfos, currentUser, SUGGEST_LIMIT);
+
+      // finally add others users in the suggestions
+      long remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
+      if (remain > 0) {
+        userInfos = addOtherUsers(identityFilter, excludedIdentityList, userInfos, currentUser, remain);
       }
 
       return Util.getResponse(userInfos, uriInfo, mediaType, Response.Status.OK);
@@ -474,9 +469,9 @@ public class PeopleRestService implements ResourceContainer{
   }
 
   private LinkedHashSet<UserInfo> addOtherUsers (ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<UserInfo> userInfos, String currentUser, long remain) throws Exception {
-    List<Identity> listAccess = getIdentityManager().getIdentityStorage().getIdentitiesForMentions(OrganizationIdentityProvider.NAME, identityFilter, null, 0L, remain, false);
     identityFilter.setExcludedIdentityList(excludedIdentityList);
-    Identity[] identitiesList = listAccess.toArray(new Identity[0]);
+    ListAccess<Identity> listAccess = getIdentityManager().getIdentitiesByProfileFilter(OrganizationIdentityProvider.NAME, identityFilter, true);
+    Identity[] identitiesList = listAccess.load(0, (int) remain);
     userInfos = addUsersToUserInfosList(identitiesList, identityFilter, userInfos, currentUser, false);
     return userInfos;
   }

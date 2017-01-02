@@ -7,23 +7,23 @@
                 plugins: ['remove_button', 'restore_on_backspace'],
                 preload: true,
                 maxItems: null,
-                valueField: 'value',
-                labelField: 'text',
-                searchField: ['text'],
-                sourceProviders: ['exo:social'],
+                valueField: 'username',
+                labelField: 'name',
+                searchField: ['name'],
+                sourceProviders: ['exo:social_space_member'],
                 create: function(input) {
-                    return {'value': input, 'text': input, 'invalid': true};
+                    return {'username': input, 'name': input, 'invalid': true};
                 },
                 createOnBlur: true,
                 renderItem: function(item, escape) {
                     if (item.invalid) {
-                        return '<div class="item invalid">' + item.text + '</div>';
+                        return '<div class="item invalid">' + item.name + '</div>';
                     } else {
-                        return '<div class="item">' + item.text + '</div>';                         
+                        return '<div class="item">' + item.name + '</div>';                         
                     }
                 },
                 renderMenuItem: function(item, escape) {
-                  var avatar = item.avatarUrl;
+                  var avatar = item.avatar;
                   if (avatar == null) {
                       if (item.type == "space") {
                           avatar = '/eXoSkin/skin/images/system/SpaceAvtDefault.png';
@@ -34,11 +34,10 @@
 
                   return '<div class="option">' +
                   '<img width="20px" height="20px" src="' + avatar + '"> ' +
-                  escape(item.text) + '</div>';
-              },
-              sortField: [{field: 'order'}, {field: '$score'}],
+                  escape(item.name) + '</div>';
+                },
               providers: {
-                'exo:social': function(query, callback) {
+                'exo:social_space_member': function(query, callback) {
                     if (query == '') {
                       var thizz = this;
                       // Pre-load options for initial users
@@ -53,7 +52,7 @@
                                       if (json.options != null) {
                                           callback(json.options);
                                           for (var i = 0; i < json.options.length; i++) {
-                                              thizz.updateOption(json.options[i].value, json.options[i]);
+                                              thizz.updateOption(json.options[i].username, json.options[i]);
                                           }
                                       }
                                   }
@@ -67,9 +66,9 @@
                             data: { nameToSearch : query },
                             complete: function(jqXHR) {
                                 if(jqXHR.readyState === 4) {
-                                    var json = $.parseJSON(jqXHR.responseText)
-                                    if (json.options != null) {
-                                        callback(json.options);
+                                    var data = $.parseJSON(jqXHR.responseText)
+                                    if (data && data.length > 0) {
+                                        callback(data);
                                     }
                                 }
                             }

@@ -16,10 +16,35 @@
  */
 package org.exoplatform.social.service.rest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shindig.social.opensocial.model.Activity;
+
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
@@ -50,13 +75,6 @@ import org.exoplatform.social.service.rest.api.models.IdentityNameList;
 import org.exoplatform.social.service.rest.api.models.IdentityNameList.Option;
 import org.exoplatform.social.service.rest.api.models.PeopleInfo;
 import org.exoplatform.webui.utils.TimeConvertUtils;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.Status;
-import java.lang.reflect.Array;
-import java.util.*;
 
 /**
  * 
@@ -185,109 +203,42 @@ public class PeopleRestService implements ResourceContainer{
       Space space = getSpaceService().getSpaceByUrl(spaceURL);
       addSpaceOrUserToList(identities, nameList, space, typeOfRelation, 0);
     } else if (USER_TO_INVITE.equals(typeOfRelation)) {
-      Space space = getSpaceService().getSpaceByUrl(spaceURL);
+      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
 
-      // This is for pre-loading data
-      if (name != null && name.contains(",")) {
-        String[] items = name.split(",");
-        for (String item : items) {
-          Option opt = new Option();
-          if (item.startsWith(SPACE_PREFIX)) {
-            Space s = getSpaceService().getSpaceByPrettyName(item.substring(7));
-            opt.setType("space");
-            opt.setValue(SPACE_PREFIX + s.getPrettyName());
-            opt.setText(s.getDisplayName());
-            opt.setAvatarUrl(s.getAvatarUrl());
-            opt.setOrder(2);
-          } else {
-            Identity identity = getIdentityManager().getOrCreateIdentity(
-                                                     OrganizationIdentityProvider.NAME, item, false);
-            opt.setType("user");
-            opt.setOrder(1);
-            if (identity != null) {
-              Profile p = identity.getProfile();
-              opt.setValue((String) p.getProperty(Profile.USERNAME));
-              opt.setText(p.getFullName() + " (" + (String) p.getProperty(Profile.USERNAME) + ")");
-              opt.setAvatarUrl(p.getAvatarUrl());
-            } else {
-              opt.setValue(item);
-              opt.setText(item);
-              opt.setInvalid(true);
-            }
-          }
-          nameList.addOption(opt);
-        }
-
-        return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
-      }
-
-      // Search in connections first
-      ListAccess<Identity> connections = getRelationshipManager().getConnectionsByFilter(currentIdentity, identityFilter);
-      if (connections != null && connections.getSize() > 0) {
-        int size = connections.getSize();
-        Identity[] identities = connections.load(0, size < SUGGEST_LIMIT ? size : (int)SUGGEST_LIMIT);
-        for (Identity id : identities) {
-          addSpaceOrUserToList(Arrays.asList(id), nameList, space, typeOfRelation, 1);
-          excludedIdentityList.add(id);
-        }
-      }
-
-      List<Space> exclusions = new ArrayList<Space>();
-      // Includes spaces the current user is member.
-      long remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
+      // Add connections in the suggestions
+      long remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
       if (remain > 0) {
-        SpaceFilter spaceFilter = new SpaceFilter();
-        spaceFilter.setSpaceNameSearchCondition(name);
-        ListAccess<Space> list = getSpaceService().getMemberSpacesByFilter(currentUser, spaceFilter);
-        Space[] spaces = list.load(0, (int) remain);
-        for (Space s : spaces) {
-          //do not add current space
-          if (s.equals(space)) {
-            exclusions.add(s);
-            continue;
+        userInfos = addUserConnections(currentIdentity, identityFilter, userInfos, currentUser, remain);
+      }
+
+      // finally add others users in the suggestions
+      remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
+      if (remain > 0) {
+        userInfos = addOtherUsers(identityFilter, excludedIdentityList, userInfos, currentUser, remain);
+      }
+
+      if(currentSpace == null) {
+        LOG.warn("Suggester is user to invite user to a space, but the space with URL '{}' wasn't found.", spaceURL);
+      } else {
+        // Delete members, managers and invited users,
+        // but not pending users because if the manager
+        // wants to invite a pending user, it will be
+        // accepted as a member
+        Set<String> usersToIgnore = new HashSet<>();
+        addArrayToCollection(usersToIgnore, currentSpace.getMembers());
+        addArrayToCollection(usersToIgnore, currentSpace.getManagers());
+        addArrayToCollection(usersToIgnore, currentSpace.getInvitedUsers());
+
+        Iterator<UserInfo> usersIterator = userInfos.iterator();
+        while (usersIterator.hasNext()) {
+          PeopleRestService.UserInfo userInfo = usersIterator.next();
+          if (StringUtils.isNotBlank(userInfo.getUsername()) && usersToIgnore.contains(userInfo.getUsername())) {
+            usersIterator.remove();
           }
-          Option opt = new Option();
-          opt.setType("space");
-          opt.setValue(SPACE_PREFIX + s.getPrettyName());
-          opt.setText(s.getDisplayName());
-          opt.setAvatarUrl(s.getAvatarUrl());
-          opt.setOrder(2);
-          nameList.addOption(opt);
-          exclusions.add(s);
         }
       }
 
-      // Adding all non hidden spaces.
-      remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
-      if (remain > 0) {
-        SpaceFilter spaceFilter = new SpaceFilter();
-        spaceFilter.setSpaceNameSearchCondition(name);
-        spaceFilter.addExclusions(exclusions);
-        ListAccess<Space> list = getSpaceService().getVisibleSpacesWithListAccess(currentUser, spaceFilter);
-        Space[] spaces = list.load(0, (int) remain);
-        for (Space s : spaces) {
-          if (s.equals(space)) {
-            //do not add current space
-            exclusions.add(s);
-            continue;
-          }
-          Option opt = new Option();
-          opt.setType("space");
-          opt.setValue(SPACE_PREFIX + s.getPrettyName());
-          opt.setText(s.getDisplayName());
-          opt.setAvatarUrl(s.getAvatarUrl());
-          opt.setOrder(3);
-          nameList.addOption(opt);
-        }
-      }
-
-      remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
-      if (remain > 0) {
-        identityFilter.setExcludedIdentityList(excludedIdentityList);
-        ListAccess<Identity> listAccess = getIdentityManager().getIdentitiesByProfileFilter(OrganizationIdentityProvider.NAME, identityFilter, false);
-        List<Identity> identities = Arrays.asList(listAccess.load(0, (int) remain));
-        addSpaceOrUserToList(identities, nameList, space, typeOfRelation, 4);
-      }
+      return Util.getResponse(userInfos, uriInfo, mediaType, Response.Status.OK);
     } else if (SHARE_DOCUMENT.equals(typeOfRelation)) {
 
       // This is for pre-loading data
@@ -458,6 +409,14 @@ public class PeopleRestService implements ResourceContainer{
     }
 
     return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
+  }
+
+  private void addArrayToCollection(Set<String> usersToIgnore, String[] managers) {
+    if(managers != null && managers.length > 0) {
+      for (String manager : managers) {
+        usersToIgnore.add(manager);
+      }
+    }
   }
 
   private LinkedHashSet<UserInfo> addUsersToUserInfosList(Identity[] identities, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUserId,  boolean filterByName) {
@@ -1095,11 +1054,13 @@ public class PeopleRestService implements ResourceContainer{
     static private String AVATAR_URL = "/eXoSkin/skin/images/system/UserAvtDefault.png";
 
     String id;
+    String username;
     String name;
     String avatar;
     String type;
 
     public void setId(String id) {
+      this.username = id;
       this.id = "@" + id;
     }
 
@@ -1130,6 +1091,14 @@ public class PeopleRestService implements ResourceContainer{
 
     public void setType(String type) {
       this.type = type;
+    }
+    
+    public void setUsername(String username) {
+      setId(username);
+    }
+    
+    public String getUsername() {
+      return username;
     }
 
     @Override

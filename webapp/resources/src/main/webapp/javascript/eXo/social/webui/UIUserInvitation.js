@@ -35,7 +35,13 @@
                   return '<div class="option">' +
                   '<img width="20px" height="20px" src="' + avatar + '"> ' +
                   escape(item.text) + '</div>';
-              },
+                },
+                onItemRemove: function(value) {
+                  var item = this.options[value];
+                  if (item.invalid === true) {
+                    this.removeOption(value);
+                  }
+                },
               sortField: [{field: 'order'}, {field: '$score'}],
               providers: {
                 'exo:social': function(query, callback) {

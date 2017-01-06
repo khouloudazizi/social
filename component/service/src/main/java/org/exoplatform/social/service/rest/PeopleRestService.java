@@ -25,6 +25,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -212,14 +214,14 @@ public class PeopleRestService implements ResourceContainer{
         // but not pending users because if the manager
         // wants to invite a pending user, it will be
         // accepted as a member
-        Set<String> usersToIgnore = new HashSet<>();
-        addArrayToCollection(usersToIgnore, currentSpace.getMembers());
-        addArrayToCollection(usersToIgnore, currentSpace.getManagers());
-        addArrayToCollection(usersToIgnore, currentSpace.getInvitedUsers());
-
-        for (String userToIgnore : usersToIgnore) {
-          excludedIdentityList.add(identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, userToIgnore, true));
-        }
+        excludedIdentityList.addAll(Stream.concat(
+          Stream.concat(
+          Stream.of(currentSpace.getMembers()),
+          Stream.of(currentSpace.getManagers())),
+          Stream.of(currentSpace.getInvitedUsers()))
+          .distinct()
+          .map(it -> identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, it, true))
+          .collect(Collectors.toList()));
       }
 
       LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
@@ -404,14 +406,6 @@ public class PeopleRestService implements ResourceContainer{
     }
 
     return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
-  }
-
-  private void addArrayToCollection(Set<String> usersToIgnore, String[] managers) {
-    if(managers != null && managers.length > 0) {
-      for (String manager : managers) {
-        usersToIgnore.add(manager);
-      }
-    }
   }
 
   private LinkedHashSet<UserInfo> addUsersToUserInfosList(Identity[] identities, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUserId,  boolean filterByName) {

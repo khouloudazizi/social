@@ -20,11 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,11 +31,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
@@ -47,8 +43,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.shindig.social.opensocial.model.Activity;
 
 import org.exoplatform.commons.utils.ListAccess;
-import org.exoplatform.container.ExoContainer;
-import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -155,7 +149,6 @@ public class PeopleRestService implements ResourceContainer{
    * @LevelAPI Platform
    * @anchor PeopleRestService.suggestUsernames
    */
-  @SuppressWarnings("deprecation")
   @RolesAllowed("users")
   @GET
   @Path("suggest.{format}")
@@ -186,7 +179,7 @@ public class PeopleRestService implements ResourceContainer{
       identityFilter.setExcludedIdentityList(excludedIdentityList);
     }
     IdentityNameList nameList = new IdentityNameList();
-    Identity currentIdentity = Util.getViewerIdentity(currentUser);
+    Identity currentIdentity = Util.getViewerIdentity(getPortalContainer().getName(), currentUser);
     identityFilter.setViewerIdentity(currentIdentity);
 
     Identity[] result;
@@ -224,18 +217,22 @@ public class PeopleRestService implements ResourceContainer{
           .collect(Collectors.toList()));
       }
 
-      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
+      LinkedHashSet<Option> results = new LinkedHashSet<Option>();
 
       // Add connections in the suggestions
-      userInfos = addUserConnections(currentIdentity, identityFilter, userInfos, currentUser, SUGGEST_LIMIT);
+      results = addUserConnections(currentIdentity, identityFilter, results, currentUser, SUGGEST_LIMIT);
+
+      long remain = SUGGEST_LIMIT - (results != null ? results.size() : 0);
+
+      addMatchingUserSpaces(name, currentUser, results, remain);
 
       // finally add others users in the suggestions
-      long remain = SUGGEST_LIMIT - (userInfos != null ? userInfos.size() : 0);
+      remain = SUGGEST_LIMIT - (results != null ? results.size() : 0);
       if (remain > 0) {
-        userInfos = addOtherUsers(identityFilter, excludedIdentityList, userInfos, currentUser, remain);
+        results = addOtherUsers(identityFilter, excludedIdentityList, results, currentUser, remain);
       }
 
-      return Util.getResponse(userInfos, uriInfo, mediaType, Response.Status.OK);
+      return Util.getResponse(results, uriInfo, mediaType, Response.Status.OK);
     } else if (SHARE_DOCUMENT.equals(typeOfRelation)) {
 
       // This is for pre-loading data
@@ -291,7 +288,6 @@ public class PeopleRestService implements ResourceContainer{
         }
       }
 
-      List<Space> exclusions = new ArrayList<Space>();
       // Includes spaces the current user is member.
       long remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
       if (remain > 0) {
@@ -307,7 +303,6 @@ public class PeopleRestService implements ResourceContainer{
           opt.setAvatarUrl(s.getAvatarUrl());
           opt.setOrder(2);
           nameList.addOption(opt);
-          exclusions.add(s);
         }
       }
       remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
@@ -329,7 +324,7 @@ public class PeopleRestService implements ResourceContainer{
         }
       }
     } else if (MENTION_ACTIVITY_STREAM.equals(typeOfRelation)) {
-      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
+      LinkedHashSet<Option> userInfos = new LinkedHashSet<Option>();
 
       // first add space members in the suggestion list when mentioning in a space Activity Stream
       if (currentSpace != null) {
@@ -349,7 +344,7 @@ public class PeopleRestService implements ResourceContainer{
       return Util.getResponse(userInfos, uriInfo, mediaType, Response.Status.OK);
 
     } else if (MENTION_COMMENT.equals(typeOfRelation)) {
-      LinkedHashSet<UserInfo> userInfos = new LinkedHashSet<UserInfo>();
+      LinkedHashSet<Option> userInfos = new LinkedHashSet<Option>();
       long remain = SUGGEST_LIMIT;
 
       if(activityId == null) {
@@ -408,14 +403,31 @@ public class PeopleRestService implements ResourceContainer{
     return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
   }
 
-  private LinkedHashSet<UserInfo> addUsersToUserInfosList(Identity[] identities, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUserId,  boolean filterByName) {
+  private void addMatchingUserSpaces(String name, String currentUser, LinkedHashSet<Option> results, long remain) throws Exception {
+    SpaceFilter spaceFilter = new SpaceFilter();
+    spaceFilter.setSpaceNameSearchCondition(name);
+
+    // TODO Spaces should be searched in ES instead of RBDMS
+    ListAccess<Space> list = getSpaceService().getMemberSpacesByFilter(currentUser, spaceFilter);
+    Space[] spaces = list.load(0, (int) remain);
+    for (Space s : spaces) {
+      Option opt = new Option();
+      opt.setType("space");
+      opt.setValue(SPACE_PREFIX + s.getPrettyName());
+      opt.setText(s.getDisplayName());
+      opt.setAvatarUrl(s.getAvatarUrl());
+      results.add(opt);
+    }
+  }
+
+  private LinkedHashSet<Option> addUsersToUserInfosList(Identity[] identities, ProfileFilter identityFilter, LinkedHashSet<Option> userInfos, String currentUserId,  boolean filterByName) {
     for (Identity identity : identities) {
       userInfos = addUserToInfosList(identity, identityFilter, userInfos, currentUserId, filterByName);
     }
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addUserToInfosList(Identity userIdentity, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUserId, boolean filterByName) {
+  private LinkedHashSet<Option> addUserToInfosList(Identity userIdentity, ProfileFilter identityFilter, LinkedHashSet<Option> userInfos, String currentUserId, boolean filterByName) {
     if (!userIdentity.getProviderId().equals(OrganizationIdentityProvider.NAME)) {
       LOG.warn("Cannot add Identity to suggestion list. Identity with id '"+ userIdentity.getRemoteId() + "' is not of type 'user'");
       return userInfos;
@@ -441,7 +453,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addUsernameToInfosList(String userId, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUserId, boolean filterByName) {
+  private LinkedHashSet<Option> addUsernameToInfosList(String userId, ProfileFilter identityFilter, LinkedHashSet<Option> userInfos, String currentUserId, boolean filterByName) {
     Identity userIdentity = getIdentityManager().getIdentity(userId, false);
     if (userIdentity == null) {
       userIdentity = getIdentityManager().getOrCreateIdentity(OrganizationIdentityProvider.NAME, userId, false);
@@ -453,7 +465,7 @@ public class PeopleRestService implements ResourceContainer{
     return addUserToInfosList(userIdentity, identityFilter, userInfos, currentUserId, filterByName);
   }
 
-  private LinkedHashSet<UserInfo> addUserConnections (Identity currentIdentity, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUser, long remain) throws Exception {
+  private LinkedHashSet<Option> addUserConnections (Identity currentIdentity, ProfileFilter identityFilter, LinkedHashSet<Option> userInfos, String currentUser, long remain) throws Exception {
     ListAccess<Identity> connections = getRelationshipManager().getConnectionsByFilter(currentIdentity, identityFilter);
     if (connections != null && connections.getSize() > 0) {
       Identity[] identities = connections.load(0, (int) remain);
@@ -462,7 +474,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addOtherUsers (ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<UserInfo> userInfos, String currentUser, long remain) throws Exception {
+  private LinkedHashSet<Option> addOtherUsers (ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<Option> userInfos, String currentUser, long remain) throws Exception {
     identityFilter.setExcludedIdentityList(excludedIdentityList);
     ListAccess<Identity> listAccess = getIdentityManager().getIdentitiesByProfileFilter(OrganizationIdentityProvider.NAME, identityFilter, true);
     Identity[] identitiesList = listAccess.load(0, (int) remain);
@@ -470,7 +482,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addSpaceMembers (String spaceURL, ProfileFilter identityFilter, LinkedHashSet<UserInfo> userInfos, String currentUser) {
+  private LinkedHashSet<Option> addSpaceMembers (String spaceURL, ProfileFilter identityFilter, LinkedHashSet<Option> userInfos, String currentUser) {
     String[] spaceMembers = getSpaceService().getSpaceByUrl(spaceURL).getMembers();
     for (String spaceMember : spaceMembers) {
       userInfos = addUsernameToInfosList(spaceMember, identityFilter,userInfos, currentUser, true);
@@ -478,7 +490,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addCommentedUsers (ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<UserInfo> userInfos, String currentUser) {
+  private LinkedHashSet<Option> addCommentedUsers (ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<Option> userInfos, String currentUser) {
     String[] commentedUsers = activity.getCommentedIds();
     for (String commentedUser : commentedUsers) {
       identityFilter.setExcludedIdentityList(excludedIdentityList);
@@ -487,7 +499,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addMentionedUsers(ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<UserInfo> userInfos, String currentUser) {
+  private LinkedHashSet<Option> addMentionedUsers(ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<Option> userInfos, String currentUser) {
     String[] mentionedUsers = activity.getMentionedIds();
     for (String mentionedUser : mentionedUsers) {
       identityFilter.setExcludedIdentityList(excludedIdentityList);
@@ -496,7 +508,7 @@ public class PeopleRestService implements ResourceContainer{
     return userInfos;
   }
 
-  private LinkedHashSet<UserInfo> addLikedUsers(ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<UserInfo> userInfos, String currentUser) {
+  private LinkedHashSet<Option> addLikedUsers(ExoSocialActivity activity, ProfileFilter identityFilter, List<Identity> excludedIdentityList, LinkedHashSet<Option> userInfos, String currentUser) {
     String[] likedUsers = activity.getLikeIdentityIds();
     for (String likedUser : likedUsers) {
       identityFilter.setExcludedIdentityList(excludedIdentityList);
@@ -507,7 +519,7 @@ public class PeopleRestService implements ResourceContainer{
 
   private void addSpaceOrUserToList(List<Identity> identities, IdentityNameList options,
                                    Space space, String typeOfRelation, int order) throws SpaceException {
-    SpaceService spaceSrv = getSpaceService(); 
+    SpaceService spaceSrv = getSpaceService();
     for (Identity identity : identities) {
       String fullName = identity.getProfile().getFullName();
       String userName = (String) identity.getProfile().getProperty(Profile.USERNAME); 
@@ -516,12 +528,6 @@ public class PeopleRestService implements ResourceContainer{
         opt.setType("user");
         opt.setValue(fullName);
         opt.setText(fullName);
-        opt.setAvatarUrl(identity.getProfile() == null ? null : identity.getProfile().getAvatarUrl());
-      } else if (USER_TO_INVITE.equals(typeOfRelation) && !spaceSrv.isInvitedUser(space, userName)
-                 && !spaceSrv.isPendingUser(space, userName) && !spaceSrv.isMember(space, userName)) {
-        opt.setType("user");
-        opt.setValue(userName);
-        opt.setText(fullName + " (" + userName + ")");
         opt.setAvatarUrl(identity.getProfile() == null ? null : identity.getProfile().getAvatarUrl());
       } else {
         continue;
@@ -555,7 +561,7 @@ public class PeopleRestService implements ResourceContainer{
     List<Identity> identities = Arrays.asList(getIdentityManager().getIdentitiesByProfileFilter(
                                   OrganizationIdentityProvider.NAME, filter, false).load(0, (int)SUGGEST_LIMIT));
     
-    List<UserInfo> userInfos = new ArrayList<PeopleRestService.UserInfo>(identities.size());
+    List<Option> userInfos = new ArrayList<Option>(identities.size());
     UserInfo userInfo;
     String userType = ConversationState.getCurrent().getIdentity().getUserId();
     boolean isAnonymous = IdentityConstants.ANONIM.equals(userType) 
@@ -1031,76 +1037,51 @@ public class PeopleRestService implements ResourceContainer{
    * @return portalContainer
    * @see PortalContainer
    */
-  private ExoContainer getPortalContainer() {
-    ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
-    if (exoContainer == null) {
-      throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
-    }
-    return exoContainer;
+  private PortalContainer getPortalContainer() {
+    return PortalContainer.getInstance();
   }
   
-  static public class UserInfo {
+  /**
+   * @deprecated Use {@link Option} class instead
+   */
+  @Deprecated
+  static public class UserInfo extends Option {
     static private String AVATAR_URL = "/eXoSkin/skin/images/system/UserAvtDefault.png";
 
-    String id;
-    String username;
-    String name;
-    String avatar;
-    String type;
-
     public void setId(String id) {
-      this.username = id;
-      this.id = "@" + id;
+      setValue(id);
     }
 
     public String getId() {
-      return id;
+      return "@" + getValue();
     }
 
     public void setName(String name) {
-      this.name = name;
+      setText(name);
     }
 
     public String getName() {
-      return name;
+      return getText();
     }
 
-    public void setAvatar(String url) {
-      this.avatar = url;
+    public void setAvatar(String avatar) {
+      if (StringUtils.isBlank(avatar)) {
+        setAvatarUrl(AVATAR_URL);
+      } else {
+        setAvatarUrl(avatar);
+      }
     }
 
     public String getAvatar() {
-      if (avatar == null || avatar.length() == 0) return AVATAR_URL;
-      return avatar;
-    }
-
-    public String getType() {
-      return type;
-    }
-
-    public void setType(String type) {
-      this.type = type;
+      return getAvatarUrl();
     }
     
     public void setUsername(String username) {
-      setId(username);
+      setValue(username);
     }
     
     public String getUsername() {
-      return username;
-    }
-
-    @Override
-    public int hashCode() {
-      return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if(obj == null || !(obj instanceof UserInfo)) {
-        return false;
-      }
-      return id.equals(((UserInfo)obj).getId());
+      return getValue();
     }
   }
 

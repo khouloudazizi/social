@@ -5,21 +5,20 @@
                 type : 'tag',
                 placeholder: placeholder,
                 plugins: ['remove_button', 'restore_on_backspace'],
-                preload: true,
                 maxItems: null,
-                valueField: 'username',
-                labelField: 'name',
-                searchField: ['name'],
+                valueField: 'value',
+                labelField: 'text',
+                searchField: ['text'],
                 sourceProviders: ['exo:social_space_member'],
                 create: function(input) {
-                    return {'username': input, 'name': input, 'invalid': true};
+                    return {'value': input, 'text': input, 'invalid': true};
                 },
                 createOnBlur: true,
                 renderItem: function(item, escape) {
                     if (item.invalid) {
-                        return '<div class="item invalid">' + item.name + '</div>';
+                        return '<div class="item invalid">' + item.text + '</div>';
                     } else {
-                        return '<div class="item">' + item.name + '</div>';                         
+                        return '<div class="item">' + item.text + '</div>';                         
                     }
                 },
                 renderMenuItem: function(item, escape) {
@@ -34,32 +33,11 @@
 
                   return '<div class="option">' +
                   '<img width="20px" height="20px" src="' + avatar + '"> ' +
-                  escape(item.name) + '</div>';
+                  escape(item.text) + '</div>';
                 },
-              providers: {
-                'exo:social_space_member': function(query, callback) {
-                    if (query == '') {
-                      var thizz = this;
-                      // Pre-load options for initial users
-                      if (this.items && this.items.length > 0) {
-                          $.ajax({
-                              type: "GET",
-                              url: url,
-                              data: { nameToSearch : this.items.join() + "," },
-                              complete: function(jqXHR) {
-                                  if(jqXHR.readyState === 4) {
-                                      var json = $.parseJSON(jqXHR.responseText)
-                                      if (json.options != null) {
-                                          callback(json.options);
-                                          for (var i = 0; i < json.options.length; i++) {
-                                              thizz.updateOption(json.options[i].username, json.options[i]);
-                                          }
-                                      }
-                                  }
-                              }
-                          });
-                      }
-                    } else {
+                providers: {
+                 'exo:social_space_member': function(query, callback) {
+                    if (query && query.trim() != '') {
                         $.ajax({
                             type: "GET",
                             url: url,

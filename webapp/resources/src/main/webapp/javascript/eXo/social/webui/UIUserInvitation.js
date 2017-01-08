@@ -11,12 +11,12 @@
                 searchField: ['text'],
                 sourceProviders: ['exo:social_space_member'],
                 create: function(input) {
-                    return {'value': input, 'text': input, 'invalid': true};
+                    return {invalid:true};
                 },
                 createOnBlur: true,
                 renderItem: function(item, escape) {
                     if (item.invalid) {
-                        return '<div class="item invalid">' + item.text + '</div>';
+                        return "";
                     } else {
                         return '<div class="item">' + item.text + '</div>';                         
                     }
@@ -35,6 +35,7 @@
                   '<img width="20px" height="20px" src="' + avatar + '"> ' +
                   escape(item.text) + '</div>';
                 },
+                sortField: [{field: 'order'}, {field: '$score'}],
                 providers: {
                  'exo:social_space_member': function(query, callback) {
                     if (query && query.trim() != '') {

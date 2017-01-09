@@ -224,11 +224,15 @@ public class PeopleRestService implements ResourceContainer{
 
       long remain = SUGGEST_LIMIT - (results != null ? results.size() : 0);
 
-      addMatchingUserSpaces(name, currentUser, results, remain, 2);
+      if (remain > 0) {
+        addSpacesOfUser(name, currentUser, results, remain, 2);
+      }
 
       remain = SUGGEST_LIMIT - (results != null ? results.size() : 0);
 
-      addMatchingPublicSpaces(name, currentUser, results, remain, 3);
+      if (remain > 0) {
+        addPublicSpaces(name, currentUser, results, remain, 3);
+      }
 
       // finally add others users in the suggestions
       remain = SUGGEST_LIMIT - (results != null ? results.size() : 0);
@@ -407,11 +411,10 @@ public class PeopleRestService implements ResourceContainer{
     return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
   }
 
-  private void addMatchingPublicSpaces(String name, String currentUser, LinkedHashSet<Option> results, long remain, int order) throws Exception {
+  private void addPublicSpaces(String name, String currentUser, LinkedHashSet<Option> results, long remain, int order) throws Exception {
     SpaceFilter spaceFilter = new SpaceFilter();
     spaceFilter.setSpaceNameSearchCondition(name);
 
-    // TODO Spaces should be searched in ES instead of RBDMS
     ListAccess<Space> list = getSpaceService().getVisibleSpacesWithListAccess(currentUser, spaceFilter);
     Space[] spaces = list.load(0, (int) remain);
     for (Space s : spaces) {
@@ -425,7 +428,7 @@ public class PeopleRestService implements ResourceContainer{
     }
   }
 
-  private void addMatchingUserSpaces(String name, String currentUser, LinkedHashSet<Option> results, long remain, int order) throws Exception {
+  private void addSpacesOfUser(String name, String currentUser, LinkedHashSet<Option> results, long remain, int order) throws Exception {
     SpaceFilter spaceFilter = new SpaceFilter();
     spaceFilter.setSpaceNameSearchCondition(name);
 

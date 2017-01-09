@@ -43,6 +43,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.shindig.social.opensocial.model.Activity;
 
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.container.ExoContainer;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -179,7 +181,7 @@ public class PeopleRestService implements ResourceContainer{
       identityFilter.setExcludedIdentityList(excludedIdentityList);
     }
     IdentityNameList nameList = new IdentityNameList();
-    Identity currentIdentity = Util.getViewerIdentity(getPortalContainer().getName(), currentUser);
+    Identity currentIdentity = Util.getViewerIdentity(currentUser);
     identityFilter.setViewerIdentity(currentIdentity);
 
     Identity[] result;
@@ -1064,8 +1066,12 @@ public class PeopleRestService implements ResourceContainer{
    * @return portalContainer
    * @see PortalContainer
    */
-  private PortalContainer getPortalContainer() {
-    return PortalContainer.getInstance();
+  private ExoContainer getPortalContainer() {
+    ExoContainer exoContainer = ExoContainerContext.getCurrentContainer();
+    if (exoContainer == null) {
+      throw new IllegalStateException("Could not retrieve current container");
+    }
+    return exoContainer;
   }
   
   /**

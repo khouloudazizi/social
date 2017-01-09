@@ -11,18 +11,18 @@
                 searchField: ['text'],
                 sourceProviders: ['exo:social_space_member'],
                 create: function(input) {
-                    return {invalid:true};
+                    return {'value': input, 'text': input, 'invalid': true};
                 },
                 createOnBlur: true,
                 renderItem: function(item, escape) {
                     if (item.invalid) {
-                        return "";
+                        return '<div class="item invalid">' + item.text + '</div>';
                     } else {
                         return '<div class="item">' + item.text + '</div>';                         
                     }
                 },
                 renderMenuItem: function(item, escape) {
-                  var avatar = item.avatar;
+                  var avatar = item.avatarUrl;
                   if (avatar == null) {
                       if (item.type == "space") {
                           avatar = '/eXoSkin/skin/images/system/SpaceAvtDefault.png';

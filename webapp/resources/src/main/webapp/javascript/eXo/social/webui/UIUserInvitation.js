@@ -46,6 +46,9 @@
                             complete: function(jqXHR) {
                                 if(jqXHR.readyState === 4) {
                                     var data = $.parseJSON(jqXHR.responseText)
+                                    if((data && data.options)) {
+                                      data = data.options;
+                                    }
                                     if (data && data.length > 0) {
                                         callback(data);
                                     }

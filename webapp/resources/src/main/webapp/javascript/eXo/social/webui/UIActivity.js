@@ -520,7 +520,7 @@
       if (event && eXo.social.SocialUtil.checkDevice().isMobile === true) {
         event.stopPropagation();
       }
-      documentPreview.init(settings);
+      documentPreview.init(settings, event.target.closest("form").id);
     }
   };
 //

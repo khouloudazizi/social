@@ -210,6 +210,12 @@
         });
       }
 
+      //refresh activities when post comment from document preview
+      $(document).on("exo-update-activity", function (evt, id) {
+        eXo.webui.UIForm.submitEvent(id);
+        evt.stopImmediatePropagation();
+      });
+
       var actionDeletes = $('a.controllDelete');
       if (actionDeletes.length > 0) {
         actionDeletes.off('click').on('click', function(e) {
@@ -520,7 +526,7 @@
       if (event && eXo.social.SocialUtil.checkDevice().isMobile === true) {
         event.stopPropagation();
       }
-      documentPreview.init(settings, event.target.closest("form").id);
+      documentPreview.init(settings, event.target.closest("form"));
     }
   };
 //

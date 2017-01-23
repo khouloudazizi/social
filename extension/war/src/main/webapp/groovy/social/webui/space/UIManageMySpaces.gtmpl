@@ -45,7 +45,8 @@
 					 .require("SHARED/bts_tooltip")
 					 .require("SHARED/socialUtil", "socialUtil")
 					 .addScripts("jq('*[rel=\"tooltip\"]').tooltip();")
-					 .addScripts("socialUtil.addDynamicItemLayout('" + uicomponent.id + "');");
+					 .addScripts("socialUtil.addDynamicItemLayout('" + uicomponent.id + "');")
+	                 .addScripts("jq('#" + uicomponent.id + " .limitText[data-toggle=\"popover\"]').on('exo.limitTextLine', function(e, data) { var _this = jq(this); if (data.isTrimmed) { _this.popover(); } else { _this.popover('destroy'); } }); ");
 	Utils.initConfirmationPopup(uicomponent.id);
 %>
 <div class="uiManageSpace" id="$uicomponent.id">
@@ -133,7 +134,7 @@
 			             <a class="limitText" data-key="title" data-line="2" href="<%=spaceUrl%>"><%=spaceName%></a>
 			          </h4>
 			          <div class="membersCount" >$fieldLabelMembers <%=SpaceUtils.countMembers(space) %></div>
-			          <div class="content limitText" data-key="content" data-line="2">
+			          <div class="content limitText" data-key="content" data-line="2" data-toggle="popover" data-content="<%=space.description%>" data-placement="left" data-trigger="hover">
 			            <% if (space.description != null && !space.description.isEmpty()) { 
 		                 print(space.description);
 		               } else { 

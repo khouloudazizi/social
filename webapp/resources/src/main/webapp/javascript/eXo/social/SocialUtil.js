@@ -311,6 +311,9 @@
               'padding-bottom' : '', 'padding-top' : '',
               'height' : '', 'min-height' : ''
             });
+
+            var isTrimmed = item.text().length < originalText.length;
+            item.trigger('exo.limitTextLine', {isTrimmed: isTrimmed});
           }
         }
       }

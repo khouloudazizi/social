@@ -38,7 +38,7 @@
 					 .require("SHARED/bts_tooltip").require("SHARED/socialUtil", "socialUtil")
 					 .addScripts("socialUtil.addDynamicItemLayout('" + uicomponent.id + "');")
 					 .addScripts("jq('*[rel=\"tooltip\"]').tooltip();")
-				     .addScripts("jq('#" + uicomponent.id + " .limitText[data-toggle=\"popover\"]').on('exo.limitTextLine', function(e, data) { var _this = jq(this); if (data.isTrimmed) { _this.popover(); } else { _this.popover('destroy'); } }); ");
+					 .addScripts("socialUtil.popoverOnLimitTextLine('" + uicomponent.id + "');");
 %>
 <div class="uiManageSpace" id="$uicomponent.id">
   <% uicomponent.renderChild(UISpaceSearch.class); %>

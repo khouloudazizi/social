@@ -259,6 +259,17 @@
         SocialUtils.dynamicItemLayout(comId);
       }
     },
+    popoverOnLimitTextLine: function(comId) {
+      var $container = $('#' + comId);
+      $container.find('.limitText[data-toggle="popover"]').on('exo.limitTextLine', function(e, data) {
+        var $this = $(this);
+        if (data.isTrimmed) {
+          $this.popover();
+        } else {
+          $this.popover('destroy');
+        }
+      });
+    },
     onResizeDynamicItemLayout : function() {
       var dynamicItems = SocialUtils.dynamicItems;
       $.each(dynamicItems, function( index, comId ) {

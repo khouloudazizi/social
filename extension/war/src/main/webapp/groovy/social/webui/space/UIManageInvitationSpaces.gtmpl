@@ -39,7 +39,7 @@
            .require("SHARED/socialUtil", "socialUtil")
            .addScripts("socialUtil.addDynamicItemLayout('" + uicomponent.id + "');")
            .addScripts("jq('*[rel=\"tooltip\"]').tooltip();")
-		   .addScripts("socialUtil.popoverOnLimitTextLine('" + uicomponent.id + "');");
+           .addScripts("socialUtil.popoverOnLimitTextLine('" + uicomponent.id + "');");
 %>
 <div class="uiManageSpace" id="$uicomponent.id">
 	<% uicomponent.renderChild(UISpaceSearch.class); %>

@@ -31,6 +31,9 @@ import org.exoplatform.services.organization.User;
 import org.exoplatform.services.organization.UserHandler;
 import org.exoplatform.services.organization.UserProfile;
 import org.exoplatform.services.organization.UserStatus;
+import org.exoplatform.services.security.ConversationRegistry;
+import org.exoplatform.services.security.ConversationState;
+import org.exoplatform.services.security.StateKey;
 import org.exoplatform.social.core.identity.IdentityProvider;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
@@ -100,8 +103,7 @@ public class OrganizationIdentityProvider extends IdentityProvider<User> {
     User user;
     try {
       RequestLifeCycle.begin((ComponentRequestLifecycle)organizationService);
-      UserHandler userHandler = organizationService.getUserHandler();
-      user = userHandler.findUserByName(remoteId, UserStatus.ANY);
+      user = getUser(remoteId, organizationService);
     } catch (Exception e) {
       return null;
     } finally {
@@ -143,7 +145,24 @@ public class OrganizationIdentityProvider extends IdentityProvider<User> {
   public void onUpdateProfile(Profile profile) throws MessageException {
     new UpdateProfileProcess(profile).doUpdate();
   }
-  
+
+  private static User getUser(String userId, OrganizationService orgService) throws Exception {
+    ConversationRegistry conversationRegistry = (ConversationRegistry) ExoContainerContext.getCurrentContainer()
+                                                                                          .getComponentInstance(ConversationRegistry.class);
+    List<StateKey> stateKeys = conversationRegistry.getStateKeys(userId);
+    User user = null;
+    if (stateKeys != null && !stateKeys.isEmpty()) {
+      // get last conversation state
+      StateKey stateKey = stateKeys.get(stateKeys.size() - 1);
+      ConversationState conversationState = conversationRegistry.getState(stateKey);
+      user = conversationState == null ? null : (User) conversationState.getAttribute("UserProfile");
+    }
+    if (user == null) {
+      user = orgService.getUserHandler().findUserByName(userId, UserStatus.ANY);
+    }
+    return user;
+  }
+
   /**
    * synchronous changed profile what is happened in Social to Portal side.
    * @author thanh_vucong

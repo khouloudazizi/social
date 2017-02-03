@@ -27,6 +27,7 @@ import javax.jcr.RepositoryException;
  * @version $Revision$
  */
 public class ScopeCacheKey implements CacheKey {
+  private static final long serialVersionUID = -5122085234844885327L;
 
   private final String scope;
 

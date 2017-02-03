@@ -278,7 +278,7 @@ public class CachedSpaceStorage implements SpaceStorage {
         refKey);
 
     //
-    if (key != null && key != SpaceKey.NULL_OBJECT) {
+    if (key != null && key != SpaceKey.NULL_OBJECT && key.getId() != null) {
       return getSpaceById(key.getId());
     }
     else {
@@ -1306,7 +1306,7 @@ public class CachedSpaceStorage implements SpaceStorage {
         refKey);
 
     //
-    if (key != null && key != SpaceKey.NULL_OBJECT) {
+    if (key != null && key != SpaceKey.NULL_OBJECT && key.getId() != null) {
       return getSpaceById(key.getId());
     }
     else {
@@ -1339,7 +1339,7 @@ public class CachedSpaceStorage implements SpaceStorage {
         refKey);
 
     //
-    if (key != null && key != SpaceKey.NULL_OBJECT) {
+    if (key != null && key != SpaceKey.NULL_OBJECT && key.getId() != null) {
       return getSpaceById(key.getId());
     }
     else {
@@ -1372,7 +1372,7 @@ public class CachedSpaceStorage implements SpaceStorage {
         refKey);
 
     //
-    if (key != null && key != SpaceKey.NULL_OBJECT) {
+    if (key != null && key != SpaceKey.NULL_OBJECT && key.getId() != null) {
       return getSpaceById(key.getId());
     }
     else {

@@ -29,10 +29,14 @@ import javax.jcr.RepositoryException;
 public class ScopeCacheKey implements CacheKey {
   private static final long serialVersionUID = -5122085234844885327L;
 
-  private final String scope;
+  private String scope;
 
   public ScopeCacheKey() {
-    scope = getCurrentRepositoryName();
+    try {
+      scope = getCurrentRepositoryName();
+    } catch (Exception e) {
+      scope = "repository";
+    }
   }
 
   public String getScope() {

@@ -30,6 +30,7 @@ import java.util.Map;
  * @version $Revision$
  */
 public class ProfileData implements CacheData<Profile> {
+  private static final long serialVersionUID = 1308337180458451775L;
 
   private final String profileId;
 

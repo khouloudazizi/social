@@ -21,6 +21,7 @@ import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,39 +31,45 @@ import java.util.Map;
  * @version $Revision$
  */
 public class ProfileData implements CacheData<Profile> {
+  public static final ProfileData NULL_OBJECT = new ProfileData(null);
+
   private static final long serialVersionUID = 1308337180458451775L;
 
-  private final String profileId;
+  private String profileId;
 
-  private final String identityId;
+  private String identityId;
 
-  private final String providerId;
+  private String providerId;
 
-  private final String remoteId;
+  private String remoteId;
 
-  private final boolean hasChanged;
+  private boolean hasChanged;
 
-  private final Map<String, Object> data;
+  private Map<String, Object> data;
 
-  private final String url;
+  private String url;
 
-  private final String avatarUrl;
+  private String avatarUrl;
   
-  private final Long avatarLastUpdated;
+  private Long avatarLastUpdated;
   
-  private final Long createdTime;
+  private Long createdTime;
 
   public ProfileData(final Profile profile) {
-    this.profileId = profile.getId();
-    this.identityId = profile.getIdentity().getId();
-    this.providerId = profile.getIdentity().getProviderId();
-    this.remoteId = profile.getIdentity().getRemoteId();
-    this.hasChanged = profile.hasChanged();
-    this.data = Collections.unmodifiableMap(profile.getProperties());
-    this.url = profile.getUrl();
-    this.avatarUrl = profile.getAvatarUrl();
-    this.avatarLastUpdated = profile.getAvatarLastUpdated();
-    this.createdTime = profile.getCreatedTime();
+    if(profile == null) {
+      this.data = Collections.unmodifiableMap(new HashMap<>());
+    } else {
+      this.profileId = profile.getId();
+      this.identityId = profile.getIdentity().getId();
+      this.providerId = profile.getIdentity().getProviderId();
+      this.remoteId = profile.getIdentity().getRemoteId();
+      this.hasChanged = profile.hasChanged();
+      this.data = Collections.unmodifiableMap(profile.getProperties());
+      this.url = profile.getUrl();
+      this.avatarUrl = profile.getAvatarUrl();
+      this.avatarLastUpdated = profile.getAvatarLastUpdated();
+      this.createdTime = profile.getCreatedTime();
+    }
   }
 
   public String getProfileId() {

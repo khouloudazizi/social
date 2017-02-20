@@ -105,6 +105,7 @@ public class OrganizationIdentityProvider extends IdentityProvider<User> {
       RequestLifeCycle.begin((ComponentRequestLifecycle)organizationService);
       user = getUser(remoteId, organizationService);
     } catch (Exception e) {
+      LOG.warn("An error occured while getting identity from store", e);
       return null;
     } finally {
       RequestLifeCycle.end();
@@ -147,15 +148,17 @@ public class OrganizationIdentityProvider extends IdentityProvider<User> {
   }
 
   private static User getUser(String userId, OrganizationService orgService) throws Exception {
+    User user = null;
     ConversationRegistry conversationRegistry = (ConversationRegistry) ExoContainerContext.getCurrentContainer()
                                                                                           .getComponentInstance(ConversationRegistry.class);
-    List<StateKey> stateKeys = conversationRegistry.getStateKeys(userId);
-    User user = null;
-    if (stateKeys != null && !stateKeys.isEmpty()) {
-      // get last conversation state
-      StateKey stateKey = stateKeys.get(stateKeys.size() - 1);
-      ConversationState conversationState = conversationRegistry.getState(stateKey);
-      user = conversationState == null ? null : (User) conversationState.getAttribute("UserProfile");
+    if(conversationRegistry != null) {
+      List<StateKey> stateKeys = conversationRegistry.getStateKeys(userId);
+      if (stateKeys != null && !stateKeys.isEmpty()) {
+        // get last conversation state
+        StateKey stateKey = stateKeys.get(stateKeys.size() - 1);
+        ConversationState conversationState = conversationRegistry.getState(stateKey);
+        user = conversationState == null ? null : (User) conversationState.getAttribute("UserProfile");
+      }
     }
     if (user == null) {
       user = orgService.getUserHandler().findUserByName(userId, UserStatus.ANY);

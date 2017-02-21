@@ -17,6 +17,8 @@
 
 package org.exoplatform.social.core.storage.cache.model.key;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.jcr.RepositoryService;
 
@@ -35,6 +37,9 @@ public class ScopeCacheKey implements CacheKey {
     try {
       scope = getCurrentRepositoryName();
     } catch (Exception e) {
+      // Nothing to do
+    }
+    if(StringUtils.isBlank(scope)) {
       scope = "repository";
     }
   }

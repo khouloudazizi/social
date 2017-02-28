@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.search.es.ElasticSearchException;
+import org.exoplatform.commons.search.es.ElasticSearchFilter;
 import org.exoplatform.commons.search.es.ElasticSearchServiceConnector;
 import org.exoplatform.commons.search.es.client.ElasticSearchingClient;
 import org.json.simple.JSONArray;
@@ -78,14 +79,17 @@ public class SpaceElasticUnifiedSearchServiceConnector extends ElasticSearchServ
 
     // return also all non-hidden spaces, even if the user is not a member
     permissions +=
-            ",{\n" +
-            "   \"not\" : {\n" +
+            "     , \"must_not\" : {\n" +
                     "\"term\" : {\n" +
                     "    \"visibility\" : \"" + Space.HIDDEN + "\"\n" +
                     "  }\n" +
-                 "}\n" +
-            " }";
+            "     } \n";
     return permissions;
+  }
+
+  @Override
+  protected String getSitesFilter(Collection<String> sitesCollection) {
+    return null;
   }
 
   protected Collection<SearchResult> buildResult(String jsonResponse, SearchContext context) {

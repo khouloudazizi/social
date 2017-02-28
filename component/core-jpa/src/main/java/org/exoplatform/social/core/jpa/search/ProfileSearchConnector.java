@@ -177,13 +177,13 @@ public class ProfileSearchConnector {
       esQuery.append("          \"fields\" : [\"" + buildTypeEx(type) + "\"]\n");
       esQuery.append("        }\n");
       esQuery.append("      }\n");
+      esQuery.append("    }\n");
+      esQuery.append("  }\n");
     } else if (filter.getExcludedIdentityList() != null && filter.getExcludedIdentityList().size() > 0) {
       esQuery.append("       ,\n");
       esQuery.append("\"query\" : {\n");
-      esQuery.append("\"filtered\" :{\n");
-      esQuery.append("  \"query\" : {\n");
       esQuery.append("    \"bool\" : {\n");
-      esQuery.append("\"must_not\": [\n");
+      esQuery.append("      \"must_not\": [\n");
       esQuery.append("        {\n");
       esQuery.append("          \"ids\" : {\n");
       esQuery.append("             \"values\" : [" + buildExcludedIdentities(filter) + "]\n");
@@ -191,8 +191,6 @@ public class ProfileSearchConnector {
       esQuery.append("        }\n");
       esQuery.append("      ]\n");
       esQuery.append("    }\n");
-      esQuery.append("  }\n");
-      esQuery.append("  }\n");
       esQuery.append("}\n");
     }
     //if the search fields are existing.

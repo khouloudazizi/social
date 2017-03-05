@@ -470,7 +470,7 @@
                   <arguments>
                     <argument>./bin/elasticsearch</argument>
                     <argument>-Ehttp.port=${es.http.port}</argument>
-                    <argument>-Epath.data=es</argument>
+                    <argument>-Epath.data=target/es</argument>
                     <argument>-Ehttp.enabled=true</argument>
                     <argument>-Enetwork.host=_local_</argument>
                     <argument>-Ehttp.type=netty4</argument>

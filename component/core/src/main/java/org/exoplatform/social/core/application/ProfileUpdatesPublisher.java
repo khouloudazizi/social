@@ -30,10 +30,12 @@ import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.model.Profile.UpdateType;
 import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
+import org.exoplatform.social.core.processor.I18NActivityUtils;
 import org.exoplatform.social.core.profile.ProfileLifeCycleEvent;
 import org.exoplatform.social.core.profile.ProfileListenerPlugin;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -142,6 +144,7 @@ public class ProfileUpdatesPublisher extends ProfileListenerPlugin {
     if (activity == null) {
       activity = new ExoSocialActivityImpl();
       activity.setType(PeopleService.USER_PROFILE_ACTIVITY);
+      updateActivity(activity, titleId);
       activityId = null;
     }
     
@@ -158,9 +161,17 @@ public class ProfileUpdatesPublisher extends ProfileListenerPlugin {
     boolean hasUpdated = newActivityTitle.replaceAll(BREAKLINE_STR, "").length() > 0
       && !newActivityTitle.equals(existingActivityTitle);
     if (activityId != null && hasUpdated) {
+      updateActivity(activity, titleId);
       activityManager.updateActivity(activity);
     }
     publish(event, activity, activityId, titleId);
+  }
+
+  private void updateActivity(ExoSocialActivity activity, String titleId) {
+    Map<String, String> params = new HashMap<String, String>();
+    activity.setTitleId(null);
+    activity.setTemplateParams(params);
+    I18NActivityUtils.addResourceKey(activity, titleId, " ");
   }
 
   private void publish(ProfileLifeCycleEvent event, ExoSocialActivity activity, String activityId, String titleId) {

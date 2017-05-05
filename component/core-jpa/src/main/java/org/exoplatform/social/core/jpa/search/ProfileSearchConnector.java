@@ -288,9 +288,22 @@ public class ProfileSearchConnector {
 
     //
     String inputName = StringUtils.isBlank(filter.getName()) ? null : filter.getName().replace(StorageUtils.ASTERISK_STR, StorageUtils.EMPTY_STR);
+
     if (StringUtils.isNotBlank(inputName)) {
-      esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR);
-      esExp.append(" OR userName:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR).append(")");
+      String[] keys = inputName.split(" ");
+      if(keys.length > 1) {
+        String keyName = "";
+        int cmpt = 0;
+        while (cmpt < keys.length - 1) {
+          keyName += StorageUtils.ASTERISK_STR + removeAccents(keys[cmpt]) + StorageUtils.ASTERISK_STR + " AND name: ";
+          cmpt++;
+        }
+        keyName += StorageUtils.ASTERISK_STR + removeAccents(keys[cmpt]) + StorageUtils.ASTERISK_STR+")";
+        esExp.append("( name:").append(keyName);
+      }else{
+        esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(keys[0])).append(StorageUtils.ASTERISK_STR);
+        esExp.append(" OR userName:").append(StorageUtils.ASTERISK_STR).append(removeAccents(keys[0])).append(StorageUtils.ASTERISK_STR).append(")");
+      }
     }
 
     //skills

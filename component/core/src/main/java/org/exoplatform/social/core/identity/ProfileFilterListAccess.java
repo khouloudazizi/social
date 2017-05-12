@@ -128,10 +128,7 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
           break;
       }
     }else {
-      if (profileFilter.getFirstCharacterOfName() != EMPTY_CHARACTER) {
-        identities = identityStorage.getIdentitiesByFirstCharacterOfName(providerId, profileFilter, offset,
-                                                                         limit, forceLoadProfile);
-      } else if (profileFilter.isEmpty()) {
+      if (profileFilter.isEmpty()) {
         if(profileFilter.getViewerIdentity() == null) {
           identities = identityStorage.getIdentitiesByProfileFilter(providerId, profileFilter, offset, limit, forceLoadProfile);
         } else {
@@ -139,7 +136,7 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
         }
       } else {
         identities = identityStorage.getIdentitiesForMentions(providerId, profileFilter, null, offset,
-                                                              limit, forceLoadProfile);
+                limit, forceLoadProfile);
       }
     }
     

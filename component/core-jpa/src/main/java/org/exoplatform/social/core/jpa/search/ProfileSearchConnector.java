@@ -50,6 +50,7 @@ import org.exoplatform.social.core.storage.impl.StorageUtils;
  */
 public class ProfileSearchConnector {
   private static final Log LOG = ExoLogger.getLogger(ProfileSearchConnector.class);
+  private static final char EMPTY_CHARACTER = '\u0000';
   private final ElasticSearchingClient client;
   private String index;
   private String searchType;
@@ -203,8 +204,13 @@ public class ProfileSearchConnector {
       esQuery.append("    \"must\": [\n");
       esQuery.append("      {");
       esQuery.append("        \"query\": {\n");
-      esQuery.append("          \"query_string\": {\n");
-      esQuery.append("            \"query\": \"" + expEs + "\"\n");
+      if(filter.getFirstCharacterOfName() == EMPTY_CHARACTER) {
+        esQuery.append("          \"query_string\": {\n");
+        esQuery.append("            \"query\": \"" + expEs + "\"\n");
+      } else {
+        esQuery.append("          \"prefix\": {\n");
+        esQuery.append("            \"lastName\": \"" + expEs + "\"\n");
+      }
       esQuery.append("          }\n");
       esQuery.append("         }\n");
       esQuery.append("      }\n");
@@ -282,8 +288,8 @@ public class ProfileSearchConnector {
     char firstChar = filter.getFirstCharacterOfName();
     //
     if (firstChar != '\u0000') {
-      esExp.append("lastName:").append(firstChar).append(StorageUtils.ASTERISK_STR);
-      return esExp.toString();
+      esExp.append(firstChar);
+      return esExp.toString().toLowerCase();
     }
 
     //

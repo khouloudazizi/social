@@ -136,7 +136,7 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
         }
       } else {
         identities = identityStorage.getIdentitiesForMentions(providerId, profileFilter, null, offset,
-                limit, forceLoadProfile);
+                                                              limit, forceLoadProfile);
       }
     }
     

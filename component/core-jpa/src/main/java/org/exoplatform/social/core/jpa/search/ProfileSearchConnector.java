@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2003-2015 eXo Platform SAS.
  *
@@ -290,9 +291,11 @@ public class ProfileSearchConnector {
     String inputName = StringUtils.isBlank(filter.getName()) ? null : filter.getName().replace(StorageUtils.ASTERISK_STR, StorageUtils.EMPTY_STR);
     if (StringUtils.isNotBlank(inputName)) {
       String[] keys = inputName.split(" ");
+      for(int i=0 ; i<keys.length; i++){
+        keys[i] = removeAccents(keys[i]);
+      }
       if(keys.length > 1) {
-        String keyName = StorageUtils.ASTERISK_STR+String.join("* AND name:*",keys)+StorageUtils.ASTERISK_STR;
-        esExp.append("( name:").append(keyName).append(")");
+        esExp.append("( name:").append(StorageUtils.ASTERISK_STR+String.join("* AND name:*",keys)+StorageUtils.ASTERISK_STR).append(")");
       }else{
         esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR);
         esExp.append(" OR userName:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR).append(")");

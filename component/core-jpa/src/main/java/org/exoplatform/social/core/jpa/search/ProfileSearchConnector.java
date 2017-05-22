@@ -293,7 +293,7 @@ public class ProfileSearchConnector {
         keys[i] = removeAccents(keys[i]);
       }
       if(keys.length > 1) {
-        esExp.append("( name:").append(StorageUtils.ASTERISK_STR+String.join("* AND name:*",keys)+StorageUtils.ASTERISK_STR).append(")");
+        esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(String.join("* AND name:*",keys)).append(StorageUtils.ASTERISK_STR).append(")");
       }else{
         esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR);
         esExp.append(" OR userName:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR).append(")");

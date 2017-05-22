@@ -386,7 +386,7 @@ public class SpaceServiceImpl implements SpaceService {
     try {
       groupId = SpaceUtils.createGroup(space.getDisplayName(), space.getPrettyName(), creator);
     } catch (SpaceException e) {
-      LOG.error("Error while creating group", e);
+      throw new RuntimeException("Error while creating group for space " + space.getPrettyName(), e);
     }
 
     List<String> inviteds = new ArrayList<String>();
@@ -396,11 +396,8 @@ public class SpaceServiceImpl implements SpaceService {
       OrganizationService org = getOrgService();
       try {
 
-        // Cannot use due to http://jira.exoplatform.org/browse/EXOGTN-173
-        //ListAccess<User> groupMembersAccess = org.getUserHandler().findUsersByGroup(invitedGroupId);
-        //User [] users = groupMembersAccess.load(0, groupMembersAccess.getSize());
-        PageList<User> groupMembersAccess = org.getUserHandler().findUsersByGroup(invitedGroupId);
-        List<User> users = groupMembersAccess.getAll();
+        ListAccess<User> groupMembersAccess = org.getUserHandler().findUsersByGroupId(invitedGroupId);
+        User [] users = groupMembersAccess.load(0, groupMembersAccess.getSize());
 
         for (User user : users) {
           String userId = user.getUserName();
@@ -420,7 +417,7 @@ public class SpaceServiceImpl implements SpaceService {
           }
         }
       } catch (Exception e) {
-        LOG.error("Failed to invite users from group " + invitedGroupId, e);
+        throw new RuntimeException("Failed to invite users from group " + invitedGroupId, e);
       }
     }
     
@@ -445,7 +442,7 @@ public class SpaceServiceImpl implements SpaceService {
       
       
     } catch (Exception e) {
-      LOG.warn("Failed to init apps", e);
+      throw new RuntimeException("Failed to init apps for space " + space.getPrettyName(), e);
     }
     
     saveSpace(space, true);

@@ -290,17 +290,20 @@ public class ProfileSearchConnector {
     if (StringUtils.isNotBlank(inputName)) {
      //
       String[] keys = inputName.split(" ");
-      for(int i=0 ; i<keys.length; i++){
-        keys[i] = removeAccents(keys[i]);
-      }
-      //
-      if(keys.length > 1) {
-        esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(String.join("* AND name:*",keys)).append(StorageUtils.ASTERISK_STR).append(")");
-      }else{
+      if (keys.length > 1) {
+        // We will not search on username because it doesn't contain a space character
+        esExp.append("(");
+        for (int i = 0; i < keys.length; i++) {
+          if (i != 0 ) {
+            esExp.append(" AND ") ;
+          }
+          esExp.append(" name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(keys[i])).append(StorageUtils.ASTERISK_STR);
+        }
+        esExp.append(")");
+      } else {
         esExp.append("( name:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR);
         esExp.append(" OR userName:").append(StorageUtils.ASTERISK_STR).append(removeAccents(inputName)).append(StorageUtils.ASTERISK_STR).append(")");
       }
-
     }
 
     //skills

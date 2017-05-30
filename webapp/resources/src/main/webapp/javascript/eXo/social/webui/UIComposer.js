@@ -21,6 +21,53 @@
  */
 
 (function($, _) {
+  var processImg = function (msg) {
+    var isSpace = document.location.href.indexOf("g/:spaces:") > -1;
+    var driveName = isSpace ? ".spaces." +
+      document.location.href.split("g/:spaces:")[1].split("/")[0] : "Personal Documents";
+    var workspace = "collaboration";
+    var today = new Date();
+    var folder = today.getFullYear() + "/" + (today.getMonth() + 1);
+    if (isSpace) {
+      folder = "Space Documents/Activity stream/" + folder;
+    } else {
+      folder = "Public/" + folder;
+    }
+
+    var restContext = eXo.env.portal.context + "/" + eXo.env.portal.rest + "/managedocument/uploadFile";
+    var url = restContext + "/control?";
+    url += "action=save" + "&workspaceName=" + workspace
+      + "&driveName=" + driveName + "&createFolder=true" + "&currentFolder="
+      + folder + "&currentPortal=" + eXo.env.portal.portalName + "&language="
+      + eXo.env.portal.language + "&uploadId=";
+
+    var from = -1;
+    while ((from = msg.indexOf('src="data:image', 0)) != -1) {
+      var to = msg.indexOf('"', from + 15);
+      var path = "";
+
+      var startImg = msg.lastIndexOf('<img', from);
+      if (startImg != -1) {
+        var startId = msg.indexOf('data-uploadid="', startImg) + 15;
+        if (startId != -1) {
+          var uploadId = msg.substring(startId, msg.indexOf('"', startId));
+          if (uploadId) {
+            var response = $(ajaxAsyncGetRequest(url + uploadId, false));
+            if (response.length == 2) {
+              var result = response.get(1);
+              path = eXo.env.portal.context + "/" + eXo.env.portal.rest +
+                "/jcr/repository/" + workspace + encodeURI($(result).attr('path'));
+            }
+            msg = msg.substring(0, from) + 'src="' + path + msg.substring(to);
+          }
+        }
+
+      }
+    }
+
+    return msg;
+  }
+
   var UIComposer = {
     regexpURL : /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/,
     validateWWWURL : function(url) {
@@ -65,10 +112,10 @@
         var windowHeight = $(window).height();
 
         var composerInput = $('#composerInput');
-        var extraPlugins = 'simpleLink,simpleImage,suggester,hideBottomToolbar';
+        var extraPlugins = 'simpleLink,simpleUploadImage,suggester,hideBottomToolbar';
         if (windowWidth > windowHeight && windowWidth < 768) {
           // Disable suggester on smart-phone landscape
-          extraPlugins = 'simpleLink,simpleImage';
+          extraPlugins = 'simpleLink,simpleUploadImage';
         }
 
         // TODO this line is mandatory when a custom skin is defined, it should not be mandatory
@@ -76,6 +123,12 @@
         composerInput.ckeditor({
           customConfig: '/commons-extension/ckeditorCustom/config.js',
           extraPlugins: extraPlugins,
+          toolbar: [
+            ['Bold', 'Italic', 'RemoveFormat'],
+            ['-', 'NumberedList', 'BulletedList', 'Blockquote'],
+            ['-', 'simpleLink', 'simpleUploadImage']
+          ],
+          allowedContent: true,
           placeholder: window.eXo.social.I18n.mentions.defaultMessage,
           typeOfRelation: 'mention_activity_stream',
           spaceURL: UIComposer.spaceURL,
@@ -95,10 +148,10 @@
                 }
                 
                 if (pureText.length <= UIComposer.MAX_LENGTH) {
-                    evt.editor.getCommand('simpleImage').enable();
+                    evt.editor.getCommand('simpleUploadImage').enable();
                     $('.composerLimited').addClass('hide');
                 } else {
-                    evt.editor.getCommand('simpleImage').disable();
+                    evt.editor.getCommand('simpleUploadImage').disable();
                     $('.composerLimited').removeClass('hide');
                 }
             },
@@ -169,7 +222,12 @@
        });
        */
     },
-    post : function() {
+    post : function(doPostCallback) {
+      var msg = CKEDITOR.instances.composerInput.getData();
+      msg = processImg(msg);
+      CKEDITOR.instances.composerInput.setData(msg);
+      doPostCallback.apply(this);
+
       UIComposer.isReady = false;
       UIComposer.currentValue = "";
       CKEDITOR.instances.composerInput.setData('');

@@ -17,14 +17,6 @@
 
 package org.exoplatform.social.core.jpa.updater;
 
-import java.util.*;
-import java.util.regex.Pattern;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PropertyIterator;
-import javax.jcr.RepositoryException;
-
 import org.exoplatform.commons.api.event.EventManager;
 import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.commons.utils.XPathUtils;
@@ -36,17 +28,18 @@ import org.exoplatform.management.annotations.ManagedDescription;
 import org.exoplatform.management.jmx.annotations.NameTemplate;
 import org.exoplatform.management.jmx.annotations.Property;
 import org.exoplatform.services.jcr.impl.core.NodeImpl;
-import org.exoplatform.social.core.jpa.storage.RDBMSActivityStorageImpl;
-import org.exoplatform.social.core.jpa.storage.RDBMSIdentityStorageImpl;
-import org.exoplatform.social.core.jpa.storage.dao.ActivityDAO;
-import org.exoplatform.social.core.jpa.updater.utils.MigrationCounter;
-import org.exoplatform.social.core.jpa.updater.utils.StringUtil;
+import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.chromattic.entity.*;
 import org.exoplatform.social.core.chromattic.utils.ActivityIterator;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
+import org.exoplatform.social.core.jpa.storage.RDBMSActivityStorageImpl;
+import org.exoplatform.social.core.jpa.storage.RDBMSIdentityStorageImpl;
+import org.exoplatform.social.core.jpa.storage.dao.ActivityDAO;
+import org.exoplatform.social.core.jpa.updater.utils.MigrationCounter;
+import org.exoplatform.social.core.jpa.updater.utils.StringUtil;
 import org.exoplatform.social.core.storage.api.ActivityStorage;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
 import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
@@ -54,7 +47,12 @@ import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 
-import org.exoplatform.social.core.BaseActivityProcessorPlugin;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PropertyIterator;
+import javax.jcr.RepositoryException;
+import java.util.*;
+import java.util.regex.Pattern;
 
 @Managed
 @ManagedDescription("Social migration activities from JCR to RDBMS.")
@@ -212,7 +210,11 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
             IdentityEntity spaceEntity = _findById(IdentityEntity.class, node.getUUID());
             LOG.info(String.format("|  \\ START::space number: %s/%s (%s space)", offset, totalSpaces, owner.getRemoteId()));
             try {
-              migrationByIdentity(null, spaceEntity);
+              if (!(spaceEntity.isDeleted())) {
+                migrationByIdentity(null, spaceEntity);
+              } else {
+                LOG.info(String.format("No need to migrate the activities of the deleted space %s", owner.getRemoteId()));
+              }
             } catch (Exception ex) {
               numberSpaceFailed++;
               identitiesMigrateFailed.add(node.getName());

@@ -22,16 +22,18 @@
 
 (function($, _) {
   var processImg = function (msg) {
+    var $shareButton = $('#ShareButton');
+
     var isSpace = document.location.href.indexOf("g/:spaces:") > -1;
     var driveName = isSpace ? ".spaces." +
-      document.location.href.split("g/:spaces:")[1].split("/")[0] : "Personal Documents";
-    var workspace = "collaboration";
+      document.location.href.split("g/:spaces:")[1].split("/")[0] : $shareButton.attr('data-userdrive');
+    var workspace = $shareButton.attr('data-workspace');
     var today = new Date();
     var folder = today.getFullYear() + "/" + (today.getMonth() + 1);
     if (isSpace) {
-      folder = "Space Documents/Activity stream/" + folder;
+      folder = $shareButton.attr('data-spaceimagefolder') + folder;
     } else {
-      folder = "Public/" + folder;
+      folder = $shareButton.attr('data-userimagefolder') + folder;
     }
 
     var restContext = eXo.env.portal.context + "/" + eXo.env.portal.rest + "/managedocument/uploadFile";

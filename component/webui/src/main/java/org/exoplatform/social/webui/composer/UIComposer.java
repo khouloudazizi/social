@@ -19,8 +19,10 @@ package org.exoplatform.social.webui.composer;
 
 import java.util.List;
 
+import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.HTMLSanitizer;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.services.jcr.ext.common.SessionProvider;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.webui.Utils;
@@ -70,7 +72,12 @@ public class UIComposer extends UIForm {
   private static final String COMPOSER_TEXT_AREA_INPUT = "composerInput";
   private static final String HTML_AT_SYMBOL_PATTERN = "@";
   private static final String HTML_AT_SYMBOL_ESCAPED_PATTERN = "&#64;";
-  
+
+  public static String USER_DRIVE = "User Documents";
+  public static String SPACE_IMAGE_FOLDER = "Space Documents/Activity stream/";
+  public static String USER_IMAGE_FOLDER = "Public/";
+  public static String WORKSPACE = "collaboration";
+
   /**
    * Constructor
    * @throws Exception
@@ -97,10 +104,13 @@ public class UIComposer extends UIForm {
     this.isActivityStreamOwner = isActivityStreamOwner;
   }
 
-
   public String getSpaceURL() {
     String spaceURL = SpaceUtils.getSpaceUrlByContext();
     return spaceURL;
+  }
+
+  public String getRepository() {
+    return CommonsUtils.getRepository().getConfiguration().getName();
   }
 
   public boolean isActivityStreamOwner() {

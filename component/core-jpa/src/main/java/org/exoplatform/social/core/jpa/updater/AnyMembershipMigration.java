@@ -42,8 +42,12 @@ public class AnyMembershipMigration implements CustomTaskChange {
       RequestLifeCycle.begin(ExoContainerContext.getCurrentContainer());
       //
       Collection<Group> groups = orgService.getGroupHandler().getAllGroups();
+      LOG.debug("There are {} groups", groups.size());
+
       for (Group group : groups) {
         if (group.getId().startsWith(SpaceUtils.SPACE_GROUP)) {
+          LOG.debug("Migrating group {}", group.getId());
+
           Space space = spaceService.getSpaceByGroupId(group.getId());
           if (space == null) {
             LOG.debug("ignore {} group, no space found", group.getId());
@@ -51,14 +55,16 @@ public class AnyMembershipMigration implements CustomTaskChange {
           }
 
           ListAccess<Membership> memberships = orgService.getMembershipHandler().findAllMembershipsByGroup(group);
+          int size = memberships.getSize();
+          LOG.debug("There are {} memberships", size);
 
           int fromId = 0;
-          int size = memberships.getSize();
           int pageSize = size > BUFFER ? BUFFER : size;
 
           while (pageSize > 0) {
             for (Membership m : memberships.load(fromId, pageSize)) {
               if (MembershipTypeHandler.ANY_MEMBERSHIP_TYPE.equalsIgnoreCase(m.getMembershipType())) {
+                LOG.debug("Start migrating {}", m.toString());
                 String username = m.getUserName();
 
                 try {
@@ -92,7 +98,7 @@ public class AnyMembershipMigration implements CustomTaskChange {
       RequestLifeCycle.end();
 
       LOG.info("=== End Social Membership * migration {} success {} error in {} miliseconds",
-          count, error, startTime - System.currentTimeMillis());
+          count, error, System.currentTimeMillis() - startTime);
     }
   }
 

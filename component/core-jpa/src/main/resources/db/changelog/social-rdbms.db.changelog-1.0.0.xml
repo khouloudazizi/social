@@ -503,8 +503,4 @@
     <renameColumn tableName="SOC_ACTIVITY_TEMPLATE_PARAMS" oldColumnName="TEMPLATE_PARAM_VALUE_TEMP" newColumnName="TEMPLATE_PARAM_VALUE"/>
   </changeSet>
 
-  <changeSet author="social" id="1.0.0-58">
-    <customChange class="org.exoplatform.social.core.jpa.updater.AnyMembershipMigration">
-    </customChange>
-  </changeSet>
 </databaseChangeLog>

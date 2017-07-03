@@ -27,6 +27,7 @@ import org.exoplatform.management.annotations.Managed;
 import org.exoplatform.management.annotations.ManagedDescription;
 import org.exoplatform.management.jmx.annotations.NameTemplate;
 import org.exoplatform.management.jmx.annotations.Property;
+import org.exoplatform.portal.config.UserACL;
 import org.exoplatform.services.jcr.impl.core.NodeImpl;
 import org.exoplatform.social.core.BaseActivityProcessorPlugin;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
@@ -46,6 +47,7 @@ import org.exoplatform.social.core.storage.impl.ActivityStorageImpl;
 import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.storage.query.JCRProperties;
+import org.apache.commons.lang.StringUtils;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -64,11 +66,14 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
   public static final String EVENT_LISTENER_KEY = "SOC_ACTIVITY_MIGRATION";
   private static final Pattern MENTION_PATTERN = Pattern.compile("@([^\\s]+)|@([^\\s]+)$");
   public final static String COMMENT_PREFIX = "comment";
+  public final static String DEFAULT_TITLE = "\t";
   
   private final ActivityStorage activityStorage;
   private final ActivityStorageImpl activityJCRStorage;
+  protected String superUserIdentityId;
 
   protected final RDBMSIdentityStorageImpl identityJPAStorage;
+  private final UserACL userACL;
 
   private final ActivityDAO activityDAO;
 
@@ -82,13 +87,15 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
                                   IdentityStorageImpl identityStorage,
                                   RDBMSIdentityStorageImpl rdbmsIdentityStorage,
                                   EventManager<ExoSocialActivity, String> eventManager,
-                                  EntityManagerService entityManagerService) {
+                                  EntityManagerService entityManagerService,
+                                  UserACL userACL) {
 
     super(initParams, identityStorage, eventManager, entityManagerService);
     this.identityJPAStorage = rdbmsIdentityStorage;
     this.activityDAO = activityDAO;
     this.activityStorage = activityStorage;
     this.activityJCRStorage = activityJCRStorage;
+    this.userACL = userACL;
     this.LIMIT_THRESHOLD = getInteger(initParams, LIMIT_THRESHOLD_KEY, 100);
   }
 
@@ -96,7 +103,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
   @ManagedDescription("Manual to start run miguration data of activities from JCR to RDBMS.")
   public void doMigration() throws Exception {
     RequestLifeCycle.end();
-
+    superUserIdentityId = getSuperUserIdentityId();
     numberFailed += migrateUserActivities();
     // migrate activities from space
     numberFailed += migrateSpaceActivities();
@@ -286,6 +293,10 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
     }
 
     Identity jpaIdentity = identityJPAStorage.findIdentity(identityEntity.getProviderId(), identityEntity.getRemoteId());
+    if(jpaIdentity == null) {
+      LOG.warn("The identity of the user " + identityEntity.getRemoteId() + " was not found in migrated identities. Do not migrate activities for this user.");
+      return;
+    }
 
     String type = (OrganizationIdentityProvider.NAME.equals(providerId)) ? "user" : "space";
     LOG.info(String.format("    Migration activities for %s: %s", type, identityEntity.getRemoteId()));
@@ -308,6 +319,10 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         }
 
         ExoSocialActivity activity = activityJCRStorage.getActivity(activityId);
+        if(activity == null) {
+          LOG.info("Activity with ID=" + activityId + " could not be found, ignoring it!");
+          continue;
+        }
         Map<String, String> params = activity.getTemplateParams();
 
         if (params != null && !params.isEmpty()) {
@@ -327,7 +342,11 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         //owner.setProviderId(providerId);
         //
         activity.setId(null);
-        activity.setTitle(formatHTML(activity.getTitle()));
+        String title = formatHTML(activity.getTitle());
+        if ( title == null || title.equals("") )  {
+          title = DEFAULT_TITLE;
+        }
+        activity.setTitle(title);
         activity.setBody(StringUtil.removeLongUTF(activity.getBody()));
 
         //
@@ -335,7 +354,7 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
         activity.setCommentedIds(convertToNewIds(activity.getCommentedIds()));
         activity.setMentionedIds(convertToNewIds(activity.getMentionedIds()));
         activity.setUserId(getNewIdentityId(activity.getUserId()));
-        activity.setPosterId(getNewIdentityId(activity.getPosterId()));
+        activity.setPosterId(getPosterId(activity));
 
         activity = activityStorage.saveActivity(jpaIdentity, activity);
         //
@@ -366,12 +385,13 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
               comment.setCommentedIds(convertToNewIds(comment.getCommentedIds()));
               comment.setMentionedIds(convertToNewIds(comment.getMentionedIds()));
               comment.setUserId(getNewIdentityId(comment.getUserId()));
-              comment.setPosterId(getNewIdentityId(comment.getPosterId()));
+              comment.setPosterId(getPosterId(comment));
 
-              if (comment.getTitle() == null) {
-                comment.setTitle("");
-              }else {
-                comment.setTitle(formatHTML(comment.getTitle()));
+              String commentTitle = formatHTML(comment.getTitle());
+              if ( commentTitle == null || commentTitle.equals("") ) {
+                comment.setTitle(DEFAULT_TITLE);
+              } else {
+                comment.setTitle(commentTitle);
               }
               activityStorage.saveComment(activity, comment);
               //
@@ -774,4 +794,36 @@ public class ActivityMigrationService extends AbstractMigrationService<ExoSocial
 
     return list.toArray(new String[list.size()]);
   }
+
+  /**
+   * Returns the IdentityId of the Super user
+   *
+   * @return the superUserIdentityId
+   */
+  private String getSuperUserIdentityId() {
+    String superUser = userACL.getSuperUser();
+    Identity superUserIdentity = identityJPAStorage.findIdentity(OrganizationIdentityProvider.NAME, superUser);
+    return superUserIdentity.getId();
+  }
+
+  /**
+   * Returns the posterId which will be used for the activity's migration
+   *
+   * @param activity
+   * @return the posterId
+   */
+  private String getPosterId(ExoSocialActivity activity) {
+    String usedPosterId = null;
+    String posterId = activity.getPosterId();
+    String userId = activity.getUserId();
+    if (StringUtils.isNotBlank(posterId)) {
+      usedPosterId = getNewIdentityId(posterId);
+    } else if (StringUtils.isNotBlank(userId)) {
+      usedPosterId = userId;
+    } else {
+      usedPosterId = superUserIdentityId;
+    }
+    return usedPosterId;
+  }
+
 }

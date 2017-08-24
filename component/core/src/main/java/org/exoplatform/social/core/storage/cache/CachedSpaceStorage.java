@@ -22,7 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.services.cache.CachedObjectSelector;
 import org.exoplatform.services.cache.ExoCache;
+import org.exoplatform.services.cache.ObjectCacheInfo;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -226,19 +228,6 @@ public class CachedSpaceStorage implements SpaceStorage {
       LOG.error("Error deleting cache entries of provider type 'Space Identities'", e);
     }
 
-  }
-
-  void removeCacheEntry(String remoteId, SpaceType type, int offset, int limit) {
-    try {
-      SpaceFilterKey key = new SpaceFilterKey(remoteId, null, type);
-      ListSpacesKey listKey = new ListSpacesKey(key, offset, limit);
-      exoSpacesCache.select(new ScopeCacheSelector<ListSpacesKey, ListSpacesData>(listKey));
-      exoSpacesCountCache.select(new ScopeCacheSelector<SpaceFilterKey, IntegerData>(key));
-    }
-    catch (Exception e) {
-      LOG.error("Error deleting space cache entries with remoteId = '" + remoteId + "', type = '" + type + "', offset ='"
-          + offset + "', limit ='" + limit + "'", e);
-    }
   }
 
   void clearSpaceCache() {
@@ -1384,11 +1373,65 @@ public class CachedSpaceStorage implements SpaceStorage {
   @Override
   public void updateSpaceAccessed(String remoteId, Space space) throws SpaceStorageException {
     storage.updateSpaceAccessed(remoteId, space);
+
+    // we remove all cache entries for the given userId and for space type LATEST_ACCESSED
+    try {
+      exoSpacesCache.select(new CachedObjectSelector<ListSpacesKey, ListSpacesData>() {
+        @Override
+        public boolean select(ListSpacesKey listSpacesKey, ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) {
+          if(listSpacesKey == null) {
+            return false;
+          }
+
+          SpaceFilterKey spaceFilterKey = listSpacesKey.getKey();
+          if(spaceFilterKey == null) {
+            return false;
+          }
+
+          return remoteId.equals(spaceFilterKey.getUserId()) && SpaceType.LATEST_ACCESSED.equals(spaceFilterKey.getType());
+        }
+
+        @Override
+        public void onSelect(ExoCache<? extends ListSpacesKey, ? extends ListSpacesData> exoCache,
+                             ListSpacesKey listSpacesKey,
+                             ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) throws Exception {
+          if(objectCacheInfo != null && objectCacheInfo instanceof ListSpacesData) {
+            ListSpacesData listSpacesData = (ListSpacesData) objectCacheInfo;
+            if (listSpacesData.getIds() != null && !listSpacesData.getIds().isEmpty()
+                    && !listSpacesData.getIds().get(0).getId().equals(space.getId())) {
+              exoSpacesCache.remove(listSpacesData);
+              exoSpacesCountCache.remove(listSpacesData);
+            }
+          }
+        }
+      });
+    } catch (Exception e) {
+      LOG.error("Error while removing cache entries for remoteId=" + remoteId + ", space=" + space.getDisplayName() +
+              " and type=" + SpaceType.LATEST_ACCESSED.name(), e);
+    }
   }
 
   @Override
   public List<Space> getLastAccessedSpace(final SpaceFilter filter, final int offset, final int limit) throws SpaceStorageException {
-    return storage.getLastAccessedSpace(filter, offset, limit);
+    //
+    SpaceFilterKey key = new SpaceFilterKey(filter.getRemoteId(), filter, SpaceType.LATEST_ACCESSED);
+    ListSpacesKey listKey = new ListSpacesKey(key, offset, limit);
+
+    //
+    ListSpacesData keys = spacesCache.get(
+        new ServiceContext<ListSpacesData>() {
+          public ListSpacesData execute() {
+            if (limit == 0) {
+              return buildIds(Collections.emptyList());
+            }
+            List<Space> got = storage.getLastAccessedSpace(filter, offset, limit);
+            return buildSimpleIds(got);
+          }
+        },
+        listKey);
+
+    //
+    return buildSimpleSpaces(keys);
   }
 
   public List<Space> getLastSpaces(final int limit) {

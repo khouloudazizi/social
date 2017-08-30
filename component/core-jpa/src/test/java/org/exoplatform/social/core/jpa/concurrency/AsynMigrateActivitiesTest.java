@@ -19,13 +19,13 @@
 
 package org.exoplatform.social.core.jpa.concurrency;
 
+import org.exoplatform.social.core.chromattic.entity.ProviderEntity;
+import org.exoplatform.social.core.chromattic.entity.ProviderRootEntity;
+import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.jpa.storage.RDBMSActivityStorageImpl;
 import org.exoplatform.social.core.jpa.storage.RDBMSSpaceStorageImpl;
 import org.exoplatform.social.core.jpa.test.MaxQueryNumber;
 import org.exoplatform.social.core.jpa.updater.MigrationContext;
-import org.exoplatform.social.core.chromattic.entity.ProviderEntity;
-import org.exoplatform.social.core.chromattic.entity.ProviderRootEntity;
-import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.manager.IdentityManagerImpl;
 import org.exoplatform.social.core.relationship.model.Relationship;
 

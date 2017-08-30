@@ -51,6 +51,8 @@ public class SpaceStorageTest extends AbstractCoreTest {
   private SpaceStorage spaceStorage;
   private IdentityStorage identityStorage;
 
+  private Identity root;
+  private Identity john;
   private Identity demo;
   private Identity tom;
   private Identity raul;
@@ -71,6 +73,8 @@ public class SpaceStorageTest extends AbstractCoreTest {
 
     tearDownSpaceList = new ArrayList<>();
 
+    root = new Identity("organization", "root");
+    john = new Identity("organization", "john");
     demo = new Identity("organization", "demo");
     tom = new Identity("organization", "tom");
     raul = new Identity("organization", "raul");

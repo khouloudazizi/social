@@ -1436,7 +1436,7 @@ public class CachedActivityStorage implements ActivityStorage {
     return activitiesCountCache.get(
         new ServiceContext<IntegerData>() {
           public IntegerData execute() {
-            return new IntegerData(storage.getNumberOfOlderOnUserSpacesActivities(ownerIdentity, baseActivity));
+            return new IntegerData(storage.getNumberOfOlderOnSpaceActivities(ownerIdentity, baseActivity));
           }
         },
         key)

@@ -214,8 +214,12 @@
   </component>
 
   <component>
-    <key>org.exoplatform.social.core.storage.api.ActivityStorage</key>
     <type>org.exoplatform.social.core.jpa.storage.RDBMSActivityStorageImpl</type>
+  </component>
+
+  <component>
+    <key>org.exoplatform.social.core.storage.api.ActivityStorage</key>
+    <type>org.exoplatform.social.core.jpa.cache.RDBMSCachedActivityStorage</type>
   </component>
   
   <!--
@@ -235,8 +239,12 @@
   </component>
 
   <component>
-    <key>org.exoplatform.social.core.storage.api.IdentityStorage</key>
     <type>org.exoplatform.social.core.jpa.storage.RDBMSIdentityStorageImpl</type>
+  </component>
+
+  <component>
+    <key>org.exoplatform.social.core.storage.api.IdentityStorage</key>
+    <type>org.exoplatform.social.core.jpa.cache.RDBMSCachedIdentityStorage</type>
   </component>
 
   <component>
@@ -271,8 +279,12 @@
   </component>
 
   <component>
-    <key>org.exoplatform.social.core.storage.api.RelationshipStorage</key>
     <type>org.exoplatform.social.core.jpa.storage.RDBMSRelationshipStorageImpl</type>
+  </component>
+
+  <component>
+    <key>org.exoplatform.social.core.storage.api.RelationshipStorage</key>
+    <type>org.exoplatform.social.core.jpa.cache.RDBMSCachedRelationshipStorage</type>
   </component>
 
   <!--
@@ -284,8 +296,12 @@
   </component>
 
   <component>
-    <key>org.exoplatform.social.core.storage.api.SpaceStorage</key>
     <type>org.exoplatform.social.core.jpa.storage.RDBMSSpaceStorageImpl</type>
+  </component>
+
+  <component>
+    <key>org.exoplatform.social.core.storage.api.SpaceStorage</key>
+    <type>org.exoplatform.social.core.jpa.cache.RDBMSCachedSpaceStorage</type>
   </component>
 
   <component>

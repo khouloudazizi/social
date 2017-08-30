@@ -1388,26 +1388,29 @@ public class CachedSpaceStorage implements SpaceStorage {
             return false;
           }
 
-          return remoteId.equals(spaceFilterKey.getUserId()) && SpaceType.LATEST_ACCESSED.equals(spaceFilterKey.getType());
+          return remoteId.equals(spaceFilterKey.getUserId())
+                  && (SpaceType.LATEST_ACCESSED.equals(spaceFilterKey.getType())
+                  || SpaceType.VISITED.equals(spaceFilterKey.getType()));
         }
 
         @Override
         public void onSelect(ExoCache<? extends ListSpacesKey, ? extends ListSpacesData> exoCache,
                              ListSpacesKey listSpacesKey,
                              ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) throws Exception {
-          if(objectCacheInfo != null && objectCacheInfo instanceof ListSpacesData) {
-            ListSpacesData listSpacesData = (ListSpacesData) objectCacheInfo;
+          if(objectCacheInfo != null && objectCacheInfo.get() != null) {
+            ListSpacesData listSpacesData = objectCacheInfo.get();
             if (listSpacesData.getIds() != null && !listSpacesData.getIds().isEmpty()
-                    && !listSpacesData.getIds().get(0).getId().equals(space.getId())) {
-              exoSpacesCache.remove(listSpacesData);
-              exoSpacesCountCache.remove(listSpacesData);
+                    && (SpaceType.LATEST_ACCESSED.equals(listSpacesKey.getKey().getType()) && !listSpacesData.getIds().get(0).getId().equals(space.getId())
+                    || SpaceType.VISITED.equals(listSpacesKey.getKey().getType()))) {
+              exoSpacesCache.remove(listSpacesKey);
+              exoSpacesCountCache.remove(listSpacesKey);
             }
           }
         }
       });
     } catch (Exception e) {
       LOG.error("Error while removing cache entries for remoteId=" + remoteId + ", space=" + space.getDisplayName() +
-              " and type=" + SpaceType.LATEST_ACCESSED.name(), e);
+              " and type=" + SpaceType.LATEST_ACCESSED.name() + " or type=" + SpaceType.VISITED, e);
     }
   }
 

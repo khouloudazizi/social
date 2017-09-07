@@ -123,6 +123,8 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
       stream.setPrettyId(owner.getRemoteId());
       stream.setId(owner.getId());
       activity.setStreamOwner(owner.getRemoteId());
+    } else {
+      LOG.warn("Cannot find stream of activity " + activityEntity.getId() + " since identity " + ownerIdentityId + " does not exist");
     }
     //
     activity.setActivityStream(stream);

@@ -48,6 +48,7 @@ import org.exoplatform.social.core.storage.cache.model.key.SpaceKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceRefKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceType;
 import org.exoplatform.social.core.storage.cache.selector.IdentityCacheSelector;
+import org.exoplatform.social.core.storage.cache.selector.LastAccessedSpacesCacheSelector;
 import org.exoplatform.social.core.storage.cache.selector.ScopeCacheSelector;
 
 /**
@@ -73,6 +74,7 @@ public class CachedSpaceStorage implements SpaceStorage {
   private final FutureExoCache<ListSpacesKey, ListSpacesData, ServiceContext<ListSpacesData>> spacesCache;
 
   private final SpaceStorage storage;
+  private SocialStorageCacheService cacheService;
   private CachedActivityStorage cachedActivityStorage;
   private CachedIdentityStorage cachedIdentityStorage;
 
@@ -196,6 +198,7 @@ public class CachedSpaceStorage implements SpaceStorage {
   public CachedSpaceStorage(final SpaceStorage storage, final SocialStorageCacheService cacheService) {
 
     this.storage = storage;
+    this.cacheService = cacheService;
 
     this.exoSpaceCache = cacheService.getSpaceCache();
     this.exoSpaceSimpleCache = cacheService.getSpaceSimpleCache();
@@ -1376,38 +1379,7 @@ public class CachedSpaceStorage implements SpaceStorage {
 
     // we remove all cache entries for the given userId and for space type LATEST_ACCESSED
     try {
-      exoSpacesCache.select(new CachedObjectSelector<ListSpacesKey, ListSpacesData>() {
-        @Override
-        public boolean select(ListSpacesKey listSpacesKey, ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) {
-          if(listSpacesKey == null) {
-            return false;
-          }
-
-          SpaceFilterKey spaceFilterKey = listSpacesKey.getKey();
-          if(spaceFilterKey == null) {
-            return false;
-          }
-
-          return remoteId.equals(spaceFilterKey.getUserId())
-                  && (SpaceType.LATEST_ACCESSED.equals(spaceFilterKey.getType())
-                  || SpaceType.VISITED.equals(spaceFilterKey.getType()));
-        }
-
-        @Override
-        public void onSelect(ExoCache<? extends ListSpacesKey, ? extends ListSpacesData> exoCache,
-                             ListSpacesKey listSpacesKey,
-                             ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) throws Exception {
-          if(objectCacheInfo != null && objectCacheInfo.get() != null) {
-            ListSpacesData listSpacesData = objectCacheInfo.get();
-            if (listSpacesData.getIds() != null && !listSpacesData.getIds().isEmpty()
-                    && (SpaceType.LATEST_ACCESSED.equals(listSpacesKey.getKey().getType()) && !listSpacesData.getIds().get(0).getId().equals(space.getId())
-                    || SpaceType.VISITED.equals(listSpacesKey.getKey().getType()))) {
-              exoSpacesCache.remove(listSpacesKey);
-              exoSpacesCountCache.remove(listSpacesKey);
-            }
-          }
-        }
-      });
+      exoSpacesCache.select(new LastAccessedSpacesCacheSelector(remoteId, space, cacheService));
     } catch (Exception e) {
       LOG.error("Error while removing cache entries for remoteId=" + remoteId + ", space=" + space.getDisplayName() +
               " and type=" + SpaceType.LATEST_ACCESSED.name() + " or type=" + SpaceType.VISITED, e);

@@ -3152,9 +3152,4 @@ public class ActivityStorageImpl extends AbstractStorage implements ActivityStor
     //
     return getActivitiesOfIdentities(ActivityBuilderWhere.simple(), filter, index, limit);
   }
-
-  @Override
-  public void addPlugin(BaseComponentPlugin baseComponent) {
-    //unsupported this method now
-  }
 }

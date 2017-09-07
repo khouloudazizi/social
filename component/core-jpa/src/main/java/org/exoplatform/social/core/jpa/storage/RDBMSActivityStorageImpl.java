@@ -89,11 +89,6 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
   }
 
   @Override
-  public void addPlugin(BaseComponentPlugin baseComponent) {
-    //unsupported this method now
-  }
-
-  @Override
   public void setInjectStreams(boolean mustInject) {
     //unsupported this method now
   }

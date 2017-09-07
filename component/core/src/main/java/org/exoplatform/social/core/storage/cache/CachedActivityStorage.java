@@ -67,16 +67,6 @@ public class CachedActivityStorage implements ActivityStorage {
   private final FutureExoCache<ListActivitiesKey, ListActivitiesData, ServiceContext<ListActivitiesData>> activitiesCache;
 
   private ActivityStorage storage;
-  
-  /**
-   * Register the other Activity Manager 
-   * @param baseComponent
-   */
-  public void addPlugin(BaseComponentPlugin baseComponent) {
-    if (baseComponent instanceof ActivityStorage) {
-      this.storage = (ActivityStorage) baseComponent;
-    }
-  }
 
   public void clearCache() {
 

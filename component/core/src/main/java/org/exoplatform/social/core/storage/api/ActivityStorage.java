@@ -52,12 +52,7 @@ public interface ActivityStorage {
   }
 
   static final String MENTION_CHAR = "@";
-  
-  /**
-   * Implements the mechanism to plugin the component.
-   * @param baseComponent
-   */
-  void addPlugin(BaseComponentPlugin baseComponent);
+
   /**
    * //sets value to tell this storage to inject Streams or not
    * @param mustInject

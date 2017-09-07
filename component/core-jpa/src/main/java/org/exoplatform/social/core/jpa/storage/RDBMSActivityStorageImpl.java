@@ -88,11 +88,6 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
     };
   }
 
-  @Override
-  public void setInjectStreams(boolean mustInject) {
-    //unsupported this method now
-  }
-
   private ExoSocialActivity fillActivityFromEntity(ActivityEntity activityEntity, ExoSocialActivity activity) {
     if (activity == null) {
       activity = new ExoSocialActivityImpl(activityEntity.getPosterId(), activityEntity.getType(),

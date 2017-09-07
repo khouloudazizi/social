@@ -52,12 +52,6 @@ public interface ActivityStorage {
   }
 
   static final String MENTION_CHAR = "@";
-
-  /**
-   * //sets value to tell this storage to inject Streams or not
-   * @param mustInject
-   */
-  void setInjectStreams(boolean mustInject);
   
   /**
    * Load an activity by its id.

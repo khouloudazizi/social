@@ -38,6 +38,7 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.impl.AbstractStorage;
+import org.exoplatform.social.core.storage.impl.IdentityStorageImpl;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.storage.query.JCRProperties;
 
@@ -61,7 +62,7 @@ public abstract class AbstractMigrationService<T>  extends AbstractStorage {
   protected long numberSpaceIdentities = 0;
 
   public AbstractMigrationService(InitParams initParams,
-                                  IdentityStorage identityStorage,
+                                  IdentityStorageImpl identityStorage,
                                   EventManager<T, String> eventManager,
                                   EntityManagerService entityManagerService) {
     this.identityStorage = identityStorage;

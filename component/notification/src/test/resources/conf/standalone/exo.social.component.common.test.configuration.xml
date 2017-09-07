@@ -37,4 +37,8 @@
     <type>org.exoplatform.social.notification.mock.MockIndexingOperationProcessor</type>
   </component>
 
+  <component>
+    <type>org.exoplatform.commons.persistence.impl.EntityManagerService</type>
+  </component>
+
 </configuration>

@@ -56,7 +56,7 @@ import org.exoplatform.social.notification.mock.MockNotificationService;
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.component.common.test.configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.component.notification.test.configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.component.core.test.configuration.xml"),
-  @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/portal/configuration.xml")
+  @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.component.search.test.configuration.xml")
 })
 public abstract class AbstractCoreTest extends BaseExoTestCase {
   protected IdentityManager identityManager;

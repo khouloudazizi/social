@@ -38,6 +38,11 @@
   </component>
 
   <component>
+    <key>org.exoplatform.commons.file.services.FileService</key>
+    <type>org.exoplatform.social.notification.mock.MockFileService</type>
+  </component>
+
+  <component>
     <key>org.exoplatform.commons.api.notification.channel.ChannelManager</key>
     <type>org.exoplatform.commons.notification.channel.ChannelManagerImpl</type>
   </component>

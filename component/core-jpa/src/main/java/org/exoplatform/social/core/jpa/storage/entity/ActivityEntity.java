@@ -320,8 +320,15 @@ public class ActivityEntity implements Serializable {
   @JoinColumn(name = "PARENT_ID", nullable = true)
   private ActivityEntity parent;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "PARENT_COMMENT_ID", nullable = true)
+  private ActivityEntity parentComment;
+
   @OneToMany(cascade = {CascadeType.REMOVE}, orphanRemoval=true, mappedBy="parent", fetch=FetchType.LAZY)
   private List<ActivityEntity> comments;
+
+  @OneToMany(cascade = {CascadeType.REMOVE}, orphanRemoval=true, mappedBy="parentComment", fetch=FetchType.LAZY)
+  private List<ActivityEntity> subComments;
 
   @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true, mappedBy="activity", fetch=FetchType.LAZY)
   private Set<MentionEntity> mentions;
@@ -525,6 +532,19 @@ public class ActivityEntity implements Serializable {
    * Adds the comment item entity to this activity
    * @param comment - the comment entity
    */
+  public void addSubComment(ActivityEntity comment) {
+    if (this.subComments == null) {
+      this.subComments = new ArrayList<>();
+    }
+    comment.setParent(parent);
+    comment.setParentComment(this);
+    this.subComments.add(comment);
+  }
+
+  /**
+   * Adds the comment item entity to this activity
+   * @param comment - the comment entity
+   */
   public void addComment(ActivityEntity comment) {
     if (this.comments == null) {
       this.comments = new ArrayList<>();
@@ -586,6 +606,22 @@ public class ActivityEntity implements Serializable {
     this.providerId = providerId;
   }
   
+  public ActivityEntity getParentComment() {
+    return parentComment;
+  }
+  
+  public void setParentComment(ActivityEntity parentComment) {
+    this.parentComment = parentComment;
+  }
+  
+  public List<ActivityEntity> getSubComments() {
+    return subComments;
+  }
+  
+  public void setSubComments(List<ActivityEntity> subComments) {
+    this.subComments = subComments;
+  }
+
   @Override
   public String toString() {
     return new JSONObject(this).toString();

@@ -271,7 +271,7 @@
 							  %> 				 
 					<ul class="pull-right statusAction">
 						<li>
-							<a class="$commentLink" id="CommentLink${activity.id}" href="javascript:void(0);">
+							<a class="$commentLink" id="CommentLink${activity.id}" data-activity="${activity.id}" href="javascript:void(0);">
 								<i class="uiIconComment uiIconLightGray"></i>&nbsp;$allCommentSize
 							</a> 
 						</li>
@@ -352,6 +352,7 @@
 			  def id = Utils.getIdentityManager().getIdentity(it.userId);
 			  commenterFullName = StringEscapeUtils.escapeHtml(id.profile.fullName);
 			  commenterProfileUri = LinkProvider.getUserProfileUri(id.getRemoteId());
+              def commentParentClass = it.parentCommentId == null ? "" : "SubCommentBlock";
 			  commentMessage = it.title;
 			  commentPostedTime = uicomponent.getPostedTimeString(_ctx, it.postedTime);
 			  commenterAvatarImgSrc = id.profile.avatarUrl;
@@ -359,9 +360,9 @@
 			%>
 			<div id="commentContainer${it.id}">
 			  <% if(commentCounter == commentList.size()) { %>
-			  <div id="CommentBlock${activity.id}${commentCounter}" class="commentItem commentItemLast">
+			  <div id="CommentBlock${activity.id}${commentCounter}" class="commentItem commentItemLast $commentParentClass">
 			  <% } else { %>
-			    <div id="CommentBlock${it.id}" class="commentItem ">
+			    <div id="CommentBlock${it.id}" class="commentItem $commentParentClass">
 			  <% }  %>			  
 				<div class="commmentLeft">
 					<a href="$commenterProfileUri" title="$commenterFullName" class="avatarXSmall">
@@ -419,7 +420,7 @@
 					<div class="commentRight">
 						<div class="commentInputBox ">
 							<div class="commentInput"><% uicomponent.renderChild(UIFormTextAreaInput.class); %></div>
-                            <button class="btn pull-left btn-primary" onclick="<%= uicomponent.event("PostComment") %>" id="CommentButton${activity.id}" disabled>$labelComment</button>
+                            <button class="btn pull-left btn-primary" data-comment-button="${activity.id}" data-click="<%= uicomponent.event("PostComment", "@@@") %>" id="CommentButton${activity.id}" disabled>$labelComment</button>
                             <button class="btn visible-phone" id="CancelButton${activity.id}">$labelCancel</button>
 						</div>
 					</div><!--end commentRight-->

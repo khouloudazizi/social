@@ -53,5 +53,10 @@
             </a>
             <%}%>
         </li>
+        <li>
+            <a class="SubComment" id="CommentLink${comment.id}" data-activity="$comment.parentId" data-comment="$comment.id" href="javascript:void(0);">
+                Reply
+            </a> 
+        </li>
     </ul>
 </div>

@@ -503,4 +503,11 @@
     <renameColumn tableName="SOC_ACTIVITY_TEMPLATE_PARAMS" oldColumnName="TEMPLATE_PARAM_VALUE_TEMP" newColumnName="TEMPLATE_PARAM_VALUE"/>
   </changeSet>
 
+  <changeSet author="social" id="1.0.0-58">
+    <addColumn tableName="SOC_ACTIVITIES">
+        <column name="PARENT_COMMENT_ID" type="BIGINT" />
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="PARENT_COMMENT_ID" baseTableName="SOC_ACTIVITIES" constraintName="FK_ACTIVITY_PARENT_COMMENT_ID" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="ACTIVITY_ID" referencedTableName="SOC_ACTIVITIES" />
+  </changeSet>
+
 </databaseChangeLog>

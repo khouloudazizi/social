@@ -33,7 +33,10 @@ import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.jpa.search.XSpaceFilter;
-import org.exoplatform.social.core.jpa.storage.dao.*;
+import org.exoplatform.social.core.jpa.storage.dao.ActivityDAO;
+import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
+import org.exoplatform.social.core.jpa.storage.dao.SpaceDAO;
+import org.exoplatform.social.core.jpa.storage.dao.SpaceMemberDAO;
 import org.exoplatform.social.core.jpa.storage.dao.jpa.query.SpaceQueryBuilder;
 import org.exoplatform.social.core.jpa.storage.entity.SpaceEntity;
 import org.exoplatform.social.core.jpa.storage.entity.SpaceMemberEntity;
@@ -46,7 +49,6 @@ import org.exoplatform.social.core.storage.SpaceStorageException;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
 import org.exoplatform.social.core.storage.exception.NodeNotFoundException;
-import org.exoplatform.social.core.storage.impl.SpaceStorageImpl;
 
 public class RDBMSSpaceStorageImpl implements SpaceStorage {
 

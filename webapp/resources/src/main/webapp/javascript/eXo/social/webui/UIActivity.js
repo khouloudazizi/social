@@ -78,6 +78,13 @@
           });
         });
       }
+      var commentButton = $("#" + UIActivity.commentButtonId);
+      commentButton.click(function(event) {
+        var clickAction = commentButton.data("click");
+        var commentId = commentButton.data("comment-id");
+        clickAction = clickAction.replace('@@@', commentId);
+        eval(clickAction);
+      });
     },
 
     initCKEditor: function () {
@@ -172,10 +179,17 @@
 
       //this.resizeComment();
 
-      var commentLinkEl = $("#" + UIActivity.commentLinkId);
+      var commentLinkEl = $("[data-activity='" + UIActivity.activityId + "']");
       if (commentLinkEl.length > 0) {
         commentLinkEl.off('click').on('click', function (evt) {
-          var currentActivityId = $(this).attr('id').replace('CommentLink', '');
+          var currentActivityId = $(this).attr('data-activity');
+          var currentCommentId = $(this).attr('data-comment');
+          var commentButton = $("[data-comment-button='" + UIActivity.activityId + "']");
+          if(currentCommentId) {
+            commentButton.data("comment-id", currentCommentId);
+          } else {
+            commentButton.data("comment-id", null);
+          }
           $('#cke_CommentTextarea' + currentActivityId + ' .cke_contents')[0].style.height = "110px";
 
           var inputContainer = $('#InputContainer' + currentActivityId);

@@ -17,6 +17,8 @@
 package org.exoplatform.social.webui.activity;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -143,6 +145,7 @@ public class BaseUIActivity extends UIForm {
     UIFormTextAreaInput commentTextArea = new UIFormTextAreaInput("CommentTextarea" + activity.getId(), "CommentTextarea", null);
     commentTextArea.setHTMLAttribute(HTML_ATTRIBUTE_TITLE, resourceBundle.getString("BaseUIActivity.label.Add_your_comment"));
     addChild(commentTextArea);
+
     try {
       refresh();
     } catch (ActivityStorageException e) {
@@ -412,11 +415,14 @@ public class BaseUIActivity extends UIForm {
     return getId();
   }
 
-  protected void saveComment(String remoteUser, String message) throws Exception {
+  protected void saveComment(String remoteUser, String message, String commentId) throws Exception {
     ExoSocialActivity comment = new ExoSocialActivityImpl(Utils.getViewerIdentity().getId(),
                                                           SpaceActivityPublisher.SPACE_APP_ID,
                                                           message,
                                                           null);
+    if (StringUtils.isNotBlank(commentId) && commentId.startsWith("comment")) {
+      comment.setParentCommentId(commentId);
+    }
     Utils.getActivityManager().saveComment(getActivity(), comment);
     activityCommentsListAccess = Utils.getActivityManager().getCommentsWithListAccess(getActivity());
     commentSize = activityCommentsListAccess.getSize();
@@ -897,6 +903,7 @@ public class BaseUIActivity extends UIForm {
       if (uiActivity.isNoLongerExisting(activityId)) {
         return;
       }
+      String commentId = event.getRequestContext().getRequestParameter(OBJECTID);
       // uiActivity.refresh();
       WebuiRequestContext requestContext = event.getRequestContext();
       UIFormTextAreaInput uiFormComment = uiActivity.getChild(UIFormTextAreaInput.class);
@@ -911,7 +918,7 @@ public class BaseUIActivity extends UIForm {
       uiFormComment.reset();
       //--- Processing outcome here aims to avoid escaping '@' symbol while preventing any undesirable side effects due to CSS sanitization.
       //--- The goal is to avoid escape '@' occurrences in microblog application, this enables to keep mention feature working as expected in the specification
-      uiActivity.saveComment(requestContext.getRemoteUser(), message.replaceAll(HTML_AT_SYMBOL_ESCAPED_PATTERN, HTML_AT_SYMBOL_PATTERN));
+      uiActivity.saveComment(requestContext.getRemoteUser(), message.replaceAll(HTML_AT_SYMBOL_ESCAPED_PATTERN, HTML_AT_SYMBOL_PATTERN), commentId);
       uiActivity.setCommentFormFocused(true);
       requestContext.addUIComponentToUpdateByAjax(uiActivity);
 

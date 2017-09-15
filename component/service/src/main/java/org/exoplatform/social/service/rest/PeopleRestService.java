@@ -29,6 +29,7 @@ import org.exoplatform.services.log.Log;
 import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.services.security.IdentityConstants;
+import org.exoplatform.services.user.UserStateService;
 import org.exoplatform.social.common.RealtimeListAccess;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -452,6 +453,47 @@ public class PeopleRestService implements ResourceContainer{
 
       return Util.getResponse(userInfos, uriInfo, mediaType, Response.Status.OK);
 
+    } else if ("chat_suggestion".equals(typeOfRelation)) {
+      UserStateService userStateService = getPortalContainer().getComponentInstanceOfType(UserStateService.class);
+
+      // from my connections
+      ListAccess<Identity> connections = getRelationshipManager().getConnectionsByFilter(currentIdentity, identityFilter);
+      if (connections != null && connections.getSize() > 0) {
+        int size = connections.getSize();
+        Identity[] identities = connections.load(0, size < SUGGEST_LIMIT ? size : (int)SUGGEST_LIMIT);
+        for (Identity id : identities) {
+          Option opt = new Option();
+          String fullName = id.getProfile().getFullName();
+          String userName = (String) id.getProfile().getProperty(Profile.USERNAME);
+          opt.setValue(userName);
+          opt.setText(fullName);
+          opt.setStatus(userStateService.isOnline(userName) ? "available" : "offline");
+          opt.setOrder(1);
+          nameList.addOption(opt);
+
+          excludedIdentityList.add(id);
+        }
+      }
+
+      // the others
+      long remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
+      if (remain > 0) {
+        identityFilter.setExcludedIdentityList(excludedIdentityList);
+        ListAccess<Identity> listAccess = getIdentityManager().getIdentitiesByProfileFilter(OrganizationIdentityProvider.NAME, identityFilter, false);
+        List<Identity> identities = Arrays.asList(listAccess.load(0, (int) remain));
+        for (Identity id : identities) {
+          Option opt = new Option();
+          String fullName = id.getProfile().getFullName();
+          String userName = (String) id.getProfile().getProperty(Profile.USERNAME);
+          opt.setValue(userName);
+          opt.setText(fullName);
+          opt.setStatus(userStateService.isOnline(userName) ? "available" : "offline");
+          opt.setOrder(2);
+          nameList.addOption(opt);
+        }
+      }
+
+      return Util.getResponse(nameList, uriInfo, mediaType, Response.Status.OK);
     } else { // Identities that match the keywords.
       result = getIdentityManager().getIdentityStorage().getIdentitiesForMentions(OrganizationIdentityProvider.NAME, identityFilter, null, 0L, SUGGEST_LIMIT, false).toArray(new Identity[0]);
       nameList.addToNameList(result);

@@ -53,6 +53,7 @@ public class IdentityNameList {
     private String value;
     private String text;
     private String avatarUrl;
+    private String status;
     private int order;
     private boolean isInvalid;
 
@@ -103,5 +104,9 @@ public class IdentityNameList {
     public void setAvatarUrl(String avatarUrl) {
       this.avatarUrl = avatarUrl;
     }
+
+    public String getStatus() { return status; }
+
+    public void setStatus(String status) { this.status = status; }
   }
 }

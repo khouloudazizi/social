@@ -248,7 +248,10 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
     commentEntity.setTitleId(comment.getTitleId());
     commentEntity.setType(comment.getType());
     commentEntity.setBody(comment.getBody());
-    commentEntity.setPosterId(comment.getPosterId() != null ? comment.getPosterId() : comment.getUserId());
+    String result = comment.getPosterId() != null ? comment.getPosterId() : comment.getUserId();
+    if (result != null) {
+      commentEntity.setPosterId(comment.getPosterId() != null ? comment.getPosterId() : comment.getUserId());
+    } else LOG.warn("Could not set poster_id to comment entity because user_id is null");
     if (comment.getTemplateParams() != null) {
       commentEntity.setTemplateParams(comment.getTemplateParams());
     }

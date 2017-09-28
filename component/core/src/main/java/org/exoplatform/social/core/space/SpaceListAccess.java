@@ -187,7 +187,6 @@ public class SpaceListAccess implements ListAccess<Space> {
       case VISIBLE: return spaceStorage.getVisibleSpacesCount(this.userId, this.spaceFilter);
       case UNIFIED_SEARCH: return spaceStorage.getUnifiedSearchSpacesCount(this.userId, this.spaceFilter);
       case LASTEST_ACCESSED: return spaceStorage.getLastAccessedSpaceCount(this.spaceFilter);
-      case VISITED: return spaceStorage.getVisibleSpacesCount(this.userId,this.spaceFilter);
       default: return 0;
     }
   }

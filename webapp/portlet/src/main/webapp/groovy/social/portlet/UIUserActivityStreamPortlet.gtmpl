@@ -34,7 +34,7 @@
            .addScripts("activity.responsiveMobile('" + uicomponent.id + "');")
            .addScripts("socialUtil.addfillUpFreeSpace('" + uicomponent.id + "');");
   uicomponent.refresh();
-  String uiTabClazz = (Utils.isHomePage() == true) ? "uiTabPaneHomePage" : "";
+  String uiTabClazz = "uiTabPaneHomePage";
   //
   print("<div class=\"visible-desktop\"></div>");
   print("<div class=\"visible-tablet\"></div>");

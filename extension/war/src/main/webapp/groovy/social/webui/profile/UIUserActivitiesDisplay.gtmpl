@@ -90,8 +90,7 @@
 	def currentRemoteId = Utils.getViewerRemoteId();
 	def currentServerTime = uicomponent.getCurrentServerTime();
 
-  if ( Utils.isHomePage() ) 
-  {
+
     def inputs = """ {
             numberOfUpdatedActivities: $numberOfUpdatedActivities,
             cookieName: '$cookieName',
@@ -103,7 +102,7 @@
     } """;
     //remove for TQA for profiling
     //jsManager.require("SHARED/social-ui-activity-updates", "activityUpdates").addScripts("activityUpdates.init($inputs);");
-  } 
+
   
   def hasActivities = uicomponent.getActivitiesLoader().getActivitiesContainer().getChildren().size() > 0;
   
@@ -189,7 +188,6 @@
     <%if (!uicomponent.isSingleContext()) { %>   
       <button class="btn btn-primary visible-phone changeStatus pull-left"><i class="uiIconEdit"></i> <%=_ctx.appRes("UIUserActivitiesDisplay.label.Status")%></button>
     <% } %>
- <% if (Utils.isHomePage()) { %>
     <div class="pull-right">
       <% uicomponent.renderChild(UIDropDownControl.class);%>
     </div>
@@ -207,7 +205,6 @@
       <div class="arrowBottom"></div>
       <a class="uiIconRefresh uiIconLightGray" href="javascript:void(0);" rel="tooltip" title="$refreshTooltipButton" id="RefreshButton" onclick="<%=uicomponent.event("RefreshStream")%>" ></a>
     </div>
-    <% } %>
  <% } %>
   </div>
   <% uicomponent.renderChild(UIActivitiesLoader.class);%>

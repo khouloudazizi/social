@@ -399,6 +399,6 @@ public class UIUserActivitiesDisplay extends AbstractActivitiesDisplay {
     boolean hasActivities = getActivitiesLoader().getActivitiesContainer().getChildren().size() > 0;
     boolean isAllActivitiesModeOnHomePage = DisplayMode.ALL_ACTIVITIES.equals(getSelectedDisplayMode());
     
-    return Utils.isHomePage() ? !hasActivities && isAllActivitiesModeOnHomePage : !hasActivities;
+    return !hasActivities && isAllActivitiesModeOnHomePage;
   }
 }

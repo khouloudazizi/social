@@ -1,0 +1,162 @@
+<!-- Only usue Souce in this Table  -->
+<table width="100%" border="0" bgcolor="#ffffff" cellpadding="0" cellspacing="0" align="center" valign="top" style="width: 100%; border: none; background-color: #ffffff; font-size: 13px; color:#333333; line-height: 22px; font-family: HelveticaNeue, Helvetica, Arial, sans-serif;">
+	<tr>
+		<td align="center">
+			<div style="background: #f5f5f5; padding: 10px 10px 5px;">
+				<table width="100%" border="0" bgcolor="#f5f5f5" cellpadding="0" cellspacing="0" align="center" valign="middle" style="width: 100%; border: none; background-color: #f5f5f5; font-size: 13px; color:#333333; line-height: 22px; font-family: HelveticaNeue, Helvetica, Arial, sans-serif;">
+					<tr>
+						<td width="75" valign="middle" align="left" style="vertical-align: middle;">
+							<a href="http://exoplatform.com" style="display: inline-block; text-decoration: none; color: #333; vertical-align: middle">
+								<img src="http://learn.exoplatform.com/rs/exo/images/exo-community.png" alt="eXo Community" class="CToWUd">
+							</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<br>
+			<table width="600" border="0" bgcolor="#ffffff" cellpadding="0" cellspacing="0" align="center" valign="top" style="margin-bottom: 35px; width: 600px; border: none; background-color: #ffffff;">
+				<tr>
+					<tr>
+						<td valign="top" colspan="2" style="padding: 30px 0 15px;">
+							<h2 style="font-size: 17px; line-height: 24px; margin: 0; font-weight: normal; font-family: HelveticaNeue, Helvetica, Arial, sans-serif;">
+								<%=_ctx.appRes("Notification.label.SayHello")%> $FIRSTNAME,</h2>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" bgcolor="#ffffff" style="background-color: #ffffff;">
+							<p style="margin: 10px 0 20px;">
+								<%
+String profileUrl = "<strong><a target=\"_blank\" style=\"color: #2f5e92; font-size: 13px; text-decoration: none; font-family: 'HelveticaNeue Bold', Helvetica, Arial, sans-serif\" href=\""+ PROFILE_URL + "\">" + USER + "</a></strong>";
+%>
+									<%=_ctx.appRes("Notification.message.ActivityConnectionPlugin", profileUrl)%> :
+										<br/>
+							</p>
+							<table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff" align="center" style="background-color: #ffffff; font-size: 13px;color:#333333;line-height: 18px; margin-bottom: 15px;">
+								<tbody>
+									<tr>
+										<td align="left" bgcolor="#ffffff" style="background-color: #f9f9f9; padding: 15px 20px;">
+											<p style="margin: 5px 0; font-size: 13px; line-height: 18px; font-family: HelveticaNeue, Helvetica, Arial, sans-serif">
+												$ACTIVITY
+											</p>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<p style="margin: 0 0 20px;">
+								<a target="_blank" style="
+display: inline-block;
+text-decoration: none;
+font-size: 11px;
+font-family: 'HelveticaNeue Bold', Helvetica, Arial, sans-serif;
+color: #ffffff;
+text-shadow: 0 -1px 0 rgba(23, 33, 37, .25);
+background-color: #567ab6;
+background-image: -moz-linear-gradient(top, #638acd, #426393);
+background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#638acd), to(#426393));
+background-image: -webkit-linear-gradient(top, #638acd, #426393);
+background-image: -o-linear-gradient(top, #638acd, #426393);
+background-image: linear-gradient(to bottom, #638acd, #426393);
+background-repeat: repeat-x;
+border-radius: 4px;
+-moz-border-radius: 4px;
+padding: 4px 8px;
+line-height: 100%;
+text-align: center;
+border: 1px solid #224886;
+font-weight: bold;
+-webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+-moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+vertical-align: middle;
+" href="$REPLY_ACTION_URL">
+									<%=_ctx.appRes("Notification.label.Reply")%>
+								</a>
+								<a target="_blank" style="
+display: inline-block;
+text-decoration: none;
+font-size: 11px;
+font-family: HelveticaNeue, Helvetica, Arial, sans-serif,serif;
+color: #333333;
+background-color: #f1f1f1;
+background-image: -moz-linear-gradient(top, #ffffff, #f1f1f1);
+background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#f1f1f1));
+background-image: -webkit-linear-gradient(top, #ffffff, #f1f1f1);
+background-image: -o-linear-gradient(top, #ffffff, #f1f1f1);
+background-image: linear-gradient(to bottom, #ffffff, #f1f1f1);
+background-repeat: repeat-x;
+border-radius: 4px;
+-moz-border-radius: 4px;
+padding: 4px 8px;
+line-height: 100%;
+text-align: center;
+border: 1px solid #c7c7c7;
+-webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+-moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+vertical-align: middle;
+margin-left: 3px;
+" href="$VIEW_FULL_DISCUSSION_ACTION_URL" target="_blank">
+									<%=_ctx.appRes("Notification.label.ViewFullDiscussion")%>
+								</a>
+							</p>
+						</td>
+
+
+					</tr>
+				</tr>
+			</table>
+			<br>
+			<div style="background: #f5f5f5; padding: 10px;">
+				<table width="600" border="0" bgcolor="#f5f5f5" cellpadding="0" cellspacing="0" align="center" valign="middle" style="width: 600px; border: none; background-color: #f5f5f5; font-size: 13px; color:#333333; line-height: 18px; font-family: HelveticaNeue, Helvetica, Arial, sans-serif;">
+					<tr>
+						<td width="99%" valign="middle" height="29px;" align="left" style="width: 99%;  vertical-align: middle;">
+							<a style="color: #333333; text-decoration: none; font-weight: bold;" href="http://exoplatform.com/" target="_blank">Website</a> |
+							<a style="color: #333333; text-decoration: none; font-weight: bold;" href="http://blog.exoplatform.com/"
+							 target="_blank">Blog</a> |
+							<a style="color: #333333; text-decoration: none; font-weight: bold;" href="http://community.exoplatform.com/"
+							 target="_blank">Community</a>
+						</td>
+						<td valign="middle" align="right" style="white-space: nowrap; padding-right: 10px;  vertical-align: middle;">
+							<b style="">Follow us:</b>
+						</td>
+						<td valign="middle" align="right" height="29px;" style="white-space: nowrap; vertical-align: middle;">
+							<a href="https://www.facebook.com/eXoPlatform" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/facebook.png" alt="facebook" class="CToWUd">
+							</a>
+							<a href="https://twitter.com/eXoPlatform" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/twitter.png" alt="twitter" class="CToWUd">
+							</a>
+							<a href="https://plus.google.com/+ExoplatformTribe" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/google-plus.png" alt="google-plus"
+								 class="CToWUd">
+							</a>
+							<a href="http://www.linkedin.com/company/exo-platform" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/linkedIn.png" alt="linkedIn" class="CToWUd">
+							</a>
+							<a href="http://blog.exoplatform.com/" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/rss.png" alt="rss" class="CToWUd">
+							</a>
+							<a href="http://www.youtube.com/channel/UCtKQaab9rTJ_gN-OCzkOvIw" style="vertical-align: middle; text-decoration: none; display: inline-block; height: 29px; min-height: 29px; max-height: 29px;"
+							 target="_blank">
+								<img style="vertical-align:middle" src="http://learn.exoplatform.com/rs/exo/images/youtube.png" alt="youtube" class="CToWUd">
+							</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td align="center" valign="top" style="padding-top: 10px">
+			<p style="margin: 0 0 10px; color: #999999; font-size: 13px ">This email was sent to you as an eXo Tribe member. Click
+				<a href="http://community.exoplatform.com/portal/intranet/notifications/"
+				 style="color: #2f5e92; text-decoration: none;">here</a> to manage your email subscriptions</p>
+		</td>
+	</tr>
+</table>
+<!-- AcitivyConnectionPlugin -->

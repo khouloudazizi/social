@@ -37,6 +37,7 @@ public class ActivityNotificationImpl extends ActivityListenerPlugin {
     ctx.getNotificationExecutor().with(ctx.makeCommand(PluginKey.key(PostActivityPlugin.ID)))
                                  .with(ctx.makeCommand(PluginKey.key(PostActivitySpaceStreamPlugin.ID)))
                                  .with(ctx.makeCommand(PluginKey.key(ActivityMentionPlugin.ID)))
+                                 .with(ctx.makeCommand(PluginKey.key(ActivityConnectionPlugin.ID)))
                                  .execute(ctx);
   }
 

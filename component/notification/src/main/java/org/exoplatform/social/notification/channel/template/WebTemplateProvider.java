@@ -50,18 +50,7 @@ import org.exoplatform.social.core.service.LinkProvider;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.notification.LinkProviderUtils;
 import org.exoplatform.social.notification.Utils;
-import org.exoplatform.social.notification.plugin.ActivityCommentPlugin;
-import org.exoplatform.social.notification.plugin.ActivityMentionPlugin;
-import org.exoplatform.social.notification.plugin.ActivityReplyToCommentPlugin;
-import org.exoplatform.social.notification.plugin.LikeCommentPlugin;
-import org.exoplatform.social.notification.plugin.LikePlugin;
-import org.exoplatform.social.notification.plugin.NewUserPlugin;
-import org.exoplatform.social.notification.plugin.PostActivityPlugin;
-import org.exoplatform.social.notification.plugin.PostActivitySpaceStreamPlugin;
-import org.exoplatform.social.notification.plugin.RelationshipReceivedRequestPlugin;
-import org.exoplatform.social.notification.plugin.RequestJoinSpacePlugin;
-import org.exoplatform.social.notification.plugin.SocialNotificationUtils;
-import org.exoplatform.social.notification.plugin.SpaceInvitationPlugin;
+import org.exoplatform.social.notification.plugin.*;
 import org.exoplatform.webui.utils.TimeConvertUtils;
 
 /**
@@ -77,6 +66,7 @@ import org.exoplatform.webui.utils.TimeConvertUtils;
        @TemplateConfig( pluginId=ActivityReplyToCommentPlugin.ID, template="war:/intranet-notification/templates/ActivityReplyToCommentPlugin.gtmpl"),
        @TemplateConfig( pluginId=ActivityCommentPlugin.ID, template="war:/intranet-notification/templates/ActivityCommentPlugin.gtmpl"),
        @TemplateConfig( pluginId=ActivityMentionPlugin.ID, template="war:/intranet-notification/templates/ActivityMentionPlugin.gtmpl"),
+       @TemplateConfig( pluginId= ActivityConnectionPlugin.ID, template="war:/intranet-notification/templates/ActivityConnectionPlugin.gtmpl"),
        @TemplateConfig( pluginId=LikePlugin.ID, template="war:/intranet-notification/templates/LikePlugin.gtmpl"),
        @TemplateConfig( pluginId=LikeCommentPlugin.ID, template="war:/intranet-notification/templates/LikeCommentPlugin.gtmpl"),
        @TemplateConfig( pluginId=NewUserPlugin.ID, template="war:/intranet-notification/templates/NewUserPlugin.gtmpl"),
@@ -684,12 +674,65 @@ public class WebTemplateProvider extends TemplateProvider {
     
     
   };
+
+  /** Defines the template builder for ActivityConnectionPlugin*/
+  private AbstractTemplateBuilder connectionComment = new AbstractTemplateBuilder() {
+
+    @Override
+    public MessageInfo makeMessage(NotificationContext ctx) {
+      MessageInfo messageInfo = new MessageInfo();
+
+      NotificationInfo notification = ctx.getNotificationInfo();
+
+      String language = getLanguage(notification);
+      //ORG-1346 write default notification in english
+      language = "en";
+
+      String pluginId = notification.getKey().getId();
+
+      TemplateContext templateContext = TemplateContext.newChannelInstance(getChannelKey(), pluginId, language);
+
+      SocialNotificationUtils.addFooterAndFirstName(notification.getTo(), templateContext);
+
+      String activityId = notification.getValueOwnerParameter(SocialNotificationUtils.ACTIVITY_ID.getKey());
+      ExoSocialActivity activity = Utils.getActivityManager().getActivity(activityId);
+      Identity identity = Utils.getIdentityManager().getIdentity(activity.getPosterId(), true);
+      Profile profile = identity.getProfile();
+      String subject = TemplateUtils.processSubject(templateContext);
+      Calendar cal = Calendar.getInstance();
+      cal.setTimeInMillis(notification.getLastModifiedDate());
+
+      templateContext.put("isIntranet", "true");
+
+      templateContext.put("USER", profile.getFullName());
+      templateContext.put("READ", Boolean.valueOf(notification.getValueOwnerParameter(NotificationMessageUtils.READ_PORPERTY.getKey())) ? "read" : "unread");
+      templateContext.put("NOTIFICATION_ID", notification.getId());
+      templateContext.put("LAST_UPDATED_TIME", TimeConvertUtils.convertXTimeAgoByTimeServer(cal.getTime(), "EE, dd yyyy", new Locale(language), TimeConvertUtils.YEAR));
+
+      templateContext.put("AVATAR", profile.getAvatarUrl() != null ? profile.getAvatarUrl() : LinkProvider.PROFILE_DEFAULT_AVATAR_URL);
+      templateContext.put("PROFILE_URL", LinkProvider.getUserProfileUri(identity.getRemoteId()));
+
+      templateContext.put("ACTIVITY", activity.getTitle());
+      templateContext.put("REPLY_ACTION_URL", LinkProviderUtils.getRedirectUrl("reply_activity", activity.getId()));
+      templateContext.put("VIEW_FULL_DISCUSSION_ACTION_URL", LinkProviderUtils.getRedirectUrl("view_full_activity", activity.getId()));
+      String body = TemplateUtils.processGroovy(templateContext);
+
+      return messageInfo.subject(subject).body(body).end();
+    }
+
+    @Override
+    protected boolean makeDigest(NotificationContext ctx, Writer writer) {
+      return false;
+    }
+
+  };
   
   public WebTemplateProvider(InitParams initParams) {
     super(initParams);
     this.templateBuilders.put(PluginKey.key(ActivityCommentPlugin.ID), comment);
     this.templateBuilders.put(PluginKey.key(ActivityReplyToCommentPlugin.ID), replyToComment);
     this.templateBuilders.put(PluginKey.key(ActivityMentionPlugin.ID), mention);
+    this.templateBuilders.put(PluginKey.key(ActivityConnectionPlugin.ID), connectionComment);
     this.templateBuilders.put(PluginKey.key(LikePlugin.ID), likeActivity);
     this.templateBuilders.put(PluginKey.key(LikeCommentPlugin.ID), likeComment);
     this.templateBuilders.put(PluginKey.key(NewUserPlugin.ID), newUser);

@@ -57,18 +57,7 @@ import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.notification.LinkProviderUtils;
 import org.exoplatform.social.notification.Utils;
-import org.exoplatform.social.notification.plugin.ActivityCommentPlugin;
-import org.exoplatform.social.notification.plugin.ActivityMentionPlugin;
-import org.exoplatform.social.notification.plugin.ActivityReplyToCommentPlugin;
-import org.exoplatform.social.notification.plugin.LikeCommentPlugin;
-import org.exoplatform.social.notification.plugin.LikePlugin;
-import org.exoplatform.social.notification.plugin.NewUserPlugin;
-import org.exoplatform.social.notification.plugin.PostActivityPlugin;
-import org.exoplatform.social.notification.plugin.PostActivitySpaceStreamPlugin;
-import org.exoplatform.social.notification.plugin.RelationshipReceivedRequestPlugin;
-import org.exoplatform.social.notification.plugin.RequestJoinSpacePlugin;
-import org.exoplatform.social.notification.plugin.SocialNotificationUtils;
-import org.exoplatform.social.notification.plugin.SpaceInvitationPlugin;
+import org.exoplatform.social.notification.plugin.*;
 
 /**
  * Created by The eXo Platform SAS
@@ -80,6 +69,7 @@ import org.exoplatform.social.notification.plugin.SpaceInvitationPlugin;
     @TemplateConfig(pluginId = ActivityReplyToCommentPlugin.ID, template = "war:/notification/templates/ActivityReplyToCommentPlugin.gtmpl"),
     @TemplateConfig(pluginId = ActivityCommentPlugin.ID, template = "war:/notification/templates/ActivityCommentPlugin.gtmpl"),
     @TemplateConfig(pluginId = ActivityMentionPlugin.ID, template = "war:/notification/templates/ActivityMentionPlugin.gtmpl"),
+    @TemplateConfig(pluginId = ActivityConnectionPlugin.ID, template = "war:/notification/templates/ActivityConnectionPlugin.gtmpl"),
     @TemplateConfig(pluginId = LikePlugin.ID, template = "war:/notification/templates/LikePlugin.gtmpl"),
     @TemplateConfig(pluginId = LikeCommentPlugin.ID, template = "war:/notification/templates/LikeCommentPlugin.gtmpl"),
     @TemplateConfig(pluginId = NewUserPlugin.ID, template = "war:/notification/templates/NewUserPlugin.gtmpl"),
@@ -880,6 +870,69 @@ public class MailTemplateProvider extends TemplateProvider {
     }
 
   };
+  /** Defines the template builder for ActivityConnectionPlugin*/
+  private AbstractTemplateBuilder connectionComment = new AbstractTemplateBuilder() {
+    @Override
+    public MessageInfo makeMessage(NotificationContext ctx) {
+      MessageInfo messageInfo = new MessageInfo();
+
+      NotificationInfo notification = ctx.getNotificationInfo();
+
+      String language = getLanguage(notification);
+      //ORG-1346 write default notification in english
+      language = "en";
+      String pluginId = notification.getKey().getId();
+
+      TemplateContext templateContext = TemplateContext.newChannelInstance(getChannelKey(), pluginId, language);
+
+      SocialNotificationUtils.addFooterAndFirstName(notification.getTo(), templateContext);
+
+      String activityId = notification.getValueOwnerParameter(SocialNotificationUtils.ACTIVITY_ID.getKey());
+      ExoSocialActivity activity = Utils.getActivityManager().getActivity(activityId);
+      Identity identity = Utils.getIdentityManager().getIdentity(activity.getPosterId(), true);
+
+
+      templateContext.put("USER", identity.getProfile().getFullName());
+      String subject = TemplateUtils.processSubject(templateContext);
+
+      templateContext.put("PROFILE_URL", LinkProviderUtils.getRedirectUrl("user", identity.getRemoteId()));
+      templateContext.put("ACTIVITY", activity.getTitle());
+      templateContext.put("REPLY_ACTION_URL", LinkProviderUtils.getRedirectUrl("reply_activity", activity.getId()));
+      templateContext.put("VIEW_FULL_DISCUSSION_ACTION_URL", LinkProviderUtils.getRedirectUrl("view_full_activity", activity.getId()));
+      String body = TemplateUtils.processGroovy(templateContext);
+
+      return messageInfo.subject(subject).body(body).end();
+    }
+
+    @Override
+    public boolean makeDigest(NotificationContext ctx, Writer writer) {
+      List<NotificationInfo> notifications = ctx.getNotificationInfos();
+      NotificationInfo first = notifications.get(0);
+      String sendToUser = first.getTo();
+      String language = getLanguage(first);
+
+      TemplateContext templateContext = new TemplateContext(first.getKey().getId(), language);
+      Map<String, List<String>> receiverMap = new LinkedHashMap<String, List<String>>();
+
+      try {
+        for (NotificationInfo message : notifications) {
+          ExoSocialActivity activity = Utils.getActivityManager().getActivity(message.getValueOwnerParameter(SocialNotificationUtils.ACTIVITY_ID.getKey()));
+
+          //Case of activity was deleted, ignore this notification
+          if (activity == null) {
+            continue;
+          }
+          SocialNotificationUtils.processInforSendTo(receiverMap, sendToUser, message.getValueOwnerParameter(SocialNotificationUtils.POSTER.getKey()));
+        }
+        writer.append(SocialNotificationUtils.getMessageByIds(receiverMap, templateContext, "user"));
+      } catch (IOException e) {
+        ctx.setException(e);
+        return false;
+      }
+      return true;
+    }
+
+  };
 
   protected ExoSocialActivity getI18N(ExoSocialActivity activity,Locale locale) {
 
@@ -895,6 +948,7 @@ public class MailTemplateProvider extends TemplateProvider {
     this.templateBuilders.put(PluginKey.key(ActivityCommentPlugin.ID), comment);
     this.templateBuilders.put(PluginKey.key(ActivityReplyToCommentPlugin.ID), replyToComment);
     this.templateBuilders.put(PluginKey.key(ActivityMentionPlugin.ID), mention);
+    this.templateBuilders.put(PluginKey.key(ActivityConnectionPlugin.ID), connectionComment);
     this.templateBuilders.put(PluginKey.key(LikePlugin.ID), like);
     this.templateBuilders.put(PluginKey.key(LikeCommentPlugin.ID), like);
     this.templateBuilders.put(PluginKey.key(NewUserPlugin.ID), newUser);

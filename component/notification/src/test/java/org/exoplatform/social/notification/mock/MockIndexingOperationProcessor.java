@@ -33,4 +33,9 @@ public class MockIndexingOperationProcessor extends IndexingOperationProcessor {
   public void processByEntityType(String entityType) {
     // do nothing
   }
+
+  @Override
+  public void interrupt() {
+    // do nothing
+  }
 }

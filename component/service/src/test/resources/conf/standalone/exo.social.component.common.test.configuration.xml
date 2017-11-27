@@ -32,4 +32,6 @@
     <type>org.exoplatform.social.common.xmlprocessor.model.XMLTagFilterPolicy</type>
   </component>
 
+  <remove-configuration>org.exoplatform.commons.search.job.ElasticIndexingJobCreator</remove-configuration>
+  
 </configuration>

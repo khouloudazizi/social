@@ -21,7 +21,7 @@ package org.exoplatform.social.core.jpa.storage.entity;
  * Created by bdechateauvieux on 4/1/15.
  */
 public enum StreamType {
-  SPACE("SPACE"), POSTER("POSTER"), LIKER("LIKER"), COMMENTER("COMMENTER"), MENTIONER("MENTIONER");
+  SPACE("SPACE"), POSTER("POSTER"), LIKER("LIKER"), COMMENTER("COMMENTER"), MENTIONER("MENTIONER"), COMMENT_LIKER("COMMENT_LIKER");
 
   private final String type;
 

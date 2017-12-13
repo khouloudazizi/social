@@ -17,7 +17,9 @@
 
 package org.exoplatform.social.core.jpa.storage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -52,6 +54,8 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
 
   /** Logger */
   private static final Log     LOG = ExoLogger.getLogger(RDBMSSpaceStorageImpl.class);
+
+  private static final int     BATCH_SIZE = 100;
 
   private SpaceDAO             spaceDAO;
 
@@ -457,7 +461,7 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
       space.setUrl(SpaceUtils.cleanString(newDisplayName));
 
       entity = spaceDAO.find(Long.parseLong(space.getId()));
-      entity.buildFrom(space);
+      EntityConverterUtils.buildFrom(space, entity);
 
       // change profile of space
       Identity identitySpace = identityStorage.findIdentity(SpaceIdentityProvider.NAME, oldPrettyName);
@@ -489,7 +493,7 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
   public void saveSpace(Space space, boolean isNew) throws SpaceStorageException {
     if (isNew) {
       SpaceEntity entity = new SpaceEntity();
-      entity = entity.buildFrom(space);
+      EntityConverterUtils.buildFrom(space, entity);
 
       //
       spaceDAO.create(entity);
@@ -499,7 +503,7 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
       SpaceEntity entity = spaceDAO.find(id);
 
       if (entity != null) {
-        entity = entity.buildFrom(space);
+        EntityConverterUtils.buildFrom(space, entity);
         //
         spaceDAO.update(entity);
       } else {
@@ -524,6 +528,31 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
     spaceMemberDAO.update(member);
   }
 
+  private String[] getSpaceMembers(long spaceId, SpaceMemberEntity.Status status) {
+    int countSpaceMembers = spaceMemberDAO.countSpaceMembers(spaceId, status);
+    if (countSpaceMembers == 0) {
+      return new String[0];
+    }
+    List<String> membersList = new ArrayList<>();
+    int offset = 0;
+    while (offset < countSpaceMembers) {
+      Collection<String> spaceMembers = spaceMemberDAO.getSpaceMembers(spaceId, status, offset, BATCH_SIZE);
+      for (String username : spaceMembers) {
+        if (StringUtils.isBlank(username)) {
+          continue;
+        }
+        membersList.add(username);
+      }
+      offset += BATCH_SIZE;
+    }
+    if (membersList.size() < countSpaceMembers) {
+      LOG.warn("Space members count '{}' is different from retrieved space members from database {}",
+               countSpaceMembers,
+               membersList.size());
+    }
+    return membersList.toArray(new String[0]);
+  }
+
   /**
    * Fills {@link Space}'s properties to {@link SpaceEntity}'s.
    *
@@ -536,12 +565,12 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
     Space space = new Space();
     fillSpaceSimpleFromEntity(entity, space);
 
-    space.setPendingUsers(entity.getPendingMembersId());
-    space.setInvitedUsers(entity.getInvitedMembersId());
+    space.setPendingUsers(getSpaceMembers(entity.getId(), Status.PENDING));
+    space.setInvitedUsers(getSpaceMembers(entity.getId(), Status.INVITED));
 
     //
-    String[] members = entity.getMembersId();
-    String[] managers = entity.getManagerMembersId();
+    String[] members = getSpaceMembers(entity.getId(), Status.MEMBER);
+    String[] managers = getSpaceMembers(entity.getId(), Status.MANAGER);
 
     //
     Set<String> membersList = new HashSet<String>();
@@ -552,7 +581,7 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
 
     //
     space.setMembers(membersList.toArray(new String[] {}));
-    space.setManagers(entity.getManagerMembersId());
+    space.setManagers(managers);
     return space;
   }
 
@@ -664,9 +693,15 @@ public class RDBMSSpaceStorageImpl implements SpaceStorage {
       } catch (Exception e) {
         LOG.warn("Failed to build avatar url: " + e.getMessage());
       }
-    }
-    if (entity.getAvatarLastUpdated() != null) {
       space.setAvatarLastUpdated(entity.getAvatarLastUpdated().getTime());
+    }
+    if (entity.getBannerLastUpdated() != null) {
+      try {
+        space.setBannerUrl(LinkProvider.buildBannerURL(SpaceIdentityProvider.NAME, space.getPrettyName()));
+      } catch (Exception e) {
+        LOG.warn("Failed to build Banner url: " + e.getMessage());
+      }
+      space.setBannerLastUpdated(entity.getBannerLastUpdated().getTime());
     }
     return space;
   }

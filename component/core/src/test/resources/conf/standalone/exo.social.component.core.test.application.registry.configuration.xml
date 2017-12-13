@@ -18,42 +18,6 @@
     02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd http://www.exoplaform.org/xml/ns/kernel_1_2.xsd" xmlns="http://www.exoplaform.org/xml/ns/kernel_1_2.xsd">
-
-    <component>
-        <key>org.exoplatform.services.resources.LocaleConfigService</key>
-        <type>org.exoplatform.services.resources.impl.LocaleConfigServiceImpl</type>
-        <init-params>
-            <value-param>
-                <name>locale.config.file</name>
-                <value>jar:/conf/locales-config.xml</value>
-            </value-param>
-        </init-params>
-    </component>
-    <component>
-        <key>org.exoplatform.services.resources.ResourceBundleService</key>
-        <type>org.exoplatform.services.resources.impl.SimpleResourceBundleService</type>
-        <init-params>
-            <values-param>
-                <name>classpath.resources</name>
-                <description>The resources that start with the following package name should be load from file system</description>
-                <value>locale.portlet</value>
-            </values-param>
-            <values-param>
-                <name>init.resources</name>
-                <!--value>locale.navigation.portal.classic</value-->
-                <value>locale.navigation.portal.default</value>
-            </values-param>
-            <values-param>
-                <name>portal.resource.names</name>
-                <!--value>locale.navigation.portal.classic</value-->
-                <value>locale.navigation.portal.default</value>
-            </values-param>
-        </init-params>
-    </component>
-    <component>
-        <key>org.exoplatform.portal.pc.ExoKernelIntegration</key>
-        <type>org.exoplatform.portal.pc.ExoKernelIntegration</type>
-    </component>
     <component>
         <key>org.exoplatform.application.registry.ApplicationRegistryService</key>
         <type>org.exoplatform.application.registry.impl.ApplicationRegistryServiceImpl</type>

@@ -205,9 +205,21 @@ public class MigrationIdentityStorage implements IdentityStorage {
   public InputStream getAvatarInputStreamById(Identity identity) throws IOException {
     return jpaStorage.getAvatarInputStreamById(identity);
   }
+
+  @Override
+  public InputStream getBannerInputStreamById(Identity identity) throws IOException {
+    return jpaStorage.getBannerInputStreamById(identity);
+  }
   
   @Override
   public int getIdentitiesForMentionsCount(String providerId, ProfileFilter profileFilter, Type type) throws IdentityStorageException {
     return jpaStorage.getIdentitiesForMentionsCount(providerId, profileFilter, type);
+  }
+
+  @Override
+  public int countSpaceMemberIdentitiesByProfileFilter(Space space,
+                                                       ProfileFilter profileFilter,
+                                                       org.exoplatform.social.core.identity.SpaceMemberFilterListAccess.Type type) {
+    return jpaStorage.countSpaceMemberIdentitiesByProfileFilter(space, profileFilter, type);
   }
 }

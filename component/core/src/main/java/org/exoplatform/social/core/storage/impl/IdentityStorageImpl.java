@@ -257,12 +257,6 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
           break;
         case MANAGER:
           members = gotSpace.getManagers();
-          List<String> wildcardUsers = SpaceUtils.findMembershipUsersByGroupAndTypes(space
-              .getGroupId(), MembershipTypeHandler.ANY_MEMBERSHIP_TYPE);
-          
-          for (String remoteId : wildcardUsers) {
-            relations.add(findIdentity(OrganizationIdentityProvider.NAME, remoteId));
-          }
           break;
       }
 
@@ -1615,5 +1609,14 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
   public InputStream getAvatarInputStreamById(Identity identity) throws IOException {
     throw new UnsupportedOperationException("JCR implementation is no more used");
   }
-  
+
+  @Override
+  public InputStream getBannerInputStreamById(Identity identity) throws IOException {
+    throw new UnsupportedOperationException("JCR implementation is no more used");
+  }
+
+  public int countSpaceMemberIdentitiesByProfileFilter(Space space, ProfileFilter profileFilter, Type type) {
+    return getSpaceMemberIdentitiesByProfileFilter(space, profileFilter, type, 0, Integer.MAX_VALUE).size();
+  }
+
 }

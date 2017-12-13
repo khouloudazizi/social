@@ -33,41 +33,14 @@ import org.exoplatform.services.log.Log;
  * @author  <a href="mailto:tungcnw@gmail.com">dang.tung</a>
  * @since   Sep 11, 2009
  */
-public class AvatarAttachment {
+public class AvatarAttachment extends  Attachment {
 
   private static final Log LOG = ExoLogger.getLogger(AvatarAttachment.class);
 
-  /**
-   * The id.
-   */
-  private String id;
-
-  /**
-   * The file name.
-   */
-  private String fileName;
-
-  /**
-   * The mime type.
-   */
-  private String mimeType;
-
-  /**
-   * The workspace.
-   */
-  private String workspace;
-
-  /**
-   * The image bytes.
-   */
-  private byte[] imageBytes;
-
-  /**
-   * The last modified.
-   */
-  private long lastModified;
+  public static final String TYPE = "avatar";
 
   public AvatarAttachment() {
+    super();
   }
 
   /**
@@ -87,183 +60,12 @@ public class AvatarAttachment {
                           InputStream inputStream,
                           String workspace,
                           long lastModified) throws Exception {
-    this.id = id;
-    this.fileName = fileName;
-    setInputStream(inputStream);
-    this.mimeType = mimeType;
-    this.workspace = workspace;
-    this.lastModified = lastModified;
+    super(id, fileName, mimeType, inputStream, workspace, lastModified);
   }
 
-  /**
-   * Gets the data path by specifying a PortalContainer instance
-   *
-   * @return the data path
-   * @throws Exception the exception
-   * @deprecated
-   */
-  public String getDataPath(PortalContainer portalContainer) throws Exception {
-    return getDataPath();
-  }
-
-  /**
-   * Gets the data path.
-   *
-   * @return the data path
-   * @throws Exception the exception
-   */
-  public String getDataPath() throws Exception {
-    try {
-      return getSession().getItem(getId()).getPath();
-    } catch (ItemNotFoundException e) {
-      LOG.warn("Failed to get data path", e);
-      return null;
-    }
-  }
-
-  /**
-   * Gets the id.
-   *
-   * @return the id
-   */
-  public String getId() {
-    return id;
-  }
-
-  /**
-   * Sets the id.
-   *
-   * @param s the new id
-   */
-  public void setId(String s) {
-    id = s;
-  }
-
-  /**
-   * Gets the workspace.
-   *
-   * @return the workspace
-   */
-  public String getWorkspace() {
-    return workspace;
-  }
-
-  /**
-   * Sets the workspace.
-   *
-   * @param ws the new workspace
-   */
-  public void setWorkspace(String ws) {
-    workspace = ws;
-  }
-
-  /**
-   * Gets the file name.
-   *
-   * @return the file name
-   */
-  public String getFileName() {
-    return fileName;
-  }
-
-  /**
-   * Sets the file name.
-   *
-   * @param s the new file name
-   */
-  public void setFileName(String s) {
-    fileName = s;
-  }
-
-  /**
-   * Gets the mime type.
-   *
-   * @return the mime type
-   */
-  public String getMimeType() {
-    return mimeType;
-  }
-
-  /**
-   * Sets the mime type.
-   *
-   * @param s the new mime type
-   */
-  public void setMimeType(String s) {
-    mimeType = s;
-  }
-
-  /**
-   * Gets the last modified.
-   *
-   * @return the last modified
-   */
-  public long getLastModified() {
-    return lastModified;
-  }
-
-  /**
-   * Sets the last modified.
-   *
-   * @param lastModified the new last modified
-   */
-  public void setLastModified(long lastModified) {
-    this.lastModified = lastModified;
-  }
-
-  /**
-   * Gets images size in MB/ KB/ Bytes.
-   *
-   * @return image size string
-   */
-  public String getSize() {
-    int KB_SIZE = 1024;
-    int MB_SIZE = 1024 * KB_SIZE;
-    int length = imageBytes.length;
-    double size;
-    if (length >= MB_SIZE) {
-      size = length / MB_SIZE;
-      return size + " MB";
-    } else if (length >= KB_SIZE) {
-      size = length / KB_SIZE;
-      return size + " KB";
-    } else { //Bytes size
-      return length + " Bytes";
-    }
-  }
-
-  /**
-   * Gets imageBytes.
-   *
-   * @return
-   */
-  public byte[] getImageBytes() {
-    return imageBytes;
-  }
-
-  /**
-   * Sets the input stream.
-   *
-   * @param input the new input stream
-   * @throws Exception the exception
-   */
-  public void setInputStream(InputStream input) throws Exception {
-    if (input != null) {
-      imageBytes = new byte[input.available()];
-      input.read(imageBytes);
-    } else {
-      imageBytes = null;
-    }
-  }
-
-  /**
-   * Gets the session.
-   *
-   * @return the session
-   * @throws Exception the exception
-   */
-  private Session getSession() throws Exception {
-    return CommonsUtils.getSystemSessionProvider().getSession(workspace, CommonsUtils.getRepository());
+  @Override
+  public String getAttachmentType() {
+    return TYPE;
   }
 
 }

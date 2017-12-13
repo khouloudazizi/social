@@ -272,6 +272,12 @@
         </object-param>
       </init-params>
     </component-plugin>
+
+    <component-plugin>
+      <name>social.update.membership.event.listener</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>org.exoplatform.social.core.listeners.SocialMembershipListenerImpl</type>
+    </component-plugin>
   </external-component-plugins>
 
   <external-component-plugins>
@@ -291,6 +297,11 @@
           <name>initializing.failure.ignore</name>
           <description>In the run method, use try catch or not (value is true/false)</description>
           <value>true</value>
+        </value-param>
+        <value-param>
+          <name>page.templates.location</name>
+          <description>the path to the location that contains Page templates</description>
+          <value>classpath:/conf/standalone/portal/template/pages</value>
         </value-param>
         <object-param>
           <name>portal.configuration</name>
@@ -368,4 +379,5 @@
     </component-plugin>
   </external-component-plugins>
   
+  <remove-configuration>org.exoplatform.portal.pc.ExoKernelIntegration</remove-configuration>
 </configuration>

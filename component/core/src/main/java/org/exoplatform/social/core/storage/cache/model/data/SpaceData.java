@@ -17,6 +17,7 @@
 
 package org.exoplatform.social.core.storage.cache.model.data;
 
+import org.apache.commons.lang.StringUtils;
 import org.exoplatform.social.core.space.model.Space;
 
 /**
@@ -38,9 +39,11 @@ public class SpaceData implements CacheData<Space> {
   private final String visibility;
   private final String priority;
   private final String avatarUrl;
+  private final String bannerUrl;
   private final String groupId;
   private final String url;
   private final Long avatarLastUpdated;
+  private final Long bannerLastUpdated;
   private final Long createdTime;
 
   private final String[] members;
@@ -60,7 +63,9 @@ public class SpaceData implements CacheData<Space> {
     visibility = space.getVisibility();
     priority = space.getPriority();
     avatarLastUpdated = space.getAvatarLastUpdated();
+    bannerLastUpdated = space.getBannerLastUpdated();
     avatarUrl = space.getAvatarUrl();
+    bannerUrl = space.getBannerUrl();
     groupId = space.getGroupId();
     url = space.getUrl();
 
@@ -86,7 +91,9 @@ public class SpaceData implements CacheData<Space> {
     space.setVisibility(visibility);
     space.setPriority(priority);
     space.setAvatarLastUpdated(avatarLastUpdated);
+    space.setBannerLastUpdated(bannerLastUpdated);
     space.setAvatarUrl(avatarUrl);
+    space.setBannerUrl(bannerUrl);
     space.setGroupId(groupId);
     space.setUrl(url);
     space.setMembers(members);
@@ -161,5 +168,28 @@ public class SpaceData implements CacheData<Space> {
 
   public String[] getInvitedUser() {
     return invitedUser;
+  }
+
+  public String getBannerUrl() {
+    return bannerUrl;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof SpaceData)) return false;
+
+    SpaceData spaceData = (SpaceData) o;
+
+    return StringUtils.equals(id, spaceData.id) && StringUtils.equals(prettyName, spaceData.prettyName)
+            && StringUtils.equals(displayName, spaceData.displayName);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = id != null ? id.hashCode() : 0;
+    result = 31 * result + (prettyName != null ? prettyName.hashCode() : 0);
+    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
+    return result;
   }
 }

@@ -337,4 +337,22 @@ public interface IdentityStorage {
    * @return
    */
   InputStream getAvatarInputStreamById(Identity identity) throws IOException;
+
+  /**
+   *  Gets a the avatar stream for a given identity
+   *
+   * @param identity
+   * @return
+   */
+  InputStream getBannerInputStreamById(Identity identity) throws IOException;
+
+  /**
+   * count Space's members by status and filter it by Profile Filter
+   * 
+   * @param space
+   * @param profileFilter
+   * @param type
+   * @return
+   */
+  public int countSpaceMemberIdentitiesByProfileFilter(Space space, ProfileFilter profileFilter, Type type);
 }

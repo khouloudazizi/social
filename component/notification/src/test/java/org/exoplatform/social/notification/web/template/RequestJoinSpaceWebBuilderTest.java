@@ -66,7 +66,8 @@ public class RequestJoinSpaceWebBuilderTest extends AbstractPluginTest {
     Space space = getSpaceInstance(1);
     //Make request to join space
     spaceService.addPendingUser(space, maryIdentity.getRemoteId());
-    List<NotificationInfo> list = assertMadeWebNotifications(1);
+    assertMadeWebNotifications(1);
+    List<NotificationInfo> list = assertMadeWebNotifications(rootIdentity.getRemoteId(), 1);
     
     //assert Message Info
     NotificationInfo ntf = list.get(0);

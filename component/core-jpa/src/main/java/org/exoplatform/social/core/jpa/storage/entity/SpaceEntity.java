@@ -18,13 +18,8 @@
 package org.exoplatform.social.core.jpa.storage.entity;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -46,8 +41,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.exoplatform.commons.api.persistence.ExoEntity;
-import org.exoplatform.social.core.jpa.storage.entity.SpaceMemberEntity.Status;
-import org.exoplatform.social.core.space.model.Space;
 
 @Entity(name = "SocSpaceEntity")
 @ExoEntity
@@ -94,6 +87,10 @@ public class SpaceEntity implements Serializable {
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "AVATAR_LAST_UPDATED")
   private Date              avatarLastUpdated;
+
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "BANNER_LAST_UPDATED")
+  private Date              bannerLastUpdated;
 
   @Column(name = "VISIBILITY")
   public VISIBILITY         visibility;
@@ -170,6 +167,14 @@ public class SpaceEntity implements Serializable {
     this.avatarLastUpdated = avatarLastUpdated;
   }
 
+  public Date getBannerLastUpdated() {
+    return bannerLastUpdated;
+  }
+
+  public void setBannerLastUpdated(Date bannerLastUpdated) {
+    this.bannerLastUpdated = bannerLastUpdated;
+  }
+
   public VISIBILITY getVisibility() {
     return visibility;
   }
@@ -222,53 +227,13 @@ public class SpaceEntity implements Serializable {
     return members;
   }
 
-  public SpaceEntity buildFrom(Space space) {
-    this.setApp(AppEntity.parse(space.getApp()));
-    if (space.getAvatarLastUpdated() != null) {
-      this.setAvatarLastUpdated(space.getAvatarLastUpdated() > 0 ? new Date(space.getAvatarLastUpdated()) : null);
-    }
-    this.setCreatedDate(space.getCreatedTime() > 0 ? new Date(space.getCreatedTime()) : new Date());
-    this.setDescription(space.getDescription());
-    this.setType(space.getType());
-    this.setDisplayName(space.getDisplayName());
-    this.setGroupId(space.getGroupId());
-    this.setPrettyName(space.getPrettyName());
-    PRIORITY priority = null;
-    if (Space.HIGH_PRIORITY.equals(space.getPriority())) {
-      priority = PRIORITY.HIGH;
-    } else if (Space.INTERMEDIATE_PRIORITY.equals(space.getPriority())) {
-      priority = PRIORITY.INTERMEDIATE;
-    } else if (Space.LOW_PRIORITY.equals(space.getPriority())) {
-      priority = PRIORITY.LOW;
-    }
-    this.setPriority(priority);
-    if (space.getRegistration() != null) {
-      this.setRegistration(REGISTRATION.valueOf(space.getRegistration().toUpperCase()));
-    }
-    this.setUrl(space.getUrl());
-    VISIBILITY visibility = null;
-    if (space.getVisibility() != null) {
-      visibility = VISIBILITY.valueOf(space.getVisibility().toUpperCase());
-    }
-    this.setVisibility(visibility);
-    buildMembers(space);
-    return this;
+  public void setMembers(Set<SpaceMemberEntity> members) {
+    this.members = members;
   }
 
-  public String[] getPendingMembersId() {
-    return getUserIds(Status.PENDING);
-  }
-
-  public String[] getInvitedMembersId() {
-    return getUserIds(Status.INVITED);
-  }
-
-  public String[] getMembersId() {
-    return getUserIds(Status.MEMBER);
-  }
-
-  public String[] getManagerMembersId() {
-    return getUserIds(Status.MANAGER);
+  @Override
+  public int hashCode() {
+    return id == null ? 0 : id.intValue();
   }
 
   public static enum VISIBILITY {
@@ -281,57 +246,5 @@ public class SpaceEntity implements Serializable {
 
   public static enum REGISTRATION {
     OPEN, VALIDATION, CLOSE
-  }
-
-  private void buildMembers(Space space) {
-    Set<SpaceMemberEntity> invited = this.getMembers(Status.INVITED);
-    merge(invited, space.getInvitedUsers(), Status.INVITED);
-
-    Set<SpaceMemberEntity> manager = this.getMembers(Status.MANAGER);
-    merge(manager, space.getManagers(), Status.MANAGER);
-
-    Set<SpaceMemberEntity> member = this.getMembers(Status.MEMBER);
-    merge(member, space.getMembers(), Status.MEMBER);
-
-    Set<SpaceMemberEntity> pending = this.getMembers(Status.PENDING);
-    merge(pending, space.getPendingUsers(), Status.PENDING);
-  }
-
-  private void merge(Set<SpaceMemberEntity> spaceMembers, String[] userIds, Status status) {
-    Set<String> ids = new HashSet<>(userIds != null ? Arrays.asList(userIds) : Collections.<String> emptyList());
-
-    Iterator<SpaceMemberEntity> mems = spaceMembers.iterator();
-    while (mems.hasNext()) {
-      SpaceMemberEntity mem = mems.next();
-      String id = mem.getUserId();
-
-      if (ids.contains(mem.getUserId())) {
-        ids.remove(id);
-      } else {
-        this.getMembers().remove(mem);
-      }
-    }
-
-    for (String id : ids) {
-      this.getMembers().add(new SpaceMemberEntity(this, id, status));
-    }
-  }
-
-  private Set<SpaceMemberEntity> getMembers(Status status) {
-    Set<SpaceMemberEntity> mems = new HashSet<>();
-    for (SpaceMemberEntity mem : getMembers()) {
-      if (mem.getStatus().equals(status)) {
-        mems.add(mem);
-      }
-    }
-    return mems;
-  }
-
-  private String[] getUserIds(Status status) {
-    List<String> ids = new LinkedList<>();
-    for (SpaceMemberEntity mem : getMembers(status)) {
-      ids.add(mem.getUserId());
-    }
-    return ids.toArray(new String[ids.size()]);
   }
 }

@@ -40,6 +40,7 @@
       UIActivity.commentFormFocused = params.commentFormFocused = "true" ? true : false  || false;
       UIActivity.commentPlaceholder = params.placeholderComment || null;
       UIActivity.spaceURL = params.spaceURL;
+      UIActivity.spaceGroupId = params.spaceGroupId;
       UIActivity.labels = params.labels;
 
       if (UIActivity.activityId == null) {
@@ -65,43 +66,43 @@
           UIActivity.commentBlockIds[i - 1] = "CommentBlock" + UIActivity.activityId + i;
         }
       }
-      if(!$("#activityContainer" + UIActivity.activityId).find(".isPreviewable").hasClass("animatedBlock")) {
-        $("#activityContainer" + UIActivity.activityId).find(".isPreviewable").addClass("animatedBlock");
-        $("#activityContainer" + UIActivity.activityId).find(".isPreviewable").mouseenter(function() {
-          $(this).find(".mediaContent + .MediaName").animate({
-            bottom: 48
-          });
-        });
-        $("#activityContainer" + UIActivity.activityId).find(".isPreviewable").mouseleave(function() {
-          $(this).find(".mediaContent + .MediaName").animate({
-            bottom: -5
-          });
-        });
-      }
+      var commentButton = $("#" + UIActivity.commentButtonId);
+      commentButton.click(function(event) {
+        var commentId = commentButton.data("comment-id");
+        var clickAction = commentButton.data("click").replace("COMMENTID", (commentId ? commentId : ""));
+        eval(clickAction);
+      });
     },
 
-    initCKEditor: function () {
-      var extraPlugins = 'simpleLink,simpleImage,suggester,hideBottomToolbar';
+    initCKEditor: function (activityId, spaceURL, commentPlaceholder, spaceGroupId) {
+      var extraPlugins = 'simpleLink,selectImage,suggester,hideBottomToolbar';
       var windowWidth = $(window).width();
       var windowHeight = $(window).height();
       if (windowWidth > windowHeight && windowWidth < 768) {
         // Disable suggester on smart-phone landscape
-        extraPlugins = 'simpleLink,simpleImage';
+        extraPlugins = 'simpleLink,selectImage';
       }
 
       var MAX_LENGTH = 2000;
       // TODO this line is mandatory when a custom skin is defined, it should not be mandatory
       CKEDITOR.basePath = '/commons-extension/ckeditor/';
 
-      $('textarea#CommentTextarea' + UIActivity.activityId).ckeditor({
+      $('textarea#CommentTextarea' + activityId).ckeditor({
         customConfig: '/commons-extension/ckeditorCustom/config.js',
         extraPlugins: extraPlugins,
-        placeholder: UIActivity.commentPlaceholder != null ? UIActivity.commentPlaceholder : window.eXo.social.I18n.mentions.defaultMessage,
-        activityId : UIActivity.activityId,
-        spaceURL: UIActivity.spaceURL,
+        removePlugins: 'image',
+        placeholder: commentPlaceholder != null ? commentPlaceholder : window.eXo.social.I18n.mentions.defaultMessage,
+        activityId : activityId,
+        extraAllowedContent: 'img[style,class,src,referrerpolicy,alt,width,height]',
+        spaceURL: spaceURL,
+        spaceGroupId: spaceGroupId,
         typeOfRelation: 'mention_comment',
         on : {
           instanceReady : function ( evt ) {
+            var data = this.getData();
+            if(data && data.trim()) {
+              this.setData("");
+            }
             // Hide the editor toolbar
             var elId = this.element.$.id.replace('CommentTextarea','');
             $('#CommentButton' + elId).prop("disabled", true);
@@ -110,17 +111,19 @@
             var newData = evt.editor.getData();
             var pureText = newData? newData.replace(/<[^>]*>/g, "").replace(/&nbsp;/g,"").trim() : "";
             var elId = this.element.$.id.replace('CommentTextarea','');
+            var disabled = pureText.length == 0 || pureText.length > MAX_LENGTH;
+            disabled = disabled ? (newData.indexOf("<img ") < 0) : false;
 
-            if (pureText.length > 0 && pureText.length <= MAX_LENGTH) {
-              $('#CommentButton' + elId).removeAttr("disabled");
-            } else {
+            if (disabled) {
               $('#CommentButton' + elId).prop("disabled", true);
+            } else {
+              $('#CommentButton' + elId).removeAttr("disabled");
             }
 
             if (pureText.length <= MAX_LENGTH) {
-              evt.editor.getCommand('simpleImage').enable();
+              evt.editor.getCommand('selectImage').enable();
             } else {
-              evt.editor.getCommand('simpleImage').disable();
+              evt.editor.getCommand('selectImage').disable();
             }
           },
           key: function( evt) {
@@ -143,7 +146,7 @@
       UIActivity.commentTextareaEl = $("#" + UIActivity.commentTextareId);
       UIActivity.commentButtonEl = $("#" + UIActivity.commentButtonId).show();
       UIActivity.deleteCommentButtonEls = [];
-      UIActivity.contentBoxEl = $(UIActivity.contentBoxId);
+      UIActivity.contentBoxEl = $("#" + UIActivity.contentBoxId);
       UIActivity.deleteActivityButtonEl = $("#" + UIActivity.deleteActivityButtonId);
       UIActivity.permaLinkActivityButtonEl = $("#" + UIActivity.permaLinkActivityButtonId);
       UIActivity.commentBlockBoundEl = $("#" + UIActivity.commentBlockBoundId);
@@ -158,6 +161,21 @@
         }
       }
 
+      var contentBoxEl = this.contentBoxEl;
+      var activityId = UIActivity.activityId;
+      UIActivity.contentBoxEl.find(".subCommentShowAllLink").on("click", function() {
+        var parentCommentId = $(this).attr('data-parent-comment');
+
+        $('#SubCommentShowAll_' + parentCommentId).hide();
+        contentBoxEl.find('[data-parent-comment=' + parentCommentId + ']').removeClass('hidden');
+
+        UIActivity.addLastCommentParamToLikeLink(activityId, parentCommentId);
+      });
+      if(window.lastExpandedComment && window.lastExpandedComment[UIActivity.activityId]) {
+        var parentCommentId = window.lastExpandedComment[UIActivity.activityId];
+        this.addLastCommentParamToLikeLink(UIActivity.activityId, parentCommentId);
+      }
+
       window.takeActionFromLikeComment = UIActivity.takeActionFromLikeComment;
 
       if (!(UIActivity.commentFormBlockEl && UIActivity.commentTextareaEl && UIActivity.commentButtonEl)) {
@@ -168,31 +186,65 @@
         evt.stopPropagation();
       });
 
-      this.initCKEditor();
+      var activityId = UIActivity.activityId;
+      var spaceURL = UIActivity.spaceURL;
+      var spaceGroupId = UIActivity.spaceGroupId;
+      var commentPlaceholder = UIActivity.commentPlaceholder;
 
-      //this.resizeComment();
-
-      var commentLinkEl = $("#" + UIActivity.commentLinkId);
+      var commentLinkEl = $("[data-activity='" + activityId + "']");
       if (commentLinkEl.length > 0) {
         commentLinkEl.off('click').on('click', function (evt) {
-          var currentActivityId = $(this).attr('id').replace('CommentLink', '');
-          $('#cke_CommentTextarea' + currentActivityId + ' .cke_contents')[0].style.height = "110px";
-
+          var currentActivityId = $(this).attr('data-activity');
+          var currentCommentId = $(this).attr('data-comment');
+          var currentSubCommentId = $(this).attr('data-sub-comment');
+          var commentButton = $("[data-comment-button='" + activityId + "']");
           var inputContainer = $('#InputContainer' + currentActivityId);
-          if (!inputContainer.is(":visible")) {
+
+          if(currentCommentId) {
+            commentButton.data("comment-id", currentCommentId);
+
+            // Move CKEditor instance to comment block
+            inputContainer.addClass("subCommentBlock");
+            inputContainer.insertAfter($("[data-comment-id=" + currentCommentId + "]").last());
+          } else {
+            commentButton.data("comment-id", null);
+
+            // Move CKEditor instance to activity comment block
+            inputContainer.removeClass("subCommentBlock");
+            inputContainer.appendTo("#CommentBlockBound" + activityId);
+          }
+
+          inputContainer = $('#InputContainer' + currentActivityId);
+          var inputContainerCommentId = inputContainer.data("comment-id");
+          var inputContainerSubCommentId = inputContainer.data("comment-sub-id");
+          inputContainerCommentId = inputContainerCommentId ? inputContainerCommentId : undefined;
+          inputContainerSubCommentId = inputContainerSubCommentId ? inputContainerSubCommentId : undefined;
+          var instanciateCKEditor = !inputContainer.is(":visible") || inputContainerCommentId !== currentCommentId || inputContainerSubCommentId !== currentSubCommentId;
+          if (instanciateCKEditor) {
+            try {
+              if(CKEDITOR.instances['CommentTextarea' + activityId]) {
+                  CKEDITOR.instances['CommentTextarea' + activityId].destroy();
+              }
+            } catch(e){
+              console.log(e);
+            }
+
+            inputContainer.data("comment-id", currentCommentId ? currentCommentId : "");
+            inputContainer.data("comment-sub-id", currentSubCommentId ? currentSubCommentId : "");
+
+            self.initCKEditor(activityId, spaceURL, commentPlaceholder, spaceGroupId);
+
             inputContainer.show('fast', function () {
               var thiz = $(this);
-              var blockInput = thiz.parents('.uiActivityStream:first').find('.inputContainerShow');
-              if(blockInput.length > 0) {
-                blockInput.removeClass('inputContainerShow').hide();
-              }
               thiz.addClass('inputContainerShow');
               thiz.find('div.replaceTextArea:first').focus();
-              var ctTop = ($(window).height()- thiz.height())/2;
-              var nTop = thiz.offset().top - ctTop - 20;
-              nTop = (nTop > 0) ? nTop : 0;
 
-              $('html, body').animate({scrollTop:nTop}, 'slow');
+              if($('#cke_CommentTextarea' + currentActivityId + ' .cke_contents').length) {
+                $('#cke_CommentTextarea' + currentActivityId + ' .cke_contents')[0].style.height = "110px";
+              }
+
+              var selectedComment = currentSubCommentId ? currentSubCommentId : currentCommentId;
+              self.focusToComment(selectedComment, thiz);
             });
           } else {
             if (eXo.social.SocialUtil.checkDevice().isMobile !== true) {
@@ -200,6 +252,12 @@
                 var thiz = $(this);
                 thiz.removeClass('inputContainerShow');
               });
+            } else {
+              var thiz = $(this);
+              var blockInput = thiz.parents('.uiActivityStream:first').find('.inputContainerShow');
+              if(blockInput.length > 0) {
+                blockInput.removeClass('inputContainerShow').hide();
+              }
             }
           }
         });
@@ -248,7 +306,7 @@
         );
       }
 
-      this.adaptFileBreadCrumb();
+      this.adaptFileBreadCrumb(UIActivity.activityId);
 
       // click on "like comments" buttons
       $('#ContextBox'+UIActivity.activityId+' a[id*="LikeCommentLink_"]').each(function (idx, el) {
@@ -260,14 +318,23 @@
       });
     },
 
-    resizeComment: function (){
-      var arr = $('.commentRight .contentComment img');
-      if (arr.length > 0) {
-        for (var i = 0, len = arr.length; i < len; i++) {
-          if (arr[i].clientHeight > arr[i].offsetParent.clientHeight) {
-            arr[i].closest('.contentComment').style.height = arr[i].height + 26 + "px";
-          }
-        }
+    addLastCommentParamToLikeLink: function (activityId, parentCommentId){
+      var linkElement = $("#LikeLink"+activityId);
+      if(linkElement.length == 0) {
+        linkElement = $("#UnLikeLink"+activityId);
+      }
+      var clickAction = linkElement.attr("onclick");
+      if(clickAction && linkElement.length > 0) {
+        clickAction = clickAction.replace("&objectId=", "&commentId=" + parentCommentId + "&objectId=");
+        linkElement.attr("onclick", clickAction);
+        window.lastExpandedComment = {};
+        window.lastExpandedComment[activityId] = parentCommentId;
+      }
+      linkElement = $("#LikeCommentLink"+parentCommentId);
+      clickAction = linkElement.attr("onclick");
+      if(clickAction && linkElement.length > 0) {
+        clickAction = clickAction.replace("&objectId=", "&commentId=" + parentCommentId + "&objectId=");
+        linkElement.attr("onclick", clickAction);
       }
     },
 
@@ -360,19 +427,42 @@
       var anchor_pattern = "#comment-([\\w|/]+|)";
       var result = anchor.match(anchor_pattern);
       if (result != null) {
-        var jcomment = $('#commentContainer' + result[1]).addClass('focus');
         if (isReply) {
           this.replyByURL(activityId);
-        } else if (jcomment.length > 0) {
-          jcomment[0].scrollIntoView(true);
+        } else {
+          this.focusToComment(result[1]);
         }
       }
     },
 
-    focusToComment : function() {
-      var comment = $('#commentContainer' + $.getQuery('commentId'));
+    focusToComment : function(commentId, elementToScrollTo, delayToDisableFocus) {
+      var comment = $('#commentContainer' + commentId);
+      var ele = elementToScrollTo;
       if(comment.length > 0) {
-        comment.addClass('focus')[0].scrollIntoView(true);
+        $("div[id^='commentContainer'").removeClass("focus");
+
+        var nTop = 0;
+        if (!elementToScrollTo || eXo.social.SocialUtil.checkDevice().isMobile === true) {
+          if(commentId) {
+            ele = $("#commentContainer" + commentId);
+          }
+        }
+
+        if(commentId) {
+          var eleToFocus = $("#commentContainer" + commentId);
+          if(eleToFocus.length > 0 && eleToFocus.offset()) {
+            eleToFocus.addClass('focus');
+            if(delayToDisableFocus && delayToDisableFocus > 0) {
+              setTimeout(function() {
+                eleToFocus.removeClass('focus', delayToDisableFocus);
+              }, 2000);
+            }
+          }
+        }
+      }
+      if(ele) {
+        var nTop = ele.offset().top - $(window).height() / 2 + ele.height() / 2;
+        $('html, body').animate({scrollTop:nTop}, 'slow');
       }
     },
 
@@ -520,9 +610,19 @@
     /**
      * show/hide the ellipsis on the left of file breadcrumb is it is overflowed on window resizing
      */
-    adaptFileBreadCrumb : function() {
-      var breadcrumbs = $('.fileBreadCrumb');
-      // for each breadcrumb of the page...
+    adaptFileBreadCrumb : function(activityId) {
+      var ellipsisReverseContent = null;
+      var breadcrumbs =  null;
+      if(activityId) {
+        ellipsisReverseContent = $('#ContextBox' + activityId + " .ellipsis-reverse");
+        breadcrumbs = $('#ContextBox'+activityId + " .fileBreadCrumb");
+      }
+      if (!ellipsisReverseContent || !ellipsisReverseContent.length) {
+        ellipsisReverseContent = $('.ellipsis-reverse');
+        breadcrumbs = $('.fileBreadCrumb');
+      }
+
+      // for each selected old breadcrumb preview
       breadcrumbs.each(function() {
         var breadcrumbContent = $(this).find('.fileBreadCrumbContent');
         // do not process empty breadcrumbs
@@ -537,6 +637,31 @@
             var ellipsis = $(this).find('.fixedBreadCrumb');
             ellipsis.removeClass('active');
           }
+        }
+      })
+
+      // for each selected multiupload preview breadcrumb
+      ellipsisReverseContent.each(function() {
+        var $ellipsisContent = $(this).find(".ellipsis-reverse-content");
+        if(!$ellipsisContent.is(":visible")) {
+          return;
+        }
+        var $ellipsisApplyContent = $(this).find(".ellipsis-reverse-apply-content");
+        var $ellipsisFirstChild = $ellipsisApplyContent.find(' :first-child');
+        if(!$ellipsisApplyContent.length
+            || !$ellipsisContent.length
+            || !$(this).offset()
+            || !$ellipsisFirstChild
+            || !$ellipsisFirstChild.offset()
+            || !$ellipsisFirstChild.length) {
+          return;
+        }
+        $ellipsisContent.addClass("hidden");
+        $ellipsisApplyContent.css("position", "static");
+        var applyEllipsisReverse = $ellipsisFirstChild.offset().left - $(this).offset().left - 15;
+        if(applyEllipsisReverse < 0) {
+          $ellipsisContent.removeClass("hidden");
+          $ellipsisApplyContent.css("position", "absolute");
         }
       })
     },

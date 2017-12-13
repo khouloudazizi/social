@@ -17,10 +17,12 @@
 package org.exoplatform.social.core.jpa.storage.dao;
 
 import java.util.List;
+import java.util.Set;
 
 import org.exoplatform.commons.api.persistence.GenericDAO;
 import org.exoplatform.social.core.jpa.storage.entity.SpaceEntity;
 import org.exoplatform.social.core.jpa.storage.entity.SpaceMemberEntity;
+import org.exoplatform.social.core.jpa.storage.entity.SpaceMemberEntity.Status;
 
 public interface SpaceMemberDAO extends GenericDAO<SpaceMemberEntity, Long> {
     void deleteBySpace(SpaceEntity entity);
@@ -28,4 +30,35 @@ public interface SpaceMemberDAO extends GenericDAO<SpaceMemberEntity, Long> {
     SpaceMemberEntity getSpaceMemberShip(String remoteId, Long spaceId, SpaceMemberEntity.Status status);
 
     List<Long> getSpacesIdsByUserName(String userId, int offset, int limit);
+
+    /**
+     * Get space members switch status
+     * 
+     * @param spaceId
+     * @param status equals to MEMBER, MANAGER, PENDING, INVITED or IGNORED
+     * @param offset
+     * @param limit
+     * @return
+     */
+    List<String> getSpaceMembers(Long spaceId, Status status, int offset, int limit);
+
+    /**
+     * Sort user identity remote ids
+     * 
+     * @param usernames
+     * @param sortField
+     *
+     * @return {@link List} of usernames sorted by sortField
+     */
+    List<String> sortSpaceMembers(List<String> usernames, String sortField);
+
+    /**
+     * Count space members switch status
+     * 
+     * @param spaceId
+     * @param status equals to MEMBER, MANAGER, PENDING, INVITED or IGNORED
+     * @return
+     */
+    int countSpaceMembers(Long spaceId, Status status);
+
 }

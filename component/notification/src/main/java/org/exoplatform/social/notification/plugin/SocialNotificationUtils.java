@@ -21,8 +21,11 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,9 +54,11 @@ import org.exoplatform.social.notification.Utils;
 import org.exoplatform.social.notification.plugin.child.DefaultActivityChildPlugin;
 
 public class SocialNotificationUtils {
+  public final static Pattern IMG_SRC_REGEX = Pattern.compile("<img[^>]+((data-plugin-name\\s*=\\s*['\"]([^'\"]+)['\"][^>]+)|(src\\s*=\\s*['\"]([^'\"]+)['\"])){2}[^>]*>");
 
   public final static ArgumentLiteral<String> ACTIVITY_ID = new ArgumentLiteral<String>(String.class, "activityId");
   public final static ArgumentLiteral<String> COMMENT_ID = new ArgumentLiteral<String>(String.class, "commentId");
+  public final static ArgumentLiteral<String> COMMENT_REPLY_ID = new ArgumentLiteral<String>(String.class, "commentReplyId");
   public final static ArgumentLiteral<String> PARENT_ACTIVITY_ID = new ArgumentLiteral<String>(String.class, "parentActivityId");
   public final static ArgumentLiteral<String> POSTER = new ArgumentLiteral<String>(String.class, "poster");
   public final static ArgumentLiteral<String> LIKER = new ArgumentLiteral<String>(String.class, "likersId");
@@ -351,7 +356,25 @@ public class SocialNotificationUtils {
       return;
     }
   }
-  
+
+  public static String processImageTitle(String body, String placeholder) {
+    Matcher matcher = IMG_SRC_REGEX.matcher(body);
+    int startIdex = 0;
+    while (matcher.find(startIdex)) {
+      String imageBody = matcher.group(0);
+
+      body = body.replace(imageBody, "<i> [" + placeholder + "] </i>");
+      startIdex = matcher.end(1);
+    }
+    return body;
+  }
+
+  public static String getImagePlaceHolder(String language) {
+    return TemplateUtils.getResourceBundle("Notification.label.InlineImage",
+                                           new Locale(language),
+                                           "locale.social.Webui");
+  }
+
   public static String getBody(NotificationContext ctx, TemplateContext context, ExoSocialActivity activity) {
     PluginKey childKey = new PluginKey(activity.getType());
     PluginContainer pluginContainer = CommonsUtils.getService(PluginContainer.class);
@@ -361,7 +384,9 @@ public class SocialNotificationUtils {
     }
     context.put("ACTIVITY", ((AbstractNotificationChildPlugin) child).makeContent(ctx));
 
-    return TemplateUtils.processGroovy(context);
+    String body = TemplateUtils.processGroovy(context);
+    body = processImageTitle(body, getImagePlaceHolder(context.getLanguage()));
+    return body;
   }
 
   public static NotificationInfo addUserToPreviousNotification(NotificationInfo notification,
@@ -378,7 +403,9 @@ public class SocialNotificationUtils {
     if (previousNotification != null) {
       users = NotificationUtils.stringToList(previousNotification.getValueOwnerParameter(propertyName));
       Identity userIdentity = Utils.getIdentityManager().getOrCreateIdentity(OrganizationIdentityProvider.NAME, userId, true);
-      if (users.contains(userIdentity.getRemoteId())) {
+      if (users == null) {
+        users = new ArrayList<>();
+      } else if (users.contains(userIdentity.getRemoteId())) {
         users.remove(userIdentity.getRemoteId());
       }
       users.add(userIdentity.getRemoteId());

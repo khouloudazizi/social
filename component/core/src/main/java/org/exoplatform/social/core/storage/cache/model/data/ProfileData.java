@@ -17,6 +17,7 @@
 
 package org.exoplatform.social.core.storage.cache.model.data;
 
+import org.apache.commons.lang.StringUtils;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 
@@ -50,8 +51,12 @@ public class ProfileData implements CacheData<Profile> {
   private String url;
 
   private String avatarUrl;
+
+  private String bannerUrl;
   
   private Long avatarLastUpdated;
+
+  private Long bannerLastUpdated;
   
   private Long createdTime;
 
@@ -67,7 +72,9 @@ public class ProfileData implements CacheData<Profile> {
       this.data = Collections.unmodifiableMap(profile.getProperties());
       this.url = profile.getUrl();
       this.avatarUrl = profile.getAvatarUrl();
+      this.bannerUrl = profile.getBannerUrl();
       this.avatarLastUpdated = profile.getAvatarLastUpdated();
+      this.bannerLastUpdated = profile.getBannerLastUpdated();
       this.createdTime = profile.getCreatedTime();
     }
   }
@@ -101,7 +108,9 @@ public class ProfileData implements CacheData<Profile> {
     profile.setId(profileId);
     profile.setUrl(url);
     profile.setAvatarUrl(avatarUrl);
+    profile.setBannerUrl(bannerUrl);
     profile.setAvatarLastUpdated(avatarLastUpdated);
+    profile.setBannerLastUpdated(bannerLastUpdated);
     profile.setCreatedTime(createdTime);
     for(String key : data.keySet()) {
       profile.setProperty(key, data.get(key));
@@ -114,4 +123,23 @@ public class ProfileData implements CacheData<Profile> {
     return profile;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ProfileData)) return false;
+
+    ProfileData that = (ProfileData) o;
+
+    return StringUtils.equals(profileId, that.profileId) && StringUtils.equals(identityId, that.identityId)
+            && StringUtils.equals(providerId, that.profileId) && StringUtils.equals(remoteId, that.remoteId);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = profileId != null ? profileId.hashCode() : 0;
+    result = 31 * result + (identityId != null ? identityId.hashCode() : 0);
+    result = 31 * result + (providerId != null ? providerId.hashCode() : 0);
+    result = 31 * result + (remoteId != null ? remoteId.hashCode() : 0);
+    return result;
+  }
 }

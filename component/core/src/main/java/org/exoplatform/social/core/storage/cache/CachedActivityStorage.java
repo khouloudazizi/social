@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.exoplatform.container.component.BaseComponentPlugin;
+import org.exoplatform.services.cache.CacheListener;
+import org.exoplatform.services.cache.CacheListenerContext;
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -156,7 +158,7 @@ public class CachedActivityStorage implements ActivityStorage {
       }
       ActivityKey k = new ActivityKey(a.getId());
       if(exoActivityCache.get(k) == null) {
-        exoActivityCache.put(k, new ActivityData(a));
+        exoActivityCache.putLocal(k, new ActivityData(a));
       }
       data.add(k);
     }
@@ -189,6 +191,8 @@ public class CachedActivityStorage implements ActivityStorage {
     this.exoActivityCache = cacheService.getActivityCache();
     this.exoActivitiesCountCache = cacheService.getActivitiesCountCache();
     this.exoActivitiesCache = cacheService.getActivitiesCache();
+
+    this.exoActivityCache.addCacheListener(new CacheActivityListener());
 
     //
     this.activityCache = CacheType.ACTIVITY.createFutureCache(exoActivityCache);
@@ -297,8 +301,7 @@ public class CachedActivityStorage implements ActivityStorage {
     exoActivityCache.put(new ActivityKey(comment.getId()), new ActivityData(getActivity(comment.getId())));
     ActivityKey activityKey = new ActivityKey(activity.getId());
     exoActivityCache.remove(activityKey);
-    exoActivityCache.put(activityKey, new ActivityData(getActivity(activity.getId())));
-    clearCache();
+    exoActivityCache.putLocal(activityKey, new ActivityData(getActivity(activity.getId())));
   }
 
   /**
@@ -311,9 +314,7 @@ public class CachedActivityStorage implements ActivityStorage {
 
     //
     ActivityKey key = new ActivityKey(a.getId());
-    exoActivityCache.remove(key);
     exoActivityCache.put(key, new ActivityData(getActivity(a.getId())));
-    clearCache();
 
     //
     return a;
@@ -339,8 +340,6 @@ public class CachedActivityStorage implements ActivityStorage {
     //
     ActivityKey key = new ActivityKey(activityId);
     exoActivityCache.remove(key);
-    clearCache();
-
   }
 
   /**
@@ -355,9 +354,6 @@ public class CachedActivityStorage implements ActivityStorage {
     exoActivityCache.remove(new ActivityKey(commentId));
     ActivityKey activityKey = new ActivityKey(activityId);
     exoActivityCache.remove(activityKey);
-    exoActivityCache.put(activityKey, new ActivityData(getActivity(activityId)));
-
-    clearActivityCached(activityId);
   }
 
   /**
@@ -997,15 +993,15 @@ public class CachedActivityStorage implements ActivityStorage {
   /**
    * {@inheritDoc}
    */
-  public List<ExoSocialActivity> getComments(final ExoSocialActivity existingActivity, final int offset, final int limit) {
-    ActivityCountKey key = new ActivityCountKey(existingActivity.getId(), ActivityType.COMMENTS);
+  public List<ExoSocialActivity> getComments(final ExoSocialActivity existingActivity, final boolean loadSubComments, final int offset, final int limit) {
+    ActivityCountKey key = new ActivityCountKey(existingActivity.getId(), loadSubComments ? ActivityType.COMMENTS_AND_SUB_COMMENTS : ActivityType.COMMENTS);
     ListActivitiesKey listKey = new ListActivitiesKey(key, offset, limit);
 
     //
     ListActivitiesData keys = activitiesCache.get(
         new ServiceContext<ListActivitiesData>() {
           public ListActivitiesData execute() {
-            List<ExoSocialActivity> got = storage.getComments(existingActivity, offset, limit);
+            List<ExoSocialActivity> got = storage.getComments(existingActivity, loadSubComments, offset, limit);
             return buildIds(got);
           }
         },
@@ -1083,10 +1079,6 @@ public class CachedActivityStorage implements ActivityStorage {
     //
     ActivityKey key = new ActivityKey(existingActivity.getId());
     exoActivityCache.remove(key);
-    
-    //
-    clearCache();
-    clearActivityCached(existingActivity.getId());
   }
 
   /**
@@ -1212,7 +1204,7 @@ public class CachedActivityStorage implements ActivityStorage {
     
     ActivityCountKey keySpace =
         new ActivityCountKey(new IdentityKey(spaceIdentity), ActivityType.SPACE);
-    exoActivitiesCountCache.put(keySpace, countData);
+    exoActivitiesCountCache.putLocal(keySpace, countData);
     
     return countData.build();
   }
@@ -1805,7 +1797,7 @@ public class CachedActivityStorage implements ActivityStorage {
     //
     ActivityCountKey keyUser =
         new ActivityCountKey(new IdentityKey(owner), ActivityType.USER);
-    exoActivitiesCountCache.put(keyUser, countData);
+    exoActivitiesCountCache.putLocal(keyUser, countData);
     
     //
     return countData.build();
@@ -1851,7 +1843,7 @@ public class CachedActivityStorage implements ActivityStorage {
     //
     ActivityCountKey keyFeed =
         new ActivityCountKey(new IdentityKey(ownerIdentity), ActivityType.FEED);
-    exoActivitiesCountCache.put(keyFeed, countData);
+    exoActivitiesCountCache.putLocal(keyFeed, countData);
     
     //
     return countData.build();
@@ -1897,7 +1889,7 @@ public class CachedActivityStorage implements ActivityStorage {
     //
     ActivityCountKey keyConnection =
         new ActivityCountKey(new IdentityKey(ownerIdentity), ActivityType.CONNECTION);
-    exoActivitiesCountCache.put(keyConnection, countData);
+    exoActivitiesCountCache.putLocal(keyConnection, countData);
     
     //
     return countData.build();
@@ -1942,7 +1934,7 @@ public class CachedActivityStorage implements ActivityStorage {
     
     ActivityCountKey keySpaces =
         new ActivityCountKey(new IdentityKey(ownerIdentity), ActivityType.SPACES);
-    exoActivitiesCountCache.put(keySpaces, countData);
+    exoActivitiesCountCache.putLocal(keySpaces, countData);
     
     return countData.build();
   }
@@ -1950,5 +1942,58 @@ public class CachedActivityStorage implements ActivityStorage {
   @Override
   public List<ExoSocialActivity> getAllActivities(int index, int limit) {
     return storage.getAllActivities(index, limit);
+  }
+
+  /**
+   * Cache activity listener to clean related local cache onPut an remove operation
+   */
+  private class CacheActivityListener implements CacheListener<ActivityKey, ActivityData>
+  {
+
+    @Override
+    public void onExpire(CacheListenerContext context, ActivityKey key, ActivityData obj) throws Exception {
+
+    }
+
+    @Override
+    public void onRemove(CacheListenerContext context, ActivityKey key, ActivityData obj) throws Exception {
+      clearCache();
+    }
+
+    @Override
+    public void onPut(CacheListenerContext context, ActivityKey key, ActivityData obj) throws Exception {
+      clearCache();
+    }
+
+    @Override
+    public void onGet(CacheListenerContext context, ActivityKey key, ActivityData obj) throws Exception {
+
+    }
+
+    @Override
+    public void onClearCache(CacheListenerContext context) throws Exception {
+
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public List<ExoSocialActivity> getSubComments(ExoSocialActivity comment) {
+    ActivityCountKey key = new ActivityCountKey(comment.getId(), ActivityType.SUB_COMMENTS);
+    ListActivitiesKey listKey = new ListActivitiesKey(key, 0 , Integer.MAX_VALUE);
+
+    //
+    ListActivitiesData keys = activitiesCache.get(
+        new ServiceContext<ListActivitiesData>() {
+          public ListActivitiesData execute() {
+            List<ExoSocialActivity> got = storage.getSubComments(comment);
+            return buildIds(got);
+          }
+        },
+        listKey);
+
+    //
+    return buildActivities(keys);
   }
 }

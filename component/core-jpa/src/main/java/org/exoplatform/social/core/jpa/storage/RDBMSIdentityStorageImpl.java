@@ -19,13 +19,25 @@ package org.exoplatform.social.core.jpa.storage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.exoplatform.commons.file.services.FileStorageException;
+import org.exoplatform.social.core.model.BannerAttachment;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,22 +45,16 @@ import org.json.JSONObject;
 import org.exoplatform.commons.api.persistence.ExoTransactional;
 import org.exoplatform.commons.file.model.FileItem;
 import org.exoplatform.commons.file.services.FileService;
+import org.exoplatform.commons.file.services.FileStorageException;
 import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.organization.MembershipTypeHandler;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.User;
 import org.exoplatform.services.user.UserStateModel;
 import org.exoplatform.services.user.UserStateService;
-import org.exoplatform.social.core.jpa.search.ExtendProfileFilter;
-import org.exoplatform.social.core.jpa.search.ProfileSearchConnector;
-import org.exoplatform.social.core.jpa.storage.dao.ActivityDAO;
-import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
-import org.exoplatform.social.core.jpa.storage.dao.SpaceDAO;
-import org.exoplatform.social.core.jpa.storage.entity.*;
 import org.exoplatform.social.core.identity.SpaceMemberFilterListAccess;
 import org.exoplatform.social.core.identity.model.ActiveIdentityFilter;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -56,12 +62,23 @@ import org.exoplatform.social.core.identity.model.IdentityWithRelationship;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
+import org.exoplatform.social.core.jpa.search.ExtendProfileFilter;
+import org.exoplatform.social.core.jpa.search.ProfileSearchConnector;
+import org.exoplatform.social.core.jpa.storage.dao.ActivityDAO;
+import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
+import org.exoplatform.social.core.jpa.storage.dao.SpaceMemberDAO;
+import org.exoplatform.social.core.jpa.storage.entity.ActivityEntity;
+import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
+import org.exoplatform.social.core.jpa.storage.entity.IdentityEntity;
+import org.exoplatform.social.core.jpa.storage.entity.ProfileExperienceEntity;
+import org.exoplatform.social.core.jpa.storage.entity.SpaceMemberEntity.Status;
 import org.exoplatform.social.core.model.AvatarAttachment;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.relationship.model.Relationship.Type;
-import org.exoplatform.social.core.space.SpaceUtils;
+import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.IdentityStorageException;
+import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
 
 /**
@@ -74,11 +91,13 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
 
   private static final Log LOG = ExoLogger.getLogger(RDBMSIdentityStorageImpl.class);
 
+  private static final int     BATCH_SIZE = 100;
+
   private static final String socialNameSpace = "social";
 
   private final ActivityDAO activityDAO;
   private final IdentityDAO identityDAO;
-  private final SpaceDAO spaceDAO;
+  private final SpaceMemberDAO spaceMemberDAO;
 
   private final FileService fileService;
 
@@ -86,13 +105,18 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
 
   private ProfileSearchConnector profileSearchConnector;
 
+  private OrganizationIdentityProvider organizationIdentityProvider;
+
+  private IdentityStorage cachedIdentityStorage;
+
   public RDBMSIdentityStorageImpl(IdentityDAO identityDAO,
-                                  SpaceDAO spaceDAO, ActivityDAO activityDAO,
+                                  ActivityDAO activityDAO,
+                                  SpaceMemberDAO spaceMemberDAO,
                                   FileService fileService,
                                   ProfileSearchConnector profileSearchConnector, OrganizationService orgService) {
     this.identityDAO = identityDAO;
-    this.spaceDAO = spaceDAO;
     this.activityDAO = activityDAO;
+    this.spaceMemberDAO = spaceMemberDAO;
     this.profileSearchConnector = profileSearchConnector;
     this.orgService = orgService;
     this.fileService = fileService;
@@ -119,6 +143,7 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
       entityProperties.put(Profile.URL, profile.getUrl());
     }
 
+    boolean hasBanner = false;
     Map<String, Object> properties = profile.getProperties();
     for (Entry<String, Object> e : properties.entrySet()) {
       if (Profile.AVATAR.equalsIgnoreCase(e.getKey())) {
@@ -158,10 +183,50 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
             entity.setAvatarFileId(fileItem.getFileInfo().getId());
           }
         } catch (Exception ex) {
-          LOG.warn("Can not store avatar for " + entity.getProviderId() + " " + entity.getRemoteId(), ex);
+          LOG.error("Can not store avatar for " + entity.getProviderId() + " " + entity.getRemoteId(), ex);
         }
 
-      } else if (Profile.EXPERIENCES.equalsIgnoreCase(e.getKey())){
+      } else if (Profile.BANNER.equalsIgnoreCase(e.getKey())) {
+        hasBanner = true;
+        BannerAttachment attachment = (BannerAttachment) e.getValue();
+        byte[] bytes = attachment.getImageBytes();
+        String fileName = attachment.getFileName();
+        if (fileName == null) {
+          fileName = entity.getRemoteId() + "_banner";
+        }
+
+        try {
+          Long bannerId = entity.getBannerFileId();
+          FileItem fileItem;
+          if(bannerId != null){//update banner file
+            fileItem = new FileItem(bannerId,
+                    fileName,
+                    attachment.getMimeType(),
+                    socialNameSpace,
+                    bytes.length,
+                    new Date(),
+                    entity.getRemoteId(),
+                    false,
+                    new ByteArrayInputStream(bytes));
+            fileService.updateFile(fileItem);
+          }
+          else{//create new  banner file
+            fileItem = new FileItem(null,
+                    fileName,
+                    attachment.getMimeType(),
+                    socialNameSpace,
+                    bytes.length,
+                    new Date(),
+                    entity.getRemoteId(),
+                    false,
+                    new ByteArrayInputStream(bytes));
+            fileItem = fileService.writeFile(fileItem);
+            entity.setBannerFileId(fileItem.getFileInfo().getId());
+          }
+        } catch (Exception ex) {
+          LOG.error("Can not store banner for " + entity.getProviderId() + " " + entity.getRemoteId(), ex);
+        }
+      } else if (Profile.EXPERIENCES.equalsIgnoreCase(e.getKey())) {
 
         List<Map<String, String>> exps = (List<Map<String, String>>)e.getValue();
         Set<ProfileExperienceEntity> experiences = new HashSet<>();
@@ -199,6 +264,11 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
           entityProperties.put(e.getKey(), String.valueOf(val));
         }
       }
+    }
+
+    if (entity.getBannerFileId() != null && !hasBanner
+            && profile.getBannerUrl() == null) {
+      entity.setBannerFileId(null);
     }
 
     entity.setProperties(entityProperties);
@@ -329,6 +399,9 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
 
       if (entity.getAvatarFileId() != null && entity.getAvatarFileId() > 0) {
         fileService.deleteFile(entity.getAvatarFileId());
+      }
+      if (entity.getBannerFileId() != null && entity.getBannerFileId() > 0) {
+        fileService.deleteFile(entity.getBannerFileId());
       }
     }
 
@@ -640,51 +713,135 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
   }
 
   public List<Identity> getSpaceMemberIdentitiesByProfileFilter(final Space space,
-                                                                final ProfileFilter profileFilter,
+                                                                ProfileFilter profileFilter,
                                                                 SpaceMemberFilterListAccess.Type type,
                                                                 long offset, long limit) throws IdentityStorageException {
-
-    List<Long> relations = new ArrayList<>();
-    if (space != null) {
-      try {
-        SpaceEntity gotSpace = spaceDAO.find(Long.parseLong(space.getId()));
-        String[] members = null;
-        switch (type) {
-          case MEMBER:
-            members = gotSpace.getMembersId();
-            break;
-          case MANAGER:
-            members = gotSpace.getManagerMembersId();
-            List<String> wildcardUsers = SpaceUtils.findMembershipUsersByGroupAndTypes(space
-                    .getGroupId(), MembershipTypeHandler.ANY_MEMBERSHIP_TYPE);
-
-            for (String remoteId : wildcardUsers) {
-              Identity id = findIdentity(OrganizationIdentityProvider.NAME, remoteId);
-              if (id != null) {
-                relations.add(EntityConverterUtils.parseId(id.getId()));
-              }
-            }
-            break;
-        }
-
-        for (int i = 0; i < members.length; i++) {
-          Identity identity = findIdentity(OrganizationIdentityProvider.NAME, members[i]);
-          if (identity != null) {
-            relations.add(EntityConverterUtils.parseId(identity.getId()));
-          }
-        }
-      } catch (IdentityStorageException e) {
-        throw new IdentityStorageException(IdentityStorageException.Type.FAIL_TO_FIND_IDENTITY);
-      }
-      if (relations.isEmpty()) {
-        relations.add(-1L);
+    if (space == null) {
+      throw new IllegalArgumentException("Space shouldn't be null");
+    }
+    List<String> excludedMembers = new ArrayList<>();
+    if (profileFilter != null && profileFilter.getExcludedIdentityList() != null) {
+      for (Identity identity : profileFilter.getExcludedIdentityList()) {
+        excludedMembers.add(identity.getRemoteId());
       }
     }
+    List<String> spaceMembers = null;
+    switch (type) {
+      case MEMBER:
+        spaceMembers = getSpaceMembers(space.getId(), Status.MEMBER);
+        if(spaceMembers == null || spaceMembers.isEmpty()) {
+          return Collections.emptyList();
+        }
+        spaceMembers = spaceMembers.stream()
+            .filter(username -> !excludedMembers.contains(username))
+            .collect(Collectors.toList());
+        break;
+      case MANAGER:
+        spaceMembers = getSpaceMembers(space.getId(), Status.MANAGER);
+        if(spaceMembers == null || spaceMembers.isEmpty()) {
+          return Collections.emptyList();
+        }
+        spaceMembers = spaceMembers.stream()
+            .filter(username -> !excludedMembers.contains(username))
+            .collect(Collectors.toList());
+        break;
+    }
+    if (profileFilter != null && profileFilter.getExcludedIdentityList() != null) {
+      for (Identity identity : profileFilter.getExcludedIdentityList()) {
+        spaceMembers.remove(identity.getRemoteId());
+      }
+    }
+    if (profileFilter == null || profileFilter.isEmpty()) {
+      // Retrive space members from DB
 
-    ExtendProfileFilter xFilter = new ExtendProfileFilter(profileFilter);
-    xFilter.setIdentityIds(relations);
-    ListAccess<IdentityEntity> list = getIdentityDAO().findIdentities(xFilter);
-    return EntityConverterUtils.convertToIdentities(list, offset, limit);
+      List<Identity> identities = new ArrayList<>();
+      if (profileFilter != null && profileFilter.getSorting() != null
+          && Sorting.SortBy.TITLE.equals(profileFilter.getSorting().sortBy)) {
+        spaceMembers = spaceMemberDAO.sortSpaceMembers(spaceMembers, Profile.FULL_NAME);
+      }
+      int i = (int) offset;
+      long indexLimit = offset + limit;
+      while (i < spaceMembers.size() && i < indexLimit) {
+        String spaceMemberUserName = spaceMembers.get(i++);
+        // Get the identity from cache implementation of IdentityStorage instead of DB
+        // The solution is not ideal since we refer to the cached version directly in the
+        // wrapped class, but we have no choice because of this wrap.
+        Identity identity = getRDBMSCachedIdentityStorage().findIdentity(OrganizationIdentityProvider.NAME, spaceMemberUserName);
+        if (identity == null) {
+          identity = getOrganizationIdentityProvider().getIdentityByRemoteId(spaceMemberUserName);
+          if (identity == null) {
+            LOG.warn("Can't find identity for space member '{}'. The identity will not be retrieved.", spaceMemberUserName);
+            continue;
+          }
+          LOG.info("User identity for space member '{}' wasn't found. Creating the identity.", spaceMemberUserName);
+          try {
+            saveIdentity(identity);
+            saveProfile(identity.getProfile());
+          } catch (Exception e) {
+            LOG.warn("Can't create user identity for space member '" + spaceMemberUserName
+                + "'. The identity will not be retrieved.", e);
+            continue;
+          }
+        }
+        identities.add(identity);
+      }
+      return identities;
+    } else {
+      // Retrive space members from ES
+
+      try {
+        profileFilter = profileFilter.clone();
+      } catch (CloneNotSupportedException e) {
+        LOG.warn("Error while cloning profile filter", e);
+      }
+      profileFilter.setRemoteIds(spaceMembers);
+      return profileSearchConnector.search(null, profileFilter, null, offset, limit);
+    }
+  }
+
+  @Override
+  public int countSpaceMemberIdentitiesByProfileFilter(Space space,
+                                                       ProfileFilter profileFilter,
+                                                       org.exoplatform.social.core.identity.SpaceMemberFilterListAccess.Type type) {
+    if (space == null) {
+      throw new IllegalArgumentException("Space shouldn't be null");
+    }
+    List<String> excludedMembers = new ArrayList<>();
+    if (profileFilter != null && profileFilter.getExcludedIdentityList() != null) {
+      for (Identity identity : profileFilter.getExcludedIdentityList()) {
+        excludedMembers.add(identity.getRemoteId());
+      }
+    }
+    List<String> spaceMembers = null;
+    switch (type) {
+      case MEMBER:
+        if(space.getMembers() == null || space.getMembers().length == 0) {
+          return 0;
+        }
+        spaceMembers = Arrays.stream(space.getMembers())
+                             .filter(username -> !excludedMembers.contains(username))
+                             .collect(Collectors.toList());
+        break;
+      case MANAGER:
+        if(space.getManagers() == null || space.getManagers().length == 0) {
+          return 0;
+        }
+        spaceMembers = Arrays.stream(space.getManagers())
+            .filter(username -> !excludedMembers.contains(username))
+            .collect(Collectors.toList());
+        break;
+    }
+    if (profileFilter == null || profileFilter.isEmpty()) {
+      return spaceMembers.size();
+    } else {
+      try {
+        profileFilter = profileFilter.clone();
+      } catch (CloneNotSupportedException e) {
+        LOG.warn("Error while cloning profile filter", e);
+      }
+      profileFilter.setRemoteIds(spaceMembers);
+      return profileSearchConnector.count(null, profileFilter, null);
+    }
   }
 
   public List<Identity> getIdentitiesByProfileFilter(final String providerId,
@@ -790,5 +947,61 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
       return null;
     }
     return file.getAsStream();
+  }
+
+  @Override
+  public InputStream getBannerInputStreamById(Identity identity) throws IOException {
+    FileItem file = null;
+    IdentityEntity entity = identityDAO.findByProviderAndRemoteId(identity.getProviderId(), identity.getRemoteId());
+    if (entity == null) {
+      return null;
+    }
+    Long bannerId = entity.getBannerFileId();
+    if (bannerId == null) {
+      return null;
+    }
+    try {
+      file = fileService.getFile(bannerId);
+    } catch (FileStorageException e) {
+      return null;
+    }
+
+    if (file == null) {
+      return null;
+    }
+    return file.getAsStream();
+  }
+
+  private List<String> getSpaceMembers(String spaceIdString, Status status) {
+    long spaceId = Long.parseLong(spaceIdString);
+    int countSpaceMembers = spaceMemberDAO.countSpaceMembers(spaceId, status);
+    if (countSpaceMembers == 0) {
+      return Collections.emptyList();
+    }
+    List<String> members = new ArrayList<>();
+    int offset = 0;
+    while (offset < countSpaceMembers) {
+      Collection<String> spaceMembers = spaceMemberDAO.getSpaceMembers(spaceId, status, offset, BATCH_SIZE);
+      for (String username : spaceMembers) {
+        members.add(username);
+      }
+      offset += BATCH_SIZE;
+    }
+    return members;
+  }
+
+  public OrganizationIdentityProvider getOrganizationIdentityProvider() {
+    if (organizationIdentityProvider == null) {
+      organizationIdentityProvider = CommonsUtils.getService(OrganizationIdentityProvider.class);
+    }
+    return organizationIdentityProvider;
+  }
+
+
+  public IdentityStorage getRDBMSCachedIdentityStorage() {
+    if (cachedIdentityStorage == null) {
+      cachedIdentityStorage = CommonsUtils.getService(IdentityStorage.class);
+    }
+    return cachedIdentityStorage;
   }
 }

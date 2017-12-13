@@ -19,12 +19,16 @@ package org.exoplatform.social.core.jpa.test;
 
 import junit.framework.AssertionFailedError;
 import org.apache.commons.lang.ArrayUtils;
+
+import org.exoplatform.commons.persistence.impl.EntityManagerHolder;
 import org.exoplatform.commons.testing.BaseExoTestCase;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.component.test.ConfigurationUnit;
 import org.exoplatform.component.test.ConfiguredBy;
 import org.exoplatform.component.test.ContainerScope;
 import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.component.RequestLifeCycle;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.OrganizationService;
@@ -68,6 +72,7 @@ import java.util.List;
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/exo.portal.component.identity-configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.test.jcr-configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.test.portal-configuration.xml"),
+  @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.social.component.core.test.application.registry.configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/component.search.configuration.xml")
 })
 public abstract class AbstractCoreTest extends BaseExoTestCase {
@@ -109,6 +114,7 @@ public abstract class AbstractCoreTest extends BaseExoTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    EntityManagerHolder.get().clear();
     deleteAllRelationships();
     deleteAllSpaces();
     deleteAllIdentitiesWithActivities();
@@ -292,5 +298,10 @@ public abstract class AbstractCoreTest extends BaseExoTestCase {
               .forEach(relationship -> relationshipManager.deny(identity, relationship));
     }
   }
-  
+
+  public static void persist() {
+    RequestLifeCycle.end();
+    RequestLifeCycle.begin(PortalContainer.getInstance());
+  }
+
 }

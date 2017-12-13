@@ -59,7 +59,7 @@ public class PeopleElasticUnifiedSearchServiceConnector extends ElasticSearchSer
     
     sortMapping = new HashMap<>();
     sortMapping.put("date", "lastUpdatedDate");
-    sortMapping.put("title", "name");
+    sortMapping.put("title", "name.raw");
   }
 
   @Override
@@ -110,6 +110,7 @@ public class PeopleElasticUnifiedSearchServiceConnector extends ElasticSearchSer
     esQuery.append("        }\n");
     esQuery.append("     },\n");
     esQuery.append("     \"highlight\" : {\n");
+    esQuery.append("       \"type\" : \"unified\",\n");
     esQuery.append("       \"pre_tags\" : [\"<strong>\"],\n");
     esQuery.append("       \"post_tags\" : [\"</strong>\"],\n");
     esQuery.append("       \"fields\" : {\n");

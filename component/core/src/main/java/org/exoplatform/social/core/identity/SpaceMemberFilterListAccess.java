@@ -85,7 +85,7 @@ public class SpaceMemberFilterListAccess implements ListAccess<Identity> {
     this(identityStorage, space, filter);
     this.type = type;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -100,7 +100,7 @@ public class SpaceMemberFilterListAccess implements ListAccess<Identity> {
    * {@inheritDoc}
    */
   public int getSize() throws Exception {
-      return identityStorage.getSpaceMemberIdentitiesByProfileFilter(space, profileFilter, type, 0, 0).size();
+      return identityStorage.countSpaceMemberIdentitiesByProfileFilter(space, profileFilter, type);
   }
 
   /**

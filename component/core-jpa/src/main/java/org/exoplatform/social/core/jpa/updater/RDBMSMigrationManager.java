@@ -21,8 +21,12 @@ import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 
 import org.exoplatform.commons.file.services.NameSpaceService;
+import org.exoplatform.commons.utils.WorkspaceCleaner;
+import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.component.RequestLifeCycle;
+import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.jcr.RepositoryService;
@@ -51,6 +55,7 @@ public class RDBMSMigrationManager implements Startable {
   
   public static final String MIGRATION_SETTING_GLOBAL_KEY = "MIGRATION_SETTING_GLOBAL";
   public static final String MIGRATION_RUNNING_NODE_KEY = "NODE_RUNNING_MIGRATION";
+  public static final String SOCIAL_WORKSPACE_NAME = "social";
 
   private Thread migrationThread;
   
@@ -73,16 +78,8 @@ public class RDBMSMigrationManager implements Startable {
   private boolean forceRemoveJCR = false;
   private boolean clusterMode = false;
   private String  nodeName = null;
+  private String  confPath = null;
 
-//  public RDBMSMigrationManager(RelationshipMigrationService relationshipMigration,
-//                               ActivityMigrationService activityMigration, 
-//                               SettingService settingService) {
-//    this.relationshipMigration = relationshipMigration;
-//    this.activityMigration = activityMigration;
-//    this.settingService = settingService;
-//    migrater = new CountDownLatch(1);
-//    //
-//  }
   public RDBMSMigrationManager(InitParams initParams, NameSpaceService nameSpaceService, RepositoryService repoService, ChromatticManager chromatticManager) {
     CommonsUtils.getService(DataInitializer.class);
     this.repositoryService = repoService;
@@ -102,6 +99,11 @@ public class RDBMSMigrationManager implements Startable {
       param = initParams.getValueParam("nodeName");
       if (param != null) {
         nodeName = param.getValue();
+      }
+
+      param = initParams.getValueParam("social-conf-path");
+      if (param != null) {
+        confPath = param.getValue();
       }
     }
   }
@@ -133,26 +135,50 @@ public class RDBMSMigrationManager implements Startable {
   @Override
   public void start() {
     initMigrationSetting();
+    final ExoContainer container = ExoContainerContext.getCurrentContainer();
     Runnable migrateTask = new Runnable() {
       @Override
       public void run() {
-
+        ExoContainerContext.setCurrentContainer(container);
         boolean start = checkCanStartMigration();
-        if (!start || MigrationContext.isDone()) return;
+        WorkspaceCleaner workspaceCleaner = null;
+        //Migration done and social workspace removed
+        if (!start || (MigrationContext.isDone() && MigrationContext.isIsWorkspaceCleanupDone())) return;
 
         try {
+          ConfigurationManager configurationService = CommonsUtils.getService(ConfigurationManager.class);
+          workspaceCleaner = new WorkspaceCleaner(repositoryService.getDefaultRepository().getConfiguration().getName(),
+                  repositoryService , configurationService);
+          if(! MigrationContext.isIsWorkspaceCleanupDone() && !workspaceCleaner.isRegistered(SOCIAL_WORKSPACE_NAME)) {
+            workspaceCleaner.init(confPath);
+            boolean isRegistered = workspaceCleaner.registerWorkspace(SOCIAL_WORKSPACE_NAME);
+            if(!isRegistered){
+              LOG.error("Cannot register social workspace");
+              migrater.countDown();
+              return;
+            }
+          }
+
+          //migration done and social workspace is not cleaned
+          if(MigrationContext.isDone()){
+            removeSocialWorkspace(workspaceCleaner);
+            return;
+          }
+
           // Check JCR data is existing or not
           ProviderRootEntity providerRoot = getRelationshipMigration().getProviderRoot();
           if (providerRoot == null || (providerRoot != null && providerRoot.getProviders().get(SpaceIdentityProvider.NAME) == null &&
                   providerRoot.getProviders().get(OrganizationIdentityProvider.NAME) == null)) {
             LOG.info("No Social data to migrate from JCR to RDBMS ");
             updateMigrationSettings(start);
+            removeSocialWorkspace(workspaceCleaner);
             migrater.countDown();
             return;
           }
         } catch (Exception ex) {
           LOG.info("no JCR data, stopping JCR to RDBMS migration");
           updateMigrationSettings(start);
+          removeSocialWorkspace(workspaceCleaner);
           migrater.countDown();
           return;
         }
@@ -163,7 +189,6 @@ public class RDBMSMigrationManager implements Startable {
         long timeToMigrateActivities = 0;
         long timeToMigrateConnections = 0;
 
-        long totalCleanupTime = 0;
         long timeToCleanupConnections = 0;
         long timeToCleanupActivities = 0;
         long timeToCleanupIdentities = 0;
@@ -289,6 +314,7 @@ public class RDBMSMigrationManager implements Startable {
               if (MigrationContext.isIdentityCleanupDone()&& MigrationContext.isSpaceCleanupDone() || forceRemoveJCR){
                 updateSettingValue(MigrationContext.SOC_RDBMS_MIGRATION_STATUS_KEY, Boolean.TRUE);
                 MigrationContext.setDone(true);
+                removeSocialWorkspace(workspaceCleaner);
               }
             }
             
@@ -394,6 +420,7 @@ public class RDBMSMigrationManager implements Startable {
     MigrationContext.setIdentityDone(getOrCreateSettingValue(MigrationContext.SOC_RDBMS_IDENTITY_MIGRATION_KEY));
     MigrationContext.setIdentityCleanupDone(getOrCreateSettingValue(MigrationContext.SOC_RDBMS_IDENTITY_CLEANUP_KEY));
 
+    MigrationContext.setIsWorkspaceCleanupDone(getOrCreateSettingValue(MigrationContext.SOC_RDBMS_WORKSPACE_CLEANUP_KEY));
     MigrationContext.setForceCleanup(forceRemoveJCR);
   }
 
@@ -476,6 +503,15 @@ public class RDBMSMigrationManager implements Startable {
       activityMigration = CommonsUtils.getService(ActivityMigrationService.class);
     }
     return activityMigration;
+  }
+
+  private void removeSocialWorkspace(WorkspaceCleaner workspaceCleaner){
+    LOG.info("Try to remove social workspace");
+    boolean isRemoved = workspaceCleaner.removeWorkspace(SOCIAL_WORKSPACE_NAME);
+    if (isRemoved){
+      updateSettingValue(MigrationContext.SOC_RDBMS_WORKSPACE_CLEANUP_KEY, Boolean.TRUE);
+      MigrationContext.setIsWorkspaceCleanupDone(true);
+    }
   }
 
   @Override

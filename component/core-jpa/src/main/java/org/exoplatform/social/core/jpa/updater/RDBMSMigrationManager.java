@@ -18,6 +18,8 @@
 package org.exoplatform.social.core.jpa.updater;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.exoplatform.commons.file.services.NameSpaceService;
@@ -28,8 +30,11 @@ import org.exoplatform.container.PortalContainer;
 import org.exoplatform.container.component.RequestLifeCycle;
 import org.exoplatform.container.configuration.ConfigurationManager;
 import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.PropertiesParam;
 import org.exoplatform.container.xml.ValueParam;
+import org.exoplatform.container.xml.ValuesParam;
 import org.exoplatform.services.jcr.RepositoryService;
+import org.exoplatform.social.common.lifecycle.SocialChromatticLifeCycle;
 import org.exoplatform.social.core.chromattic.entity.ProviderRootEntity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
@@ -56,6 +61,33 @@ public class RDBMSMigrationManager implements Startable {
   public static final String MIGRATION_SETTING_GLOBAL_KEY = "MIGRATION_SETTING_GLOBAL";
   public static final String MIGRATION_RUNNING_NODE_KEY = "NODE_RUNNING_MIGRATION";
   public static final String SOCIAL_WORKSPACE_NAME = "social";
+  private static final String[] ENTITIES = {"org.exoplatform.social.core.chromattic.entity.ProviderRootEntity",
+          "org.exoplatform.social.core.chromattic.entity.ProviderEntity",
+          "org.exoplatform.social.core.chromattic.entity.DisabledEntity",
+          "org.exoplatform.social.core.chromattic.entity.IdentityEntity",
+          "org.exoplatform.social.core.chromattic.entity.ProfileEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityProfileEntity",
+          "org.exoplatform.social.core.chromattic.entity.RelationshipEntity",
+          "org.exoplatform.social.core.chromattic.entity.RelationshipListEntity",
+          "org.exoplatform.social.core.chromattic.entity.HidableEntity",
+          "org.exoplatform.social.core.chromattic.entity.LockableEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityListEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityDayEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityMonthEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityYearEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityParameters",
+          "org.exoplatform.social.core.chromattic.entity.StreamsEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityRefListEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityRefDayEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityRefMonthEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityRefYearEntity",
+          "org.exoplatform.social.core.chromattic.entity.ActivityRef",
+          "org.exoplatform.social.core.chromattic.entity.SpaceRootEntity",
+          "org.exoplatform.social.core.chromattic.entity.SpaceEntity",
+          "org.exoplatform.social.core.chromattic.entity.SpaceListEntity",
+          "org.exoplatform.social.core.chromattic.entity.SpaceRef",
+          "org.exoplatform.social.core.jpa.updater.ActivityUpdaterEntity"};
 
   private Thread migrationThread;
   
@@ -164,6 +196,9 @@ public class RDBMSMigrationManager implements Startable {
             removeSocialWorkspace(workspaceCleaner);
             return;
           }
+
+          //register social Chromattic LifeCycle
+          registerSocialChromatticLifeCycle();
 
           // Check JCR data is existing or not
           ProviderRootEntity providerRoot = getRelationshipMigration().getProviderRoot();
@@ -512,6 +547,31 @@ public class RDBMSMigrationManager implements Startable {
       updateSettingValue(MigrationContext.SOC_RDBMS_WORKSPACE_CLEANUP_KEY, Boolean.TRUE);
       MigrationContext.setIsWorkspaceCleanupDone(true);
     }
+  }
+
+  private void registerSocialChromatticLifeCycle(){
+    InitParams initParams = new InitParams();
+    ValueParam value = new ValueParam();
+    value.setName("domain-name");
+    value.setValue("soc");
+    initParams.addParam(value);
+    value = new ValueParam();
+    value.setName("workspace-name");
+    value.setValue(SOCIAL_WORKSPACE_NAME);
+    initParams.addParam(value);
+    ValuesParam valuesParam =  new ValuesParam();
+    valuesParam.setValues(Arrays.asList(ENTITIES));
+    valuesParam.setName("entities");
+    initParams.addParam(valuesParam);
+    PropertiesParam param = new PropertiesParam();
+    param.setName("options");
+    param.setProperty("org.chromattic.api.Option.root_node.path", "/production");
+    param.setProperty("org.chromattic.api.Option.root_node.create", "true");
+    param.setProperty("org.chromattic.api.Option.optimize.jcr.has_property.enabled", "true");
+    param.setProperty("org.chromattic.api.Option.optimize.jcr.has_node.enabled","true");
+    initParams.addParam(param);
+    SocialChromatticLifeCycle socialChromatticLifeCycle= new SocialChromatticLifeCycle(initParams);
+    chromatticManager.addLifeCycle(socialChromatticLifeCycle);
   }
 
   @Override

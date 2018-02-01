@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.exoplatform.commons.chromattic.ChromatticLifeCycle;
 import org.exoplatform.commons.file.services.NameSpaceService;
 import org.exoplatform.commons.utils.WorkspaceCleaner;
 import org.exoplatform.container.ExoContainer;
@@ -60,7 +61,7 @@ public class RDBMSMigrationManager implements Startable {
   
   public static final String MIGRATION_SETTING_GLOBAL_KEY = "MIGRATION_SETTING_GLOBAL";
   public static final String MIGRATION_RUNNING_NODE_KEY = "NODE_RUNNING_MIGRATION";
-  public static final String SOCIAL_WORKSPACE_NAME = "social";
+  public static final String DEFAULT_SOCIAL_WORKSPACE_NAME = "social";
   private static final String[] ENTITIES = {"org.exoplatform.social.core.chromattic.entity.ProviderRootEntity",
           "org.exoplatform.social.core.chromattic.entity.ProviderEntity",
           "org.exoplatform.social.core.chromattic.entity.DisabledEntity",
@@ -111,6 +112,7 @@ public class RDBMSMigrationManager implements Startable {
   private boolean clusterMode = false;
   private String  nodeName = null;
   private String  confPath = null;
+  private String  workspaceName = null;
 
   public RDBMSMigrationManager(InitParams initParams, NameSpaceService nameSpaceService, RepositoryService repoService, ChromatticManager chromatticManager) {
     CommonsUtils.getService(DataInitializer.class);
@@ -137,6 +139,10 @@ public class RDBMSMigrationManager implements Startable {
       if (param != null) {
         confPath = param.getValue();
       }
+
+      param = initParams.getValueParam("social.workspace");
+      workspaceName = param != null ? param.getValue() :  DEFAULT_SOCIAL_WORKSPACE_NAME;
+
     }
   }
   
@@ -181,9 +187,12 @@ public class RDBMSMigrationManager implements Startable {
           ConfigurationManager configurationService = CommonsUtils.getService(ConfigurationManager.class);
           workspaceCleaner = new WorkspaceCleaner(repositoryService.getDefaultRepository().getConfiguration().getName(),
                   repositoryService , configurationService);
-          if(! MigrationContext.isIsWorkspaceCleanupDone() && !workspaceCleaner.isRegistered(SOCIAL_WORKSPACE_NAME)) {
+          if(workspaceCleaner.isRegistered(workspaceName)){
+            LOG.warn("Social workspace configuration should de be removed");
+          }
+          if(! MigrationContext.isIsWorkspaceCleanupDone() && !workspaceCleaner.isRegistered(workspaceName)) {
             workspaceCleaner.init(confPath);
-            boolean isRegistered = workspaceCleaner.registerWorkspace(SOCIAL_WORKSPACE_NAME);
+            boolean isRegistered = workspaceCleaner.registerWorkspace(workspaceName);
             if(!isRegistered){
               LOG.error("Cannot register social workspace");
               migrater.countDown();
@@ -542,7 +551,7 @@ public class RDBMSMigrationManager implements Startable {
 
   private void removeSocialWorkspace(WorkspaceCleaner workspaceCleaner){
     LOG.info("Try to remove social workspace");
-    boolean isRemoved = workspaceCleaner.removeWorkspace(SOCIAL_WORKSPACE_NAME);
+    boolean isRemoved = workspaceCleaner.removeWorkspace(workspaceName);
     if (isRemoved){
       updateSettingValue(MigrationContext.SOC_RDBMS_WORKSPACE_CLEANUP_KEY, Boolean.TRUE);
       MigrationContext.setIsWorkspaceCleanupDone(true);
@@ -550,6 +559,11 @@ public class RDBMSMigrationManager implements Startable {
   }
 
   private void registerSocialChromatticLifeCycle(){
+    ChromatticLifeCycle lifeCycle = chromatticManager.getLifeCycle("soc");
+    if(lifeCycle != null && lifeCycle instanceof SocialChromatticLifeCycle){
+      LOG.warn("SocialChromatticLifeCycle configuration should be removed from configuration");
+      return;
+    }
     InitParams initParams = new InitParams();
     ValueParam value = new ValueParam();
     value.setName("domain-name");
@@ -557,7 +571,7 @@ public class RDBMSMigrationManager implements Startable {
     initParams.addParam(value);
     value = new ValueParam();
     value.setName("workspace-name");
-    value.setValue(SOCIAL_WORKSPACE_NAME);
+    value.setValue(workspaceName);
     initParams.addParam(value);
     ValuesParam valuesParam =  new ValuesParam();
     valuesParam.setValues(Arrays.asList(ENTITIES));

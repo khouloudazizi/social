@@ -41,7 +41,12 @@
       <value-param>
         <name>social-conf-path</name>
         <description>JCR configuration file of social workspace</description>
-        <value>war:/conf/social-extension/jcr/social-configuration.xml</value>
+        <value>war:/conf/social-extension/jcr/social-workspace-configuration.xml</value>
+      </value-param>
+      <value-param>
+        <name>social.workspace</name>
+        <description>social workspace name</description>
+        <value>social</value>
       </value-param>
     </init-params>
   </component>

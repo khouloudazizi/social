@@ -35,6 +35,7 @@ import org.exoplatform.container.xml.PropertiesParam;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.container.xml.ValuesParam;
 import org.exoplatform.services.jcr.RepositoryService;
+import org.exoplatform.services.jcr.config.WorkspaceEntry;
 import org.exoplatform.social.common.lifecycle.SocialChromatticLifeCycle;
 import org.exoplatform.social.core.chromattic.entity.ProviderRootEntity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
@@ -187,10 +188,14 @@ public class RDBMSMigrationManager implements Startable {
           ConfigurationManager configurationService = CommonsUtils.getService(ConfigurationManager.class);
           workspaceCleaner = new WorkspaceCleaner(repositoryService.getDefaultRepository().getConfiguration().getName(),
                   repositoryService , configurationService);
-          if(workspaceCleaner.isRegistered(workspaceName)){
+
+          long count = repositoryService.getDefaultRepository().getConfiguration().getWorkspaceEntries().
+                  stream().filter(workspaceEntry -> workspaceEntry.getName().equals(workspaceName)).count();
+
+          if(count > 0){
             LOG.warn("Social workspace configuration should de be removed");
           }
-          if(! MigrationContext.isIsWorkspaceCleanupDone() && !workspaceCleaner.isRegistered(workspaceName)) {
+          if(! MigrationContext.isIsWorkspaceCleanupDone() && count == 0) {
             workspaceCleaner.init(confPath);
             boolean isRegistered = workspaceCleaner.registerWorkspace(workspaceName);
             if(!isRegistered){

@@ -26,6 +26,8 @@ import org.exoplatform.commons.persistence.impl.EntityManagerService;
 import org.exoplatform.component.test.ConfigurationUnit;
 import org.exoplatform.component.test.ConfiguredBy;
 import org.exoplatform.component.test.ContainerScope;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.jcr.RepositoryService;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -121,7 +123,12 @@ public abstract class AbstractAsynMigrationTest extends BaseCoreTest {
     activityMigration = getService(ActivityMigrationService.class);
     relationshipMigration = getService(RelationshipMigrationService.class);
     settingService = getService(SettingService.class);
-    rdbmsMigrationManager = new RDBMSMigrationManager(null, nameSpaceService, getService(RepositoryService.class), getService(ChromatticManager.class));
+    InitParams initParams = new InitParams();
+    ValueParam valueParam =  new ValueParam();
+    valueParam.setName("social.workspace");
+    valueParam.setValue("social");
+    initParams.addParam(valueParam);
+    rdbmsMigrationManager = new RDBMSMigrationManager(initParams, nameSpaceService, getService(RepositoryService.class), getService(ChromatticManager.class));
 
     // Switch to use JCRIdentityStorage
     ((IdentityManagerImpl)identityManager).setIdentityStorage(identityJCRStorage);

@@ -63,7 +63,6 @@ public class TemplateParamsProcessorTest extends AbstractCoreTest {
     String cityKey = "CITY";
 
     String templateString = "This is ${" + nameKey + "}. City : ${" + cityKey + "}";
-    String resultString = "This is . City : ";
     activity.setTitle(templateString);
     HashMap<String, String> params = new HashMap<String, String>();
     params.put(nameKey, null);
@@ -74,7 +73,7 @@ public class TemplateParamsProcessorTest extends AbstractCoreTest {
     TemplateParamsProcessor processor = (TemplateParamsProcessor) PortalContainer.getComponent(TemplateParamsProcessor.class);
     processor.processActivity(activity);
 
-    assertEquals(resultString, activity.getTitle());
+    assertEquals(templateString, activity.getTitle());
   }
 
   public void testProcessComplicatedTemplate() throws Exception {

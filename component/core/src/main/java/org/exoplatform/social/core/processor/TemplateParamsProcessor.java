@@ -58,7 +58,7 @@ public class TemplateParamsProcessor extends BaseActivityProcessorPlugin {
       String key = matcher.group(1);
       String value = params.get(key);
       if (value == null) {
-        value = "";
+        continue;
       }
       template = template.replace(templateKey, value);
     }

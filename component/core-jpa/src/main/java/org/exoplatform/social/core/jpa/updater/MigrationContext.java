@@ -206,6 +206,10 @@ public final class MigrationContext {
     return forceCleanup;
   }
 
+  public static boolean isMigrationDone() {
+    return isIdentityDone && isSpaceDone && isConnectionDone && isActivityDone;
+  }
+
   public static void setForceCleanup(boolean forceCleanup) {
     MigrationContext.forceCleanup = forceCleanup;
   }

@@ -360,7 +360,8 @@ public class RDBMSMigrationManager implements Startable {
                 timeToCleanupSpaces = System.currentTimeMillis() - t;
               }
 
-              if (MigrationContext.isIdentityCleanupDone()&& MigrationContext.isSpaceCleanupDone() || forceRemoveJCR){
+              //force remove social workspace if forceRemoveJCR is true or migration data is done
+              if (forceRemoveJCR || MigrationContext.isMigrationDone()){
                 updateSettingValue(MigrationContext.SOC_RDBMS_MIGRATION_STATUS_KEY, Boolean.TRUE);
                 MigrationContext.setDone(true);
                 removeSocialWorkspace(workspaceCleaner);

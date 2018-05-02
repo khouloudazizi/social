@@ -1,5 +1,10 @@
 package org.exoplatform.social.core.storage.cache.selector;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
 import org.exoplatform.services.cache.ExoCache;
 import org.exoplatform.services.cache.ObjectCacheInfo;
 import org.exoplatform.social.core.space.model.Space;
@@ -7,6 +12,7 @@ import org.exoplatform.social.core.storage.cache.SocialStorageCacheService;
 import org.exoplatform.social.core.storage.cache.model.data.ListSpacesData;
 import org.exoplatform.social.core.storage.cache.model.key.ListSpacesKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceFilterKey;
+import org.exoplatform.social.core.storage.cache.model.key.SpaceKey;
 import org.exoplatform.social.core.storage.cache.model.key.SpaceType;
 
 /**
@@ -21,7 +27,7 @@ public class LastAccessedSpacesCacheSelector extends ScopeCacheSelector<ListSpac
 
   private SocialStorageCacheService cacheService;
 
-  private boolean                   hasClearedCacheEntries = false;
+  private boolean                   updateStore = true;
 
   public LastAccessedSpacesCacheSelector(String remoteId, Space space, SocialStorageCacheService cacheService) {
     this.remoteId = remoteId;
@@ -49,19 +55,50 @@ public class LastAccessedSpacesCacheSelector extends ScopeCacheSelector<ListSpac
   public void onSelect(ExoCache<? extends ListSpacesKey, ? extends ListSpacesData> exoCache,
                        ListSpacesKey listSpacesKey,
                        ObjectCacheInfo<? extends ListSpacesData> objectCacheInfo) throws Exception {
-    if(objectCacheInfo != null && objectCacheInfo.get() != null) {
+    if (objectCacheInfo != null && objectCacheInfo.get() != null) {
       ListSpacesData listSpacesData = objectCacheInfo.get();
-      if (listSpacesData.getIds() != null && !listSpacesData.getIds().isEmpty()
-              && (SpaceType.LATEST_ACCESSED.equals(listSpacesKey.getKey().getType()) && !listSpacesData.getIds().get(0).getId().equals(space.getId())
-              || SpaceType.VISITED.equals(listSpacesKey.getKey().getType()))) {
-        exoCache.remove(listSpacesKey);
-        hasClearedCacheEntries = true;
-        cacheService.getSpacesCountCache().remove(listSpacesKey);
+      List<SpaceKey> ids = listSpacesData.getIds();
+      if (ids != null && !ids.isEmpty()) {
+        if (ids.get(0).getId().equals(space.getId())) {
+          updateStore = false;
+          return;
+        } else if (StringUtils.isBlank(listSpacesKey.getKey().getAppId()) && listSpacesKey.getOffset() == 0
+            && SpaceType.LATEST_ACCESSED.equals(listSpacesKey.getKey().getType())) {
+          SpaceKey spaceKey = new SpaceKey(space.getId());
+          ids = new ArrayList<>(ids);
+          if (ids.contains(spaceKey)) {
+            ids.remove(spaceKey);
+            ids.add(0, spaceKey);
+            listSpacesData.setIds(ids);
+            // Update cache after value change because ISPN returns a clone of
+            // object And not the real cached object
+            ((ExoCache<ListSpacesKey, ListSpacesData>) exoCache).put(listSpacesKey, listSpacesData);
+            // Cache enry updated, so no need to clear it
+            return;
+          } else if (ids.size() == listSpacesKey.getLimit()) {
+            ids.remove(ids.size() - 1);
+            ids.add(0, spaceKey);
+            listSpacesData.setIds(ids);
+            cacheService.getSpacesCountCache().remove(listSpacesKey);
+            ((ExoCache<ListSpacesKey, ListSpacesData>) exoCache).put(listSpacesKey, listSpacesData);
+            // Cache enry updated, so no need to clear it
+            return;
+          } else {
+            ids.add(0, spaceKey);
+            listSpacesData.setIds(ids);
+            cacheService.getSpacesCountCache().remove(listSpacesKey);
+            ((ExoCache<ListSpacesKey, ListSpacesData>) exoCache).put(listSpacesKey, listSpacesData);
+            // Cache enry updated, so no need to clear it
+            return;
+          }
+        }
       }
+      exoCache.remove(listSpacesKey);
+      cacheService.getSpacesCountCache().remove(listSpacesKey);
     }
   }
 
-  public boolean isHasClearedCacheEntries() {
-    return hasClearedCacheEntries;
+  public boolean isUpdateStore() {
+    return updateStore;
   }
 }

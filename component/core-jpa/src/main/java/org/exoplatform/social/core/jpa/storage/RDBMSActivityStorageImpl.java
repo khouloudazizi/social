@@ -435,7 +435,7 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
       String[] mentioners = processMentions(eXoComment.getTitle());
       if (mentioners != null && mentioners.length > 0) {
         mention(commenter, activityEntity, mentioners);
-        activityEntity.setMentionerIds(processMentionOfComment(activityEntity, commentEntity, activity.getMentionedIds(), mentioners, true));
+        activityEntity.setMentionerIds(processMentionOfComment(activityEntity, commentEntity, activityEntity.getMentionerIds().toArray(new String[activityEntity.getMentionerIds().size()]), mentioners, true));
       }
 
       //
@@ -1264,5 +1264,33 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
       }
     }
     return activityStorage;
+  }
+
+  @Override
+  public List<ExoSocialActivity> getActivities(List<String> activityIdList) {
+    if (activityIdList == null || activityIdList.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<Long> activityIds = new ArrayList<>();
+    for (String activityId : activityIdList) {
+      if (activityId == null || activityId.isEmpty()) {
+        continue;
+      }
+
+      if (activityId != null && activityId.startsWith(COMMENT_PREFIX)) {
+        activityIds.add(getCommentID(activityId));
+      } else {
+        activityIds.add(Long.valueOf(activityId));
+      }
+    }
+    List<ActivityEntity> activityEntities = activityDAO.findActivities(activityIds);
+    if (activityEntities == null || activityEntities.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<ExoSocialActivity> activityDTOs = new ArrayList<>();
+    for (ActivityEntity activityEntity : activityEntities) {
+      activityDTOs.add(convertActivityEntityToActivity(activityEntity));
+    }
+    return activityDTOs;
   }
 }

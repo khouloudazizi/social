@@ -34,18 +34,22 @@
     <name>notificationLocale</name>
     <supported-locale>ar</supported-locale>
     <supported-locale>ca</supported-locale>
+    <supported-locale>cs</supported-locale>
     <supported-locale>de</supported-locale>
     <supported-locale>el</supported-locale>
     <supported-locale>en</supported-locale>
     <supported-locale>es-ES</supported-locale>
     <supported-locale>fa</supported-locale>
+    <supported-locale>fil</supported-locale>
     <supported-locale>fr</supported-locale>
+    <supported-locale>in</supported-locale>
     <supported-locale>it</supported-locale>
     <supported-locale>ja</supported-locale>
     <supported-locale>nl</supported-locale>
     <supported-locale>pl</supported-locale>
     <supported-locale>pt-BR</supported-locale>
     <supported-locale>pt-PT</supported-locale>
+    <supported-locale>ro</supported-locale>
     <supported-locale>ru</supported-locale>
     <supported-locale>tr</supported-locale>
     <supported-locale>uk</supported-locale>

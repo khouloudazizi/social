@@ -49,6 +49,8 @@ public class Profile {
   /** lastname key. */
   public static final String        FULL_NAME      = "fullName";
   
+  /** birthday key. */
+  public static final String        BIRTHDAY      = "birthday";
   /** email key. */
   public static final String        EMAIL          = "email";
 
@@ -219,7 +221,7 @@ public class Profile {
   private static final Map<UpdateType, String[]> updateTypes = new HashMap<UpdateType, String[]>();
   static {
     updateTypes.put(UpdateType.POSITION, new String[] {POSITION});
-    updateTypes.put(UpdateType.BASIC_INFOR, new String[] {FIRST_NAME, LAST_NAME, EMAIL});
+    updateTypes.put(UpdateType.BASIC_INFOR, new String[] {FIRST_NAME, LAST_NAME, EMAIL,BIRTHDAY});
     updateTypes.put(UpdateType.CONTACT, new String[] {GENDER, CONTACT_PHONES, CONTACT_IMS, CONTACT_URLS});
     updateTypes.put(UpdateType.EXPERIENCES, new String[] {EXPERIENCES});
     updateTypes.put(UpdateType.AVATAR, new String[] {AVATAR});
@@ -585,7 +587,16 @@ public class Profile {
   public final String getGender() {
     return (String) getProperty(Profile.GENDER);
   }
-  
+  /**
+   * Gets birthday
+   * 
+   * @return birthday of user
+   * 
+   * @return
+   */
+  public final String getBirthday() {
+	  return (String) getProperty(Profile.BIRTHDAY);
+  }
   /**
    * Gets Phones
    * 

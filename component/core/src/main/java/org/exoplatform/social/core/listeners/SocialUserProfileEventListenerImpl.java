@@ -17,8 +17,10 @@
 package org.exoplatform.social.core.listeners;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.container.ExoContainer;
 import org.exoplatform.container.ExoContainerContext;
@@ -50,14 +52,23 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
       //
       String uGender = null;
       String uPosition = null;
+      String uTelMobHomeNumber = null;
+      String uTelHomeNumber = null;
+      String uTelMobWorkNumber = null;
+      String uTelWorkNumber = null;
       if (userProfile != null) {
         uGender = userProfile.getAttribute(UserProfile.PERSONAL_INFO_KEYS[4]);//"user.gender"
         uPosition = userProfile.getAttribute(UserProfile.PERSONAL_INFO_KEYS[7]);//user.jobtitle
+        uTelMobHomeNumber = userProfile.getAttribute(UserProfile.HOME_INFO_KEYS[6]);// user.home-info.telecom.mobile.number
+        uTelHomeNumber = userProfile.getAttribute(UserProfile.HOME_INFO_KEYS[7]);// user.home-info.telecom.telephone.number
+        uTelMobWorkNumber = userProfile.getAttribute(UserProfile.BUSINESE_INFO_KEYS[5]);// user.business-info.telecom.mobile.number
+        uTelWorkNumber = userProfile.getAttribute(UserProfile.BUSINESE_INFO_KEYS[6]);// user.business-info.telecom.telephone.numbers
       }
       
       //
       String pGender = (String) profile.getProperty(Profile.GENDER);
-      String pPosition = (String) profile.getProperty(Profile.POSITION);     
+      String pPosition = (String) profile.getProperty(Profile.POSITION); 
+      List<Map<String, String>> pContact_Phones = new ArrayList<>();
       //
       boolean hasUpdated = false;
   
@@ -77,6 +88,22 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
         profile.setListUpdateTypes(list);
         hasUpdated = true;
       }
+      
+      if ((StringUtils.isNotBlank(uTelHomeNumber)) || (StringUtils.isNotBlank(uTelMobHomeNumber))
+          || (StringUtils.isNotBlank(uTelWorkNumber)) || (StringUtils.isNotBlank(uTelMobWorkNumber))) {
+        if (StringUtils.isNotBlank(uTelHomeNumber))
+          profile.setProperty(Profile.CONTACT_PHONES, setContact(pContact_Phones, "Home", uTelHomeNumber));
+        if (StringUtils.isNotBlank(uTelMobHomeNumber))
+          profile.setProperty(Profile.CONTACT_PHONES, setContact(pContact_Phones, "Home", uTelMobHomeNumber));
+        if (StringUtils.isNotBlank(uTelWorkNumber))
+          profile.setProperty(Profile.CONTACT_PHONES, setContact(pContact_Phones, "Work", uTelWorkNumber));
+        if (StringUtils.isNotBlank(uTelMobWorkNumber))
+          profile.setProperty(Profile.CONTACT_PHONES, setContact(pContact_Phones, "Work", uTelMobWorkNumber));
+        List<Profile.UpdateType> list = new ArrayList<Profile.UpdateType>();
+        list.add(Profile.UpdateType.CONTACT);
+        profile.setListUpdateTypes(list);
+        hasUpdated = true;
+      }
   
       if (hasUpdated && !isNew) {
         IdentityManager identityManager = CommonsUtils.getService(IdentityManager.class);
@@ -91,5 +118,23 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
     }finally{
       RequestLifeCycle.end();
     }
+  }
+  
+  private List<Map<String, String>> setContact(List<Map<String, String>> contacts, String key, String value) {
+    boolean keyFound = false;
+    if (contacts != null) {
+      for (Map<String, String> map : contacts) {
+        if (!map.containsKey(key)) {
+          map.put(key, value);
+          keyFound = true;
+        }
+      }
+    }
+    if (keyFound == false) {
+      Map<String, String> map = new HashMap<>();
+      map.put(key, value);
+      contacts.add(map);
+    }
+    return contacts;
   }
 }

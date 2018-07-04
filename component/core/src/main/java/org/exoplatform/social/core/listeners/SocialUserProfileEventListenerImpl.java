@@ -50,17 +50,14 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
       //
       String uGender = null;
       String uPosition = null;
-      String uBirthday = null;
       if (userProfile != null) {
         uGender = userProfile.getAttribute(UserProfile.PERSONAL_INFO_KEYS[4]);//"user.gender"
         uPosition = userProfile.getAttribute(UserProfile.PERSONAL_INFO_KEYS[7]);//user.jobtitle
-        uBirthday = userProfile.getAttribute(UserProfile.PERSONAL_INFO_KEYS[3]);//user.bdate
       }
       
       //
       String pGender = (String) profile.getProperty(Profile.GENDER);
       String pPosition = (String) profile.getProperty(Profile.POSITION);  
-      String pBirthday = (String) profile.getProperty(Profile.BIRTHDAY);  
       //
       boolean hasUpdated = false;
   
@@ -70,11 +67,6 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
         List<Profile.UpdateType> list = new ArrayList<Profile.UpdateType>();
         list.add(Profile.UpdateType.CONTACT);
         profile.setListUpdateTypes(list);
-        hasUpdated = true;
-      }
-      
-      if (uBirthday != null && !uBirthday.equals(pBirthday)) {
-        profile.setProperty(Profile.BIRTHDAY, uBirthday);
         hasUpdated = true;
       }
       

@@ -71,12 +71,12 @@ public class SocialUserProfileEventListenerImpl extends UserProfileEventListener
       }
       
       if (uPosition != null && !uPosition.equals(pPosition)) {
-          profile.setProperty(Profile.POSITION, uPosition);
-          List<Profile.UpdateType> list = new ArrayList<Profile.UpdateType>();
-          list.add(Profile.UpdateType.CONTACT);
-          profile.setListUpdateTypes(list);
-          hasUpdated = true;
-        }
+         profile.setProperty(Profile.POSITION, uPosition);
+         List<Profile.UpdateType> list = new ArrayList<Profile.UpdateType>();
+         list.add(Profile.UpdateType.CONTACT);
+         profile.setListUpdateTypes(list);
+         hasUpdated = true;
+       }
   
       if (hasUpdated && !isNew) {
         IdentityManager identityManager = CommonsUtils.getService(IdentityManager.class);

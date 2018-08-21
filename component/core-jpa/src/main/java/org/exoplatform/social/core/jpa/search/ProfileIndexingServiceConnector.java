@@ -16,22 +16,19 @@
  */
 package org.exoplatform.social.core.jpa.search;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.exoplatform.commons.search.domain.Document;
 import org.exoplatform.commons.search.index.impl.ElasticIndexingServiceConnector;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.services.organization.Membership;
+import org.exoplatform.services.organization.OrganizationService;
+import org.exoplatform.services.organization.User;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.jpa.storage.dao.ConnectionDAO;
 import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
-import org.json.simple.JSONObject;
 
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -48,6 +45,8 @@ import org.exoplatform.social.core.relationship.model.Relationship;
   public final static String TYPE = "profile";
   /** */
   private final IdentityManager identityManager;
+
+  private final OrganizationService organizationService;
   /** */
   private final ConnectionDAO connectionDAO;
 
@@ -55,10 +54,12 @@ import org.exoplatform.social.core.relationship.model.Relationship;
 
   public ProfileIndexingServiceConnector(InitParams initParams,
                                          IdentityManager identityManager,
+                                         OrganizationService organizationService,
                                          IdentityDAO identityDAO,
                                          ConnectionDAO connectionDAO) {
     super(initParams);
     this.identityManager = identityManager;
+    this.organizationService = organizationService;
     this.identityDAO = identityDAO;
     this.connectionDAO = connectionDAO;
   }
@@ -204,6 +205,12 @@ import org.exoplatform.social.core.relationship.model.Relationship;
     return mapping.toString();
   }
 
+  /**
+   * Build the document containing the Profile data to index.
+   * Do not index disabled users (disabled means either with the disabled status or not in the group /platform/users).
+   * @param id
+   * @return
+   */
   private Document getDocument(String id) {
     if (StringUtils.isBlank(id)) {
       throw new IllegalArgumentException("id is mandatory");
@@ -213,6 +220,11 @@ import org.exoplatform.social.core.relationship.model.Relationship;
     LOG.debug("get profile document for identity id={}", id);
 
     Identity identity = identityManager.getIdentity(id, true);
+
+    if (!isUserEnabled(identity)) {
+      return null;
+    }
+
     Profile profile = identity.getProfile();
 
     Map<String, String> fields = new HashMap<String, String>();
@@ -246,5 +258,30 @@ import org.exoplatform.social.core.relationship.model.Relationship;
     LOG.info("profile document generated for identity id={} remote_id={} duration_ms={}", id, identity.getRemoteId(), System.currentTimeMillis() - ts);
 
     return document;
+  }
+
+  /**
+   * Check if the user of the given identity is disabled
+   * @param identity The identity of the user
+   * @return true if the user is enabled
+   */
+  private boolean isUserEnabled(Identity identity) {
+    if(identity == null || identity.isDeleted() || !identity.isEnable()) {
+      return false;
+    }
+
+    try {
+      User user = organizationService.getUserHandler().findUserByName(identity.getRemoteId());
+      if(user == null) {
+        return false;
+      }
+      Collection<Membership> memberships = organizationService.getMembershipHandler().findMembershipsByUserAndGroup(identity.getRemoteId(), "/platform/users");
+      if(memberships != null && !memberships.isEmpty()) {
+        return true;
+      }
+    } catch (Exception e) {
+      LOG.error("Error while checking memberships of user " + identity.getRemoteId(), e);
+    }
+    return false;
   }
 }

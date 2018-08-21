@@ -108,6 +108,15 @@
       <type>org.exoplatform.social.core.jpa.search.listener.UserESListenerImpl</type>
     </component-plugin>
   </external-component-plugins>
+
+  <external-component-plugins>
+    <target-component>org.exoplatform.services.organization.OrganizationService</target-component>
+    <component-plugin>
+      <name>MembershipESListenerImpl</name>
+      <set-method>addListenerPlugin</set-method>
+      <type>org.exoplatform.social.core.jpa.search.listener.MembershipESListenerImpl</type>
+    </component-plugin>
+  </external-component-plugins>
   
   <external-component-plugins>
     <target-component>org.exoplatform.social.core.space.spi.SpaceService</target-component>

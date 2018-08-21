@@ -218,7 +218,7 @@ public class IdentityStorageTestIT extends BaseESTest {
     assertEquals(1, identityStorage.getIdentitiesForMentions(providerId, profileFilter, null, 0, 10, false).size());
 
     // create a new identity
-    Identity test2Identity = populateIdentity("test2", false);
+    Identity test2Identity = populateIdentity("test2");
 
     profileFilter.setPosition(null);
     profileFilter.setName(null);
@@ -299,6 +299,8 @@ public class IdentityStorageTestIT extends BaseESTest {
 
   @MaxQueryNumber(2635)
   public void testGetSpaceMemberByProfileFilter() throws Exception {
+    createUser("username4");
+
     Space space = new Space();
     space.setApp("app");
     space.setDisplayName("my space");
@@ -308,7 +310,6 @@ public class IdentityStorageTestIT extends BaseESTest {
     space.setType(DefaultSpaceApplicationHandler.NAME);
     space.setVisibility(Space.PUBLIC);
     space.setPriority(Space.INTERMEDIATE_PRIORITY);
-    space.setGroupId(SpaceUtils.createGroup(space.getPrettyName(), "username4"));
     space.setUrl(space.getPrettyName());
     String[] managers = new String[] {};
     String[] members = new String[] {"username1", "username2", "username3"};
@@ -422,7 +423,7 @@ public class IdentityStorageTestIT extends BaseESTest {
    * @return
    * @throws IOException 
    */
-  private Identity populateIdentity(String remoteId, boolean addedToTearDown) throws IOException {
+  private Identity populateIdentity(String remoteId) throws IOException {
     String providerId = "organization";
     Identity identity = new Identity(providerId, remoteId);
     identityStorage.saveIdentity(identity);
@@ -439,5 +440,23 @@ public class IdentityStorageTestIT extends BaseESTest {
 
     reindexProfileById(identity.getId());
     return identity;
+  }
+
+  private void createUser(String userId) throws Exception {
+    User user = organizationService.getUserHandler().createUserInstance(userId);
+    user.setFirstName("Firstname");
+    user.setLastName("Lastname");
+    user.setEmail(userId + "@exemple.com");
+    user.setPassword("password");
+    user.setCreatedDate(new Date());
+    organizationService.getUserHandler().createUser(user, true);
+    tearDownUserList.add(user);
+
+    Identity identity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, userId, true);
+
+    Profile profile = identity.getProfile();
+    profile.setProperty(Profile.FIRST_NAME, "Firstname");
+    profile.setProperty(Profile.LAST_NAME, "LastName");
+    profile.setProperty(Profile.FULL_NAME, "Firstname LastName");
   }
 }

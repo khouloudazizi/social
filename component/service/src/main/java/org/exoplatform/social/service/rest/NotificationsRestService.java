@@ -62,6 +62,9 @@ public class NotificationsRestService implements ResourceContainer {
   private SpaceService spaceService;
   
   private static String       ACTIVITY_ID_PREFIX = "activity";
+  
+  private static final String LOGIN_INITIALURI = "/portal/login?initialURI=";
+  private static final String NOTIFICATION_REST_URL = "/portal/rest/social/notifications";
 
   public enum URL_TYPE {
     user, space, space_members, reply_activity, reply_activity_highlight_comment, reply_activity_highlight_comment_reply, view_full_activity,
@@ -184,11 +187,11 @@ public class NotificationsRestService implements ResourceContainer {
   public Response acceptInvitationToJoinSpace(@PathParam("spaceId") String spaceId,
                                               @PathParam("userId") String userId) throws Exception {
     HttpServletRequest currentServletRequest = Util.getCurrentServletRequest();
-    boolean hasLoggedIn = (userId.equals(currentServletRequest.getRemoteUser()));
+    boolean hasLoggedIn = (currentServletRequest.getRemoteUser() != null);
     String redirectLink = null;
     if (!hasLoggedIn) {
-      redirectLink = Util.getBaseUrl() + "/portal/login?initialURI=" + "/portal/rest/social/notifications" + "/acceptInvitationToJoinSpace/" + spaceId + "/" + userId;
-      return Response.seeOther(URI.create(redirectLink)).build();
+      redirectLink = Util.getBaseUrl() + LOGIN_INITIALURI + NOTIFICATION_REST_URL + "/acceptInvitationToJoinSpace/" + spaceId + "/" + userId;
+      return Response.temporaryRedirect(URI.create(redirectLink)).build();
     }
     checkAuthenticatedUserPermission(userId);
 
@@ -222,10 +225,10 @@ public class NotificationsRestService implements ResourceContainer {
   public Response ignoreInvitationToJoinSpace(@PathParam("spaceId") String spaceId,
                                               @PathParam("userId") String userId) throws Exception {
     HttpServletRequest currentServletRequest = Util.getCurrentServletRequest();
-    boolean hasLoggedIn = (userId.equals(currentServletRequest.getRemoteUser()));
+    boolean hasLoggedIn = (currentServletRequest.getRemoteUser() != null);
     String redirectLink = null;
     if (!hasLoggedIn) {
-      redirectLink = Util.getBaseUrl() + "/portal/login?initialURI=" + "/portal/rest/social/notifications" + "/ignoreInvitationToJoinSpace/" + spaceId + "/" + userId;
+      redirectLink = Util.getBaseUrl() + LOGIN_INITIALURI + NOTIFICATION_REST_URL + "/ignoreInvitationToJoinSpace/" + spaceId + "/" + userId;
       return Response.seeOther(URI.create(redirectLink)).build();
     }
     checkAuthenticatedUserPermission(userId);

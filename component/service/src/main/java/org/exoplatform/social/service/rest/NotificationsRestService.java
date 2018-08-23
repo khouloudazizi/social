@@ -183,6 +183,13 @@ public class NotificationsRestService implements ResourceContainer {
   @Path("acceptInvitationToJoinSpace/{spaceId}/{userId}")
   public Response acceptInvitationToJoinSpace(@PathParam("spaceId") String spaceId,
                                               @PathParam("userId") String userId) throws Exception {
+    HttpServletRequest currentServletRequest = Util.getCurrentServletRequest();
+    boolean hasLoggedIn = (userId.equals(currentServletRequest.getRemoteUser()));
+    String redirectLink = null;
+    if (!hasLoggedIn) {
+      redirectLink = Util.getBaseUrl() + "/portal/login?initialURI=" + "/portal/rest/social/notifications" + "/acceptInvitationToJoinSpace/" + spaceId + "/" + userId;
+      return Response.seeOther(URI.create(redirectLink)).build();
+    }
     checkAuthenticatedUserPermission(userId);
 
     Space space = getSpaceService().getSpaceById(spaceId);
@@ -214,6 +221,13 @@ public class NotificationsRestService implements ResourceContainer {
   @Path("ignoreInvitationToJoinSpace/{spaceId}/{userId}")
   public Response ignoreInvitationToJoinSpace(@PathParam("spaceId") String spaceId,
                                               @PathParam("userId") String userId) throws Exception {
+    HttpServletRequest currentServletRequest = Util.getCurrentServletRequest();
+    boolean hasLoggedIn = (userId.equals(currentServletRequest.getRemoteUser()));
+    String redirectLink = null;
+    if (!hasLoggedIn) {
+      redirectLink = Util.getBaseUrl() + "/portal/login?initialURI=" + "/portal/rest/social/notifications" + "/ignoreInvitationToJoinSpace/" + spaceId + "/" + userId;
+      return Response.seeOther(URI.create(redirectLink)).build();
+    }
     checkAuthenticatedUserPermission(userId);
 
     Space space = getSpaceService().getSpaceById(spaceId);

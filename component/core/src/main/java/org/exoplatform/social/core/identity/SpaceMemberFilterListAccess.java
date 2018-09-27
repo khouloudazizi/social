@@ -17,6 +17,7 @@
 package org.exoplatform.social.core.identity;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.social.common.ListAccessValidator;
@@ -93,6 +94,7 @@ public class SpaceMemberFilterListAccess implements ListAccess<Identity> {
     ListAccessValidator.validateIndex(offset, limit, getSize());
     List<Identity> identities = null;
     identities = identityStorage.getSpaceMemberIdentitiesByProfileFilter(space, profileFilter, type, offset, limit);    
+    identities = identities.stream().filter(identity -> identity.isEnable()).collect(Collectors.toList());
     return identities.toArray(new Identity[identities.size()]);
   }
 

@@ -41,9 +41,6 @@ jsManager.require("SHARED/jquery", "jq")
    <% if (managerList.size() > 0) { %>
     <div class="itemList memberList clearfix">
    <%  for(user in managerList) {
-      if(!user.isEnable()) {
-        continue;
-      }
       String userName = StringEscapeUtils.escapeHtml(user.getProfile().getFullName());
       position = user.getProfile().getPosition();
       String email = user.getProfile().getEmail();
@@ -155,9 +152,6 @@ jsManager.require("SHARED/jquery", "jq")
   <% if(memberList.size() > 0) { %>
     <div class="itemList clearfix">
     <% for(user in memberList) {
-      if(!user.isEnable()) {
-        continue;
-      }
       String userName = StringEscapeUtils.escapeHtml(user.getProfile().getFullName());
       String email = user.getProfile().getEmail();
       position = user.getProfile().position;

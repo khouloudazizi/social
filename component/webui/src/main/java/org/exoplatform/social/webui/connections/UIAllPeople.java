@@ -200,7 +200,7 @@ public class UIAllPeople extends UIContainer {
    */
   public List<Identity> getPeopleList() throws Exception {
     if (!uiProfileUserSearch.isLoadFromSearch()) {
-      if (currentLoadIndex + loadingCapacity > peopleNum){
+      if (currentLoadIndex + peopleNum % loadingCapacity > peopleNum){
         finalPeopleList.clear();
         currentLoadIndex = 0;
       }

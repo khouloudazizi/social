@@ -92,6 +92,7 @@ public class UIAllPeople extends UIContainer {
   private boolean enableLoadNext;
   private int loadingCapacity;
   private List<Identity> peopleList;
+  private List <Identity> finalPeopleList;
   private ListAccess<Identity> peopleListAccess;
   private int peopleNum;
   String selectedChar = null;
@@ -139,6 +140,7 @@ public class UIAllPeople extends UIContainer {
       currentLoadIndex = 0;
       loadingCapacity = PEOPLE_PER_PAGE;
       peopleList = new ArrayList<Identity>();
+      finalPeopleList = new ArrayList<Identity>();
       uiProfileUserSearch.getProfileFilter().setViewerIdentity(Utils.getViewerIdentity());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -198,7 +200,11 @@ public class UIAllPeople extends UIContainer {
    */
   public List<Identity> getPeopleList() throws Exception {
     if (!uiProfileUserSearch.isLoadFromSearch()) {
-      this.peopleList = loadPeople(0, currentLoadIndex + loadingCapacity);
+      if (currentLoadIndex + loadingCapacity > peopleNum){
+        finalPeopleList.clear();
+        currentLoadIndex = 0;
+      }
+      this.peopleList = loadPeople(currentLoadIndex, currentLoadIndex + loadingCapacity);
     }
     uiProfileUserSearch.setLoadFromSearch(false);
     
@@ -206,8 +212,10 @@ public class UIAllPeople extends UIContainer {
 
     setEnableLoadNext((realPeopleListSize >= PEOPLE_PER_PAGE)
             && (realPeopleListSize < getPeopleNum()));
+
+    finalPeopleList.addAll(peopleList);
     
-    return this.peopleList;
+    return this.finalPeopleList;
   }
 
   /**

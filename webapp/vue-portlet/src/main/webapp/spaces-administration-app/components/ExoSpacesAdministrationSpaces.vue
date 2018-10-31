@@ -26,7 +26,7 @@ import ExoSpacesAdministrationSpacesPermissions from './ExoSpacesAdministrationS
 export default {
   components: {
     'exo-spaces-administration-manage-spaces': ExoSpacesAdministrationManageSpaces,
-    'exo-spaces-administration-manage-permissions' : ExoSpacesAdministrationSpacesPermissions
+    'exo-spaces-administration-spaces-permissions' : ExoSpacesAdministrationSpacesPermissions
   },
   data() { 
     return {

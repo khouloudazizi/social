@@ -419,6 +419,7 @@ public class BaseUIActivity extends UIForm {
       }
     }
   }
+
   /**
    * Gets prettyTime by timestamp.
    *
@@ -426,7 +427,6 @@ public class BaseUIActivity extends UIForm {
    * @param updatedTime
    * @return String
    */
-
   public String getUpdatedTimeString(WebuiBindingContext resourceBundle, long updatedTime) throws Exception {
     long time = (new Date().getTime() - updatedTime) / 1000;
     long value;

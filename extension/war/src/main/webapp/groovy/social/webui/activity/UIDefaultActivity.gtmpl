@@ -433,15 +433,45 @@
                 if(hideSubComments) {
                     subCommentClass = "hidden";
                 } else {
-                    subCommentClass = "";
+                    spaceSourceURI = LinkProvider.getActivityUriForSpace(streamOwner, streamOwner);
+                    spaceName = StringEscapeUtils.escapeHtml(Utils.getSpaceIdentity(streamOwner, false).profile.fullName);
+                    spaceImageSource = LinkProvider.SPACE_DEFAULT_AVATAR_URL;
                 }
-              } else {
-                   subCommentIndex++;
-                   if(hideSubComments && subCommentIndex == subCommentSize) {
-                       %>
-		              <div class="commentItem clearfix subCommentBlock subCommentShowAll" id="SubCommentShowAll_$it.parentCommentId">
-                        <a href="javascript:void(0)" class="subCommentShowAllLink" data-parent-comment="$it.parentCommentId">
-                            <%=labelViewAllReplies.replace("{0}", String.valueOf(subCommentSize))%>
+       }
+    %>
+
+    <div class="activityStream uiDefaultActivity" id="activityContainer${activity.id}">
+      <% uiform.begin() %>
+      <div class="activityTimeLine pull-left">
+        <div class="activityAvatar avatarCircle">
+            <a  href="$ownerUri">
+              <img alt="$ownerName" src="$ownerAvatar"/>
+            </a>
+        </div>
+      </div><!--end activityTimeLine-->
+      <div class="boxContainer" id="boxContainer">
+        <div id="ContextBox${activity.id}" class="uiBox contentBox">
+            <div id="ActivityContextBox${activity.id}">
+              <div class="heading">
+                    <span class="arrowLeft"></span>
+                    <div class="actLink hidden-phone hidden-tablet">
+                         <a id="Permalink${activity.id}" class="uiIconLink uiIconLightGray" rel="tooltip" data-placement="bottom" title="$viewActivityTip" href="<%=uicomponent.getActivityPermalink(activity.id)%>"></a>
+                         <% if (activityDeletable) {
+                         %>
+                            <a href="javascript:void(0)" data-confirm="$labelToDeleteThisActivity"
+                                data-caption="$captionConfirmation" data-close="$labelClosebutton"
+                                data-ok="$labelConfirmbutton"
+                                data-delete="<%=uicomponent.event("DeleteActivity", uicomponent.getId(), "");%>"
+                                class="uiIconClose uiIconLightGray controllDelete"
+                                rel="tooltip" data-placement="bottom" title="$deleteActivityTip"
+                                id="DeleteActivityButton${activity.id}"></a>
+                          <%}%>
+                    </div>
+
+                    <div class="author">
+                    <div class="hidden-desktop circleSpaceAvatar">
+                        <a href="$ownerUri">
+                          <img alt="$ownerName" src="$ownerAvatar"/>
                         </a>
 		              </div>
                        <%

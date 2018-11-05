@@ -56,7 +56,11 @@ import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.form.UIForm;
 import org.exoplatform.webui.form.UIFormTextAreaInput;
 
+<<<<<<< HEAD
 import java.net.URLDecoder;
+=======
+import java.time.Instant;
+>>>>>>> improv/SOC-6099: Display last updated time of an activity next to its created time
 import java.util.*;
 
 /**
@@ -132,7 +136,7 @@ public class BaseUIActivity extends UIForm {
     String spaceURL = SpaceUtils.getSpaceUrlByContext();
     return spaceURL;
   }
-  
+
   public int getCurrentLoadIndex() {
     return currentLoadIndex;
   }
@@ -272,7 +276,7 @@ public class BaseUIActivity extends UIForm {
 
   /**
    * Count the list of parent comments of activity
-   * 
+   *
    * @param comments
    * @return
    */
@@ -288,7 +292,7 @@ public class BaseUIActivity extends UIForm {
 
   /**
    * Count the list of sub comment of comment designed by id
-   * 
+   *
    * @param comments
    * @param commentActivityId
    * @return
@@ -312,7 +316,7 @@ public class BaseUIActivity extends UIForm {
     }
     for (ExoSocialActivity exoSocialActivity : comments) {
       if (StringUtils.equals(exoSocialActivity.getId(), subCommentId)
-          && StringUtils.equals(exoSocialActivity.getParentCommentId(), commentId)) {
+              && StringUtils.equals(exoSocialActivity.getParentCommentId(), commentId)) {
         return true;
       }
     }
@@ -374,42 +378,42 @@ public class BaseUIActivity extends UIForm {
    * Gets prettyTime by timestamp.
    *
    * @param resourceBundle
-   * @param postedTime
+   * @param Time
    * @return String
    */
-  public String getPostedTimeString(WebuiBindingContext resourceBundle, long postedTime) throws Exception {
-    long time = (new Date().getTime() - postedTime) / 1000;
+  public String getTimeString(WebuiBindingContext resourceBundle, long Time, String labelTimeType) throws Exception {
+    long time = (Instant.now().toEpochMilli() - Time) / 1000;
     long value;
     if (time < 60) {
-      return resourceBundle.appRes("UIActivity.label.Less_Than_A_Minute");
+      return resourceBundle.appRes(labelTimeType+".label.Less_Than_A_Minute");
     } else {
       if (time < 120) {
-        return resourceBundle.appRes("UIActivity.label.About_A_Minute");
+        return resourceBundle.appRes(labelTimeType+".label.About_A_Minute");
       } else {
         if (time < 3600) {
           value = Math.round(time / 60);
-          return resourceBundle.appRes("UIActivity.label.About_?_Minutes").replaceFirst("\\{0\\}", String.valueOf(value));
+          return resourceBundle.appRes(labelTimeType+".label.About_?_Minutes").replaceFirst("\\{0\\}", String.valueOf(value));
         } else {
           if (time < 7200) {
-            return resourceBundle.appRes("UIActivity.label.About_An_Hour");
+            return resourceBundle.appRes(labelTimeType+".label.About_An_Hour");
           } else {
             if (time < 86400) {
               value = Math.round(time / 3600);
-              return resourceBundle.appRes("UIActivity.label.About_?_Hours").replaceFirst("\\{0\\}", String.valueOf(value));
+              return resourceBundle.appRes(labelTimeType+".label.About_?_Hours").replaceFirst("\\{0\\}", String.valueOf(value));
             } else {
               if (time < 172800) {
-                return resourceBundle.appRes("UIActivity.label.About_A_Day");
+                return resourceBundle.appRes(labelTimeType+".label.About_A_Day");
               } else {
                 if (time < 2592000) {
                   value = Math.round(time / 86400);
-                  return resourceBundle.appRes("UIActivity.label.About_?_Days").replaceFirst("\\{0\\}", String.valueOf(value));
+                  return resourceBundle.appRes(labelTimeType+".label.About_?_Days").replaceFirst("\\{0\\}", String.valueOf(value));
                 } else {
                   if (time < 5184000) {
-                    return resourceBundle.appRes("UIActivity.label.About_A_Month");
+                    return resourceBundle.appRes(labelTimeType+".label.About_A_Month");
                   } else {
                     value = Math.round(time / 2592000);
-                    return resourceBundle.appRes("UIActivity.label.About_?_Months")
-                                         .replaceFirst("\\{0\\}", String.valueOf(value));
+                    return resourceBundle.appRes(labelTimeType+".label.About_?_Months")
+                            .replaceFirst("\\{0\\}", String.valueOf(value));
                   }
                 }
               }
@@ -427,47 +431,19 @@ public class BaseUIActivity extends UIForm {
    * @param updatedTime
    * @return String
    */
-  public String getUpdatedTimeString(WebuiBindingContext resourceBundle, long updatedTime) throws Exception {
-    long time = (new Date().getTime() - updatedTime) / 1000;
-    long value;
-    if (time < 60) {
-      return resourceBundle.appRes("UIActivityUpdated.label.Less_Than_A_Minute");
-    } else {
-      if (time < 120) {
-        return resourceBundle.appRes("UIActivityUpdated.label.About_A_Minute");
-      } else {
-        if (time < 3600) {
-          value = Math.round(time / 60);
-          return resourceBundle.appRes("UIActivityUpdated.label.About_?_Minutes").replaceFirst("\\{0\\}", String.valueOf(value));
-        } else {
-          if (time < 7200) {
-            return resourceBundle.appRes("UIActivityUpdated.label.About_An_Hour");
-          } else {
-            if (time < 86400) {
-              value = Math.round(time / 3600);
-              return resourceBundle.appRes("UIActivityUpdated.label.About_?_Hours").replaceFirst("\\{0\\}", String.valueOf(value));
-            } else {
-              if (time < 172800) {
-                return resourceBundle.appRes("UIActivityUpdated.label.About_A_Day");
-              } else {
-                if (time < 2592000) {
-                  value = Math.round(time / 86400);
-                  return resourceBundle.appRes("UIActivityUpdated.label.About_?_Days").replaceFirst("\\{0\\}", String.valueOf(value));
-                } else {
-                  if (time < 5184000) {
-                    return resourceBundle.appRes("UIActivityUpdated.label.About_A_Month");
-                  } else {
-                    value = Math.round(time / 2592000);
-                    return resourceBundle.appRes("UIActivityUpdated.label.About_?_Months")
-                            .replaceFirst("\\{0\\}", String.valueOf(value));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+  public String getUpdateTimeString(WebuiBindingContext resourceBundle, long updatedTime) throws Exception {
+    return this.getTimeString(resourceBundle,updatedTime,"UIActivityCommented");
+  }
+
+  /**
+   * Gets prettyTime by timestamp of activities in space.
+   *
+   * @param resourceBundle
+   * @param postedTime
+   * @return String
+   */
+  public String getPostedTimeString(WebuiBindingContext resourceBundle, long postedTime) throws Exception {
+    return this.getTimeString(resourceBundle,postedTime,"UIActivity");
   }
 
   /**
@@ -489,7 +465,7 @@ public class BaseUIActivity extends UIForm {
         if (time < 3600) {
           value = Math.round(time / 60);
           return resourceBundle.appRes("UIActivity.label.About_?_Minutes_In_Space")
-                               .replaceFirst("\\{0\\}", String.valueOf(value));
+                  .replaceFirst("\\{0\\}", String.valueOf(value));
         } else {
           if (time < 7200) {
             return resourceBundle.appRes("UIActivity.label.About_An_Hour_In_Space");
@@ -533,9 +509,9 @@ public class BaseUIActivity extends UIForm {
 
   protected ExoSocialActivity saveComment(String remoteUser, String message, String commentId) throws Exception {
     ExoSocialActivity comment = new ExoSocialActivityImpl(Utils.getViewerIdentity().getId(),
-                                                          SpaceActivityPublisher.SPACE_APP_ID,
-                                                          message,
-                                                          null);
+            SpaceActivityPublisher.SPACE_APP_ID,
+            message,
+            null);
     if (StringUtils.isNotBlank(commentId) && commentId.startsWith("comment")) {
       comment.setParentCommentId(commentId);
     }
@@ -646,10 +622,10 @@ public class BaseUIActivity extends UIForm {
 
   private void initSingleActivity() {
     PostContext postContext = (PostContext) WebuiRequestContext.getCurrentInstance()
-                                                               .getAttribute(UIActivitiesLoader.ACTIVITY_POST_CONTEXT_KEY);
+            .getAttribute(UIActivitiesLoader.ACTIVITY_POST_CONTEXT_KEY);
     if (postContext == null) {
       postContext = getAncestorOfType(UIPortletApplication.class).findFirstComponentOfType(UIActivitiesLoader.class)
-                                                                 .getPostContext();
+              .getPostContext();
     }
     if (postContext == PostContext.SINGLE) {
       if (!Utils.isExpandLikers() && !Utils.isFocusCommentBox()) {
@@ -692,8 +668,8 @@ public class BaseUIActivity extends UIForm {
       space = uiActivitiesContainer.getSpace();
     } else if(org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
       Identity identityStreamOwner = Utils.getIdentityManager().getOrCreateIdentity(SpaceIdentityProvider.NAME,
-                                                                                    this.getActivity().getStreamOwner(),
-                                                                                    false);
+              this.getActivity().getStreamOwner(),
+              false);
       if (identityStreamOwner != null) {
         space = spaceService.getSpaceByPrettyName(identityStreamOwner.getRemoteId());
       }
@@ -789,8 +765,8 @@ public class BaseUIActivity extends UIForm {
         spaceService = getApplicationComponent(SpaceService.class);
       } else if(org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
         Identity identityStreamOwner = Utils.getIdentityManager().getOrCreateIdentity(SpaceIdentityProvider.NAME,
-                                                                                      this.getActivity().getStreamOwner(),
-                                                                                      false);
+                this.getActivity().getStreamOwner(),
+                false);
         if (identityStreamOwner != null) {
           space = spaceService.getSpaceByPrettyName(identityStreamOwner.getRemoteId());
         }
@@ -874,12 +850,12 @@ public class BaseUIActivity extends UIForm {
       super.processRender(context);
       if (getActivity().getId().equals(focusActivityId)) {
         context.getJavascriptManager()
-               .require("SHARED/social-ui-activity", "activity")
-               .addScripts("setTimeout(function() { " + "activity.hightlightComment('" + focusActivityId + "');"
-                   + ((Utils.isFocusCommentBox()) ? "activity.replyByURL('" + focusActivityId + "');" : "")
-                   + ((Utils.isFocusCommentReplyBox()) ? "activity.replyByURL('" + focusCommentID + "');" : "")
-                   + ((StringUtils.isNotBlank(focusCommentID)) ? "activity.focusToComment('" + focusCommentID + "');" : "")
-                   + ((Utils.isExpandLikers()) ? "activity.loadLikersByURL();" : "") + "}, 100);");
+                .require("SHARED/social-ui-activity", "activity")
+                .addScripts("setTimeout(function() { " + "activity.hightlightComment('" + focusActivityId + "');"
+                        + ((Utils.isFocusCommentBox()) ? "activity.replyByURL('" + focusActivityId + "');" : "")
+                        + ((Utils.isFocusCommentReplyBox()) ? "activity.replyByURL('" + focusCommentID + "');" : "")
+                        + ((StringUtils.isNotBlank(focusCommentID)) ? "activity.focusToComment('" + focusCommentID + "');" : "")
+                        + ((Utils.isExpandLikers()) ? "activity.loadLikersByURL();" : "") + "}, 100);");
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -1044,8 +1020,8 @@ public class BaseUIActivity extends UIForm {
       Utils.initUserProfilePopup(uiActivity.getId());
 
       jm.require("SHARED/social-ui-activity", "activity").require("SHARED/jquery", "jq").
-      addScripts("activity.initCKEditor('" + activityId + "', activity.spaceURL, activity.commentPlaceholder, activity.spaceGroupId);").
-      addScripts(script.toString());
+              addScripts("activity.initCKEditor('" + activityId + "', activity.spaceURL, activity.commentPlaceholder, activity.spaceGroupId);").
+              addScripts(script.toString());
     }
   }
 
@@ -1113,12 +1089,12 @@ public class BaseUIActivity extends UIForm {
 
       WebuiRequestContext context = event.getRequestContext();
       context.getJavascriptManager()
-             .require("SHARED/social-ui-activity", "activity")
-             .addScripts("activity.responsiveMobile('"
-                 + activitiesContainer.getAncestorOfType(UIPortletApplication.class).getId() + "');");
+              .require("SHARED/social-ui-activity", "activity")
+              .addScripts("activity.responsiveMobile('"
+                      + activitiesContainer.getAncestorOfType(UIPortletApplication.class).getId() + "');");
       //
       boolean isEmptyListActivity = (activitiesContainer.getActivityIdList().size() == 0)
-          && (activitiesContainer.getActivityList().size() == 0);
+              && (activitiesContainer.getActivityList().size() == 0);
       if (isEmptyListActivity) {
         context.addUIComponentToUpdateByAjax(activitiesContainer.getParent().getParent());
       } else {

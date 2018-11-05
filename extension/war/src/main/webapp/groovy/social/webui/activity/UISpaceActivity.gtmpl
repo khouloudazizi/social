@@ -175,13 +175,8 @@
   }
 
   activityPostedTime = uicomponent.getPostedTimeString(_ctx, activity.postedTime);
-<<<<<<< HEAD
   activityUpdatedTime =uicomponent.getPostedTimeString(_ctx,activity.updated.getTime());
   activityUpdatedTime =	_ctx.appRes("UIActivity.label.EditedFrom").replace("{0}",activityUpdatedTime);
-=======
-  activityUpdatedTime = uicomponent.getUpdateTimeString(_ctx, activity.updated.getTime());
-
->>>>>>> improv/SOC-6099: Display last updated time of an activity next to its created time
   def spaceID, spaceImageSource;
   def ownerIdentity = uicomponent.ownerIdentity;
   def profile = ownerIdentity.profile;

@@ -672,9 +672,7 @@
     },
 
     setPageTitle : function(activityTitle) {
-      $(document).attr('title', 'Activity: ' + $('<div></div>').html(window.decodeURIComponent(activityTitle)).text());
-      window.require(["PORTLET/platformNavigation/NotificationPopoverToolbarPortlet"], function(notificationPopover) {
-      notificationPopover.initoriginalPageTitle();
+      eXo.core.Browser.setTitle('Activity: ' + $('<div></div>').html(window.decodeURIComponent(activityTitle)).text());
     },
 
     loadLikersByURL : function() {

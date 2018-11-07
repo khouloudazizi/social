@@ -375,14 +375,15 @@ public class BaseUIActivity extends UIForm {
   }
 
   /**
-   * Gets prettyTime by timestamp.
+   * Gets prettyTime.
    *
    * @param resourceBundle
-   * @param Time
+   * @param timestamp
+   * @param labelTimeType
    * @return String
    */
-  public String getTimeString(WebuiBindingContext resourceBundle, long Time, String labelTimeType) throws Exception {
-    long time = (Instant.now().toEpochMilli() - Time) / 1000;
+  protected String getTimeString(WebuiBindingContext resourceBundle, long timestamp, String labelTimeType) throws Exception {
+    long time = (Instant.now().toEpochMilli() - timestamp) / 1000;
     long value;
     if (time < 60) {
       return resourceBundle.appRes(labelTimeType+".label.Less_Than_A_Minute");
@@ -425,10 +426,10 @@ public class BaseUIActivity extends UIForm {
   }
 
   /**
-   * Gets prettyTime by timestamp.
+   * Gets formatted time of the last commented time.
    *
    * @param resourceBundle
-   * @param updatedTime
+   * @param updatedTime Timestamp of the last comment
    * @return String
    */
   public String getUpdateTimeString(WebuiBindingContext resourceBundle, long updatedTime) throws Exception {
@@ -436,7 +437,7 @@ public class BaseUIActivity extends UIForm {
   }
 
   /**
-   * Gets prettyTime by timestamp of activities in space.
+   * Gets prettyTime by timestamp of activities.
    *
    * @param resourceBundle
    * @param postedTime

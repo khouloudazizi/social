@@ -18,4 +18,20 @@
         </module>
     </portlet>
 
+    <portlet>
+        <name>SpaceTest</name>
+        <module>
+            <script>
+                <minify>false</minify>
+                <path>/js/spaceTest.bundle.js</path>
+            </script>
+            <depends>
+                <module>vue</module>
+            </depends>
+            <depends>
+                <module>eXoVueI18n</module>
+            </depends>
+        </module>
+    </portlet>
+
 </gatein-resources>

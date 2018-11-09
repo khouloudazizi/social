@@ -15,5 +15,20 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:/
 			<title>Spaces Administration</title>
 		</portlet-info>
 	</portlet>
+
+	<portlet>
+		<portlet-name>SpaceTest</portlet-name>
+		<portlet-class>org.exoplatform.commons.api.portlet.GenericDispatchedViewPortlet</portlet-class>
+		<init-param>
+      <name>portlet-view-dispatched-file-path</name>
+      <value>/space-test/index.html</value>
+     </init-param>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<portlet-info>
+			<title>Space Test</title>
+		</portlet-info>
+	</portlet>
 	
 </portlet-app>

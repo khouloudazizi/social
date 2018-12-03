@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
@@ -77,8 +78,9 @@ import org.exoplatform.social.service.rest.api.models.ActivityRestIn;
 public class SpaceRestResourcesV1 implements SpaceRestResources {
 
   private IdentityManager identityManager;
-  
-  
+  private Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
+
+
   public SpaceRestResourcesV1(IdentityManager identityManager) {
     this.identityManager = identityManager;
   }
@@ -158,7 +160,7 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                                 "<br />\"visibility\": \"private\"," +
                                                 "<br />\"subscription\": \"validation\"<br />}" 
                                                 , required = true) SpaceEntity model) throws Exception {
-    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0) {
+    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !pattern.matcher(model.getDisplayName()).matches()) {
       throw new WebApplicationException(Response.Status.UNAUTHORIZED);
     }
 
@@ -351,7 +353,7 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                   @ApiParam(value = "Asking for a full representation of a specific subresource, ex: members or managers", required = false) @QueryParam("expand") String expand,
                                   @ApiParam(value = "Space object to be updated", required = true) SpaceEntity model) throws Exception {
     
-    if (model == null) {
+    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !pattern.matcher(model.getDisplayName()).matches()) {
       throw new WebApplicationException(Response.Status.UNAUTHORIZED);
     }
     

@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -415,13 +416,17 @@ public class SpaceServiceImpl implements SpaceService {
    */
   public Space createSpace(Space space, String creator, String invitedGroupId) {
     // Add creator as a manager and a member to this space
+    Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
     String[] managers = space.getManagers();
     String[] members = space.getMembers();
     managers = (String[]) ArrayUtils.add(managers,creator);
     members = (String[]) ArrayUtils.add(members,creator);
     space.setManagers(managers);
     space.setMembers(members);
-    
+    if (space.getDisplayName().length() > 200 || !pattern.matcher(space.getDisplayName()).matches()){
+      LOG.error("Error while creating the space"+ space.getPrettyName());
+    }
+
     // Creates new space by creating new group
     String groupId = null;
     try {

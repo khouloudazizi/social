@@ -161,7 +161,7 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                                 "<br />\"subscription\": \"validation\"<br />}" 
                                                 , required = true) SpaceEntity model) throws Exception {
     if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !pattern.matcher(model.getDisplayName()).matches()) {
-      throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+      throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
     SpaceService spaceService = CommonsUtils.getService(SpaceService.class);

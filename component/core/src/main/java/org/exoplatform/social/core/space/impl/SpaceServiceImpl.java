@@ -117,6 +117,9 @@ public class SpaceServiceImpl implements SpaceService {
 
   private List<MembershipEntry> superManagersMemberships = new ArrayList<>();
 
+  private Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
+
+
   /**
    * SpaceServiceImpl constructor Initialize
    * <tt>org.exoplatform.social.space.impl.JCRStorage</tt>
@@ -415,17 +418,21 @@ public class SpaceServiceImpl implements SpaceService {
    * {@inheritDoc}
    */
   public Space createSpace(Space space, String creator, String invitedGroupId) {
+
+    if (space.getDisplayName().length() > LIMIT ) {
+      throw new RuntimeException("Error while creating the space" + space.getPrettyName() + ": Space Name allowed length limit reached mustn't be more than 200 characters");
+    }
+
+    if (!pattern.matcher(space.getDisplayName()).matches()) {
+        throw new RuntimeException("Error while creating the space" + space.getPrettyName()+ ": Please enter a valid space name: letters, digits and space characters only");
+    }
     // Add creator as a manager and a member to this space
-    Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
     String[] managers = space.getManagers();
     String[] members = space.getMembers();
     managers = (String[]) ArrayUtils.add(managers,creator);
     members = (String[]) ArrayUtils.add(members,creator);
     space.setManagers(managers);
     space.setMembers(members);
-    if (space.getDisplayName().length() > 200 || !pattern.matcher(space.getDisplayName()).matches()){
-      LOG.error("Error while creating the space"+ space.getPrettyName());
-    }
 
     // Creates new space by creating new group
     String groupId = null;

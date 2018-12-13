@@ -54,9 +54,6 @@ import org.exoplatform.social.core.storage.IdentityStorageException;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.impl.StorageUtils;
 import org.exoplatform.social.core.test.AbstractCoreTest;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class SpaceServiceTest extends AbstractCoreTest {
   private IdentityStorage identityStorage;
@@ -90,9 +87,6 @@ public class SpaceServiceTest extends AbstractCoreTest {
   private Identity member1;
   private Identity member2;
   private Identity member3;
-
-  @Rule
-  public ExpectedException expectedEx = ExpectedException.none();
 
   @Override
   public void setUp() throws Exception {
@@ -1461,9 +1455,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
      assertEquals(4,space.getMembers().length);
    }
 
-  @Test
   public void testCreateSpaceExceedingNameLimit () throws RuntimeException{
-    expectedEx.expect(RuntimeException.class);
     Space space = new Space();
     String spaceDisplayName = "0123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920";
     space.setDisplayName(spaceDisplayName);
@@ -1472,12 +1464,11 @@ public class SpaceServiceTest extends AbstractCoreTest {
       spaceService.createSpace(space, creator);
     }
     catch (RuntimeException e){
+      assertTrue(e.getMessage().contains("Space Name allowed length limit reached"));
     }
   }
 
-  @Test
   public void testCreateSpaceWithInvalidSpaceName() throws RuntimeException{
-    expectedEx.expect(RuntimeException.class);
     Space space = new Space();
     String spaceDisplayName = "%z:^!/<>";
     space.setDisplayName(spaceDisplayName);
@@ -1486,6 +1477,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
       spaceService.createSpace(space, creator);
     }
     catch (RuntimeException e){
+      assertTrue(e.getMessage().contains("Please enter a valid space name"));
     }
   }
 

@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
@@ -58,6 +57,7 @@ import org.exoplatform.social.core.manager.ActivityManager;
 import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.space.SpaceException;
 import org.exoplatform.social.core.space.SpaceFilter;
+import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
@@ -78,7 +78,6 @@ import org.exoplatform.social.service.rest.api.models.ActivityRestIn;
 public class SpaceRestResourcesV1 implements SpaceRestResources {
 
   private IdentityManager identityManager;
-  private Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
 
 
   public SpaceRestResourcesV1(IdentityManager identityManager) {
@@ -160,7 +159,7 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                                 "<br />\"visibility\": \"private\"," +
                                                 "<br />\"subscription\": \"validation\"<br />}" 
                                                 , required = true) SpaceEntity model) throws Exception {
-    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !pattern.matcher(model.getDisplayName()).matches()) {
+    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !SpaceUtils.isValidSpaceName(model.getDisplayName())) {
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
@@ -353,7 +352,7 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                   @ApiParam(value = "Asking for a full representation of a specific subresource, ex: members or managers", required = false) @QueryParam("expand") String expand,
                                   @ApiParam(value = "Space object to be updated", required = true) SpaceEntity model) throws Exception {
     
-    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !pattern.matcher(model.getDisplayName()).matches()) {
+    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !SpaceUtils.isValidSpaceName(model.getDisplayName())) {
       throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
     

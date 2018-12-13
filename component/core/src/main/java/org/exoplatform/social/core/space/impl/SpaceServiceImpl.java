@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -116,9 +115,6 @@ public class SpaceServiceImpl implements SpaceService {
   private WebNotificationService webNotificationService;
 
   private List<MembershipEntry> superManagersMemberships = new ArrayList<>();
-
-  private Pattern pattern = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
-
 
   /**
    * SpaceServiceImpl constructor Initialize
@@ -419,12 +415,12 @@ public class SpaceServiceImpl implements SpaceService {
    */
   public Space createSpace(Space space, String creator, String invitedGroupId) {
 
-    if (space.getDisplayName().length() > LIMIT ) {
-      throw new RuntimeException("Error while creating the space" + space.getPrettyName() + ": Space Name allowed length limit reached mustn't be more than 200 characters");
+    if (space.getDisplayName().length() > LIMIT) {
+      throw new RuntimeException("Error while creating the space " + space.getDisplayName() + ": Space Name allowed length limit reached mustn't be more than 200 characters");
     }
 
-    if (!pattern.matcher(space.getDisplayName()).matches()) {
-        throw new RuntimeException("Error while creating the space" + space.getPrettyName()+ ": Please enter a valid space name: letters, digits and space characters only");
+    if (!SpaceUtils.isValidSpaceName(space.getDisplayName())) {
+        throw new RuntimeException("Error while creating the space " + space.getDisplayName()+ ": Please enter a valid space name: letters, digits and space characters only");
     }
     // Add creator as a manager and a member to this space
     String[] managers = space.getManagers();

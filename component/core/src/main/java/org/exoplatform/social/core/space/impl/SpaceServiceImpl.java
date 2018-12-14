@@ -416,11 +416,11 @@ public class SpaceServiceImpl implements SpaceService {
   public Space createSpace(Space space, String creator, String invitedGroupId) {
 
     if (space.getDisplayName().length() > LIMIT) {
-      throw new RuntimeException("Error while creating the space " + space.getDisplayName() + ": Space Name allowed length limit reached mustn't be more than 200 characters");
+      throw new RuntimeException("Error while creating the space " + space.getDisplayName() + ": space name cannot exceed 200 characters");
     }
 
     if (!SpaceUtils.isValidSpaceName(space.getDisplayName())) {
-        throw new RuntimeException("Error while creating the space " + space.getDisplayName()+ ": Please enter a valid space name: letters, digits and space characters only");
+        throw new RuntimeException("Error while creating the space " + space.getDisplayName()+ ": space name can only contain letters, digits or space characters only");
     }
     // Add creator as a manager and a member to this space
     String[] managers = space.getManagers();

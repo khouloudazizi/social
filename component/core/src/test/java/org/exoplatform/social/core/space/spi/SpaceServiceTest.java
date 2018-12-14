@@ -1457,27 +1457,47 @@ public class SpaceServiceTest extends AbstractCoreTest {
 
   public void testCreateSpaceExceedingNameLimit () throws RuntimeException{
     Space space = new Space();
-    String spaceDisplayName = "0123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920";
+    String spaceDisplayName = "zzz0123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920012345679101112131415161718192001234567910111213141516171819200123456791011121314151617181920";
+    String shortName = "zzz";
     space.setDisplayName(spaceDisplayName);
+    space.setPrettyName(shortName);
+    space.setRegistration(Space.OPEN);
+    space.setDescription("add new space ");
+    space.setType(DefaultSpaceApplicationHandler.NAME);
+    space.setVisibility(Space.PUBLIC);
+    space.setRegistration(Space.VALIDATION);
+    space.setPriority(Space.INTERMEDIATE_PRIORITY);
     String creator = "root";
+    space.setGroupId("/spaces/" + shortName);
     try {
       spaceService.createSpace(space, creator);
+      fail("Should have thrown an RuntimeException because Name length exceeds limits");
     }
     catch (RuntimeException e){
-      assertTrue(e.getMessage().contains("Space Name allowed length limit reached"));
+      assertTrue(e.getMessage().contains("space name cannot exceed 200 characters"));
     }
   }
 
   public void testCreateSpaceWithInvalidSpaceName() throws RuntimeException{
     Space space = new Space();
-    String spaceDisplayName = "%z:^!/<>";
+    String spaceDisplayName = "%zzz:^!/<>";
     space.setDisplayName(spaceDisplayName);
     String creator = "root";
+    String shortName = "zzz";
+    space.setDisplayName(spaceDisplayName);
+    space.setPrettyName(shortName);
+    space.setRegistration(Space.OPEN);
+    space.setDescription("add new space ");
+    space.setType(DefaultSpaceApplicationHandler.NAME);
+    space.setVisibility(Space.PUBLIC);
+    space.setRegistration(Space.VALIDATION);
+    space.setPriority(Space.INTERMEDIATE_PRIORITY);
     try {
       spaceService.createSpace(space, creator);
+      fail("Should have thrown an RuntimeException because Name is invalid");
     }
     catch (RuntimeException e){
-      assertTrue(e.getMessage().contains("Please enter a valid space name"));
+      assertTrue(e.getMessage().contains("space name can only contain letters, digits or space characters only"));
     }
   }
 

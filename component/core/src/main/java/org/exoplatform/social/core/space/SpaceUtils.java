@@ -146,11 +146,11 @@ public class SpaceUtils {
   /**
    * Checks if Space Name is in a valid form or not.
    *
-   * @param Name
+   * @param name
    * @return
    */
-  public static boolean isValidSpaceName(String Name) {
-    return SPACE_NAME_PATTERN.matcher(Name).matches();
+  public static boolean isValidSpaceName(String name) {
+    return SPACE_NAME_PATTERN.matcher(name).matches();
   }
   
   /**

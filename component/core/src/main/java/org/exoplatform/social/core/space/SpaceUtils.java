@@ -130,7 +130,7 @@ public class SpaceUtils {
 
   private static final String REMOTE_CATEGORY_NAME = "remote";
 
-  private static final Pattern SPACE_NAME_PATTERN = Pattern.compile("^([\\p{L}\\s\\d\'&]+[\\s]?)+$");
+  private static final Pattern SPACE_NAME_PATTERN = Pattern.compile("^([\\p{L}\\s\\d\'_&]+[\\s]?)+$");
 
 
   // A {@link Transliterator} instance is stateless which has for consequences that it is Thread Safe

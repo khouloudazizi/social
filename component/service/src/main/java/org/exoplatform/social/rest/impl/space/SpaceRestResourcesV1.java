@@ -352,8 +352,8 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
                                   @ApiParam(value = "Asking for a full representation of a specific subresource, ex: members or managers", required = false) @QueryParam("expand") String expand,
                                   @ApiParam(value = "Space object to be updated", required = true) SpaceEntity model) throws Exception {
     
-    if (model == null || model.getDisplayName() == null || model.getDisplayName().length() == 0 || model.getDisplayName().length() > 200 || !SpaceUtils.isValidSpaceName(model.getDisplayName())) {
-      throw new WebApplicationException(Response.Status.BAD_REQUEST);
+    if (model == null) {
+      throw new WebApplicationException(Response.Status.UNAUTHORIZED);
     }
     
     String authenticatedUser = ConversationState.getCurrent().getIdentity().getUserId();
@@ -362,6 +362,9 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
     Space space = spaceService.getSpaceById(id);
     if (space == null || (! spaceService.isManager(space, authenticatedUser) && ! spaceService.isSuperManager(authenticatedUser))) {
       throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+    }
+    if (space.getDisplayName().length() > 200 || !SpaceUtils.isValidSpaceName(space.getDisplayName())) {
+      throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
     if(model.getGroupId() != null && model.getGroupId().length() > 0) {
       throw new WebApplicationException(Response.Status.UNAUTHORIZED);

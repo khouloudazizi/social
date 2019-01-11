@@ -18,7 +18,7 @@
           <h5>{{ $t('social.spaces.administration.permissions.descriptionCreateSpace') }}</h5>
         </td>
         <td>
-          <div v-show="spacesCreatorsEditMode">
+          <div v-show="!spacesCreatorsEditMode">
             <div v-if="creators.length > 0">
               <div v-for="creator in creators" :key="creator">
                 <h5>{{ creator }}</h5>
@@ -26,16 +26,16 @@
             </div>
             <h5 v-if="creators.length === 0 && displayNoAssignmentCreators">{{ $t('social.spaces.administration.permissions.noAssignment') }}</h5>
           </div>
-          <div v-show="!spacesCreatorsEditMode" class="inputUser">
+          <div v-show="spacesCreatorsEditMode" class="inputUser">
             <input id="add-creators-suggester" type="text"/>
           </div>
         </td>
-        <td v-if="spacesCreatorsEditMode" class="center actionContainer" >
+        <td v-if="!spacesCreatorsEditMode" class="center actionContainer" >
           <a data-placement="bottom" rel="tooltip" class="actionIcon" data-original-title="Edit" @click="editCreateSpace()">
             <i class="uiIconEdit uiIconLightGray"></i>
           </a>
         </td>
-        <td v-if="!spacesCreatorsEditMode" class="center actionContainer" >
+        <td v-if="spacesCreatorsEditMode" class="center actionContainer" >
           <a data-placement="bottom" rel="tooltip" class="actionIcon" data-original-title="Save" @click="savePermissionsCreateSpace()">
             <i class="uiIconSave uiIconLightGray"></i>
           </a>
@@ -50,7 +50,7 @@
           <h5>{{ $t('social.spaces.administration.permissions.descriptionManageSpaces') }}</h5>
         </td>
         <td>
-          <div v-show="spacesAdministratorsEditMode">
+          <div v-show="!spacesAdministratorsEditMode">
             <div v-if="administrators.length > 0">
               <div v-for="administrator in administrators" :key="administrator">
                 <h5>{{ administrator }}</h5>
@@ -58,16 +58,16 @@
             </div>
             <h5 v-if="administrators.length === 0 && displayNoAssignmentAdministrators">{{ $t('social.spaces.administration.permissions.noAssignment') }}</h5>
           </div>
-          <div v-show="!spacesAdministratorsEditMode" class="inputUser">
+          <div v-show="spacesAdministratorsEditMode" class="inputUser">
             <input id="add-administrators-suggester" type="text"/>
           </div>
         </td>
-        <td v-if="spacesAdministratorsEditMode" class="center actionContainer" >
+        <td v-if="!spacesAdministratorsEditMode" class="center actionContainer" >
           <a data-placement="bottom" rel="tooltip" class="actionIcon" data-original-title="Edit" @click="editManageSpace()">
             <i class="uiIconEdit uiIconLightGray"></i>
           </a>
         </td>
-        <td v-if="!spacesAdministratorsEditMode" class="center actionContainer" >
+        <td v-if="spacesAdministratorsEditMode" class="center actionContainer" >
           <a data-placement="bottom" rel="tooltip" class="actionIcon" data-original-title="Save" @click="savePermissionsSpacesAdministrators()">
             <i class="uiIconSave uiIconLightGray"></i>
           </a>
@@ -86,8 +86,8 @@ export default {
     return {
       creators: [],
       administrators: [],
-      spacesCreatorsEditMode: true,
-      spacesAdministratorsEditMode: true,
+      spacesCreatorsEditMode: false,
+      spacesAdministratorsEditMode: false,
       displayNoAssignmentCreators: false,
       displayNoAssignmentAdministrators: false
     };
@@ -165,7 +165,7 @@ export default {
             return { 'membershipType': splitCreator[0], 'group': splitCreator[1] };
           }));
       }
-      this.spacesCreatorsEditMode = true;
+      this.spacesCreatorsEditMode = false;
     },
     getSettingValueCreateSpace() {
       spaceAdministrationServices.getSpacesAdministrationSetting('spacesCreators').then(data => {
@@ -271,7 +271,7 @@ export default {
             return { 'membershipType': splitAdministrators[0], 'group': splitAdministrators[1] };
           }));
       }
-      this.spacesAdministratorsEditMode = true;
+      this.spacesAdministratorsEditMode = false;
     },
     getSettingValueSpaceAdministrators(){
       spaceAdministrationServices.getSpacesAdministrationSetting('spacesAdministrators').then(data => {
@@ -292,7 +292,6 @@ export default {
       } else {
         this.getSettingValueCreateSpace();
         this.spacesCreatorsEditMode = true;
-        this.spacesAdministratorsEditMode = true;
       }
     },
     editManageSpace(){
@@ -301,7 +300,6 @@ export default {
       } else {
         this.getSettingValueSpaceAdministrators();
         this.spacesAdministratorsEditMode = true;
-        this.spacesCreatorsEditMode = true;
       }
     }
   }

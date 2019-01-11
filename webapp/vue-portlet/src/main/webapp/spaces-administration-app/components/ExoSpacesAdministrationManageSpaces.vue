@@ -35,7 +35,7 @@
       </tr>
     </table> 
     <div v-if="totalPages > 1" class="pagination uiPageIterator">
-      <ul>
+      <ul class="pull-right">
         <li :class="{'disabled': currentPage === 1}">
           <a data-placement="bottom" rel="tooltip" href="#" data-original-title="Previous Page" @click="getSpacesPerPage(currentPage-1)">
             <i class="uiIconPrevArrow"></i>

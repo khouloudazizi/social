@@ -8,7 +8,7 @@
         <th>
           {{ $t('exoplatform.permission.spaces.groups') }}
         </th>
-        <th>
+        <th class="actions">
           {{ $t('exoplatform.manage.spaces.actions') }}
         </th>
       </tr>
@@ -175,7 +175,7 @@ export default {
       });
       setTimeout(() => {
         this.displayNoAssignementCreators = true;
-      }, 2000);
+      }, 1000);
     },
     initSuggesterSpacesAdministrators() {
       const suggesterContainer = $('#add-administrators-suggester');
@@ -278,7 +278,7 @@ export default {
       });
       setTimeout(() => {
         this.displayNoAssignementAdministrators = true;
-      }, 2000);
+      }, 1000);
     },
     editCreateSpace(){
       if(this.spacesCreatorsEditMode) {

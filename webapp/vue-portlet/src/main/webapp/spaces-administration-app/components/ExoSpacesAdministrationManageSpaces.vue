@@ -14,7 +14,7 @@
         <th>
           {{ $t('exoplatform.manage.spaces.description') }}
         </th>
-        <th>
+        <th class="actions">
           {{ $t('exoplatform.manage.spaces.actions') }}
         </th>
       </tr>

@@ -88,17 +88,11 @@ export default {
       administrators: [],
       spacesCreatorsEditMode: true,
       spacesAdministratorsEditMode: true,
-      index: 0,
-      settingValue: '',
-      creatorsPermissions: null,
-      administratorsPermissions: null,
       displayNoAssignmentCreators: false,
       displayNoAssignmentAdministrators: false
     };
   },
   created() {
-    this.initSuggesterSpacesCreators();
-    this.initSuggesterSpacesAdministrators();
     this.getSettingValueCreateSpace();
     this.getSettingValueSpaceAdministrators();
   },
@@ -139,11 +133,10 @@ export default {
           }
         };
         suggesterContainer.suggester(suggesterData);
-        if(this.creatorsPermissions && this.creatorsPermissions !== null) {
-          for(const permission of this.creatorsPermissions) {
-            const permissionExpression = `${permission.membershipType}:${permission.group}`;
-            suggesterContainer[0].selectize.addOption({text: permissionExpression});
-            suggesterContainer[0].selectize.addItem(permissionExpression);
+        if(this.creators && this.creators !== null) {
+          for(const permission of this.creators) {
+            suggesterContainer[0].selectize.addOption({text: permission});
+            suggesterContainer[0].selectize.addItem(permission);
           }
         }
       }
@@ -153,13 +146,15 @@ export default {
         const selectize = $('#add-creators-suggester')[0].selectize;
         item = selectize.options[item];
       }
-      if(!this.creators.find(creator => creator.text === item.text)) {
+      if(!this.creators.find(creator => creator === item.text)) {
         this.creators.push(item.text);
       }
     },
     removeSuggestedItemCreators(item) {
-      if(this.creators.find(creator => creator === item)) {
-        this.creators.splice(this.creators.indexOf(item), 1);
+      for(let i=this.creators.length-1; i>=0; i--) {
+        if(this.creators[i] === item) {
+          this.creators.splice(i, 1);
+        }
       }
     },
     savePermissionsCreateSpace() {
@@ -175,7 +170,11 @@ export default {
     getSettingValueCreateSpace() {
       spaceAdministrationServices.getSpacesAdministrationSetting('spacesCreators').then(data => {
         if(data) {
-          this.creatorsPermissions = data.memberships;
+          this.creators = [];
+          for(const permission of data.memberships) {
+            const permissionExpression = `${permission.membershipType}:${permission.group}`;
+            this.creators.push(permissionExpression);
+          }
         }
         this.displayNoAssignmentCreators = true;
         this.initSuggesterSpacesCreators();
@@ -217,11 +216,10 @@ export default {
           }
         };
         suggesterContainer.suggester(suggesterData);
-        if(this.administratorsPermissions && this.administratorsPermissions !== null) {
-          for(const permission of this.administratorsPermissions) {
-            const permissionExpression = `${permission.membershipType}:${permission.group}`;
-            suggesterContainer[0].selectize.addOption({text: permissionExpression});
-            suggesterContainer[0].selectize.addItem(permissionExpression);
+        if(this.administrators && this.administrators !== null) {
+          for(const permission of this.administrators) {
+            suggesterContainer[0].selectize.addOption({text: permission});
+            suggesterContainer[0].selectize.addItem(permission);
           }
         }      
       }
@@ -254,13 +252,15 @@ export default {
         const selectize = $('#add-administrators-suggester')[0].selectize;
         item = selectize.options[item];
       }
-      if(!this.administrators.find(administrator => administrator.text === item.text)) {
+      if(!this.administrators.find(administrator => administrator === item.text)) {
         this.administrators.push(item.text);
       }
     },
     removeSuggestedItemAdinistrators(item) {
-      if(this.administrators.find(administrator => administrator === item)) {
-        this.administrators.splice(this.administrators.indexOf(item), 1);
+      for(let i=this.administrators.length-1; i>=0; i--) {
+        if(this.administrators[i] === item) {
+          this.administrators.splice(i, 1);
+        }
       }
     },
     savePermissionsSpacesAdministrators() {
@@ -276,7 +276,11 @@ export default {
     getSettingValueSpaceAdministrators(){
       spaceAdministrationServices.getSpacesAdministrationSetting('spacesAdministrators').then(data => {
         if(data) {
-          this.administratorsPermissions = data.memberships;
+          this.administrators = [];
+          for(const permission of data.memberships) {
+            const permissionExpression = `${permission.membershipType}:${permission.group}`;
+            this.administrators.push(permissionExpression);
+          }
         }
         this.displayNoAssignmentAdministrators = true;
         this.initSuggesterSpacesAdministrators();

@@ -52,7 +52,7 @@
       </ul>
     </div> 
     <exo-modal v-show="showConfirmMessageModal" :title="$t('social.spaces.administration.delete.spaces.confirm.title')" @modal-closed="closeModal">
-      <h3>{{ $t('social.spaces.administration.delete.spaces.confirm') }}</h3>
+      <p>{{ $t('social.spaces.administration.delete.spaces.confirm') }}</p>
       <div class="uiAction uiActionBorder">
         <div class="btn btn-primary" @click="confirmDelete">{{ $t('social.spaces.administration.delete.spaces.button.delete') }}</div>
         <div class="btn" @click="closeModal">{{ $t('social.spaces.administration.delete.spaces.button.cancel') }}</div>

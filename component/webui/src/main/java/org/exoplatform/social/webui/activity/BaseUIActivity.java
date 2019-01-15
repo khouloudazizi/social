@@ -56,11 +56,7 @@ import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.form.UIForm;
 import org.exoplatform.webui.form.UIFormTextAreaInput;
 
-<<<<<<< HEAD
 import java.net.URLDecoder;
-=======
-import java.time.Instant;
->>>>>>> improv/SOC-6099: Display last updated time of an activity next to its created time
 import java.util.*;
 
 /**
@@ -71,42 +67,42 @@ import java.util.*;
  * @since Jul 23, 2010
  */
 public class BaseUIActivity extends UIForm {
-  protected static final int LIKES_NUM_DEFAULT           = 0;
-  private static final Log   LOG                         = ExoLogger.getLogger(BaseUIActivity.class);
-  private static final int   DEFAULT_LIMIT               = 10;
-  private static final String                   HTML_AT_SYMBOL_PATTERN = "@";
-  private static final String                   HTML_AT_SYMBOL_ESCAPED_PATTERN = "&#64;";
-  private static final String                   HTML_ATTRIBUTE_TITLE = "title";
+  protected static final int LIKES_NUM_DEFAULT = 0;
+  private static final Log LOG = ExoLogger.getLogger(BaseUIActivity.class);
+  private static final int DEFAULT_LIMIT = 10;
+  private static final String HTML_AT_SYMBOL_PATTERN = "@";
+  private static final String HTML_AT_SYMBOL_ESCAPED_PATTERN = "&#64;";
+  private static final String HTML_ATTRIBUTE_TITLE = "title";
 
   public static final String TEMPLATE_PARAM_COMMENT = "comment";
   public static final String COMPOSER_TEXT_AREA_EDIT_INPUT = "composerEditInput";
-  private static int         LATEST_COMMENTS_SIZE        = 2;
-  private int                commentMinCharactersAllowed = 0;
-  private int                commentMaxCharactersAllowed = 100;
-  private int                commentSize                 = 0;
-  private int                                   loadCapacity;
+  private static int LATEST_COMMENTS_SIZE = 2;
+  private int commentMinCharactersAllowed = 0;
+  private int commentMaxCharactersAllowed = 100;
+  private int commentSize = 0;
+  private int loadCapacity;
 
-  private int                                   currentLoadIndex     = 0;
+  private int currentLoadIndex = 0;
 
   private RealtimeListAccess<ExoSocialActivity> activityCommentsListAccess;
 
-  private ExoSocialActivity                     activity;
+  private ExoSocialActivity activity;
 
-  private Identity                              ownerIdentity;
+  private Identity ownerIdentity;
 
-  private String[]                              identityLikes;
+  private String[] identityLikes;
 
-  private boolean                               commentFormDisplayed = false;
+  private boolean commentFormDisplayed = false;
 
-  private boolean                               allLoaded            = false;
+  private boolean allLoaded = false;
 
-  private CommentStatus                         commentListStatus    = CommentStatus.LATEST;
+  private CommentStatus commentListStatus = CommentStatus.LATEST;
 
-  private boolean                               allCommentsHidden    = false;
+  private boolean allCommentsHidden = false;
 
-  private boolean                               commentFormFocused   = false;
+  private boolean commentFormFocused = false;
 
-  private String                                updatedCommentId;
+  private String updatedCommentId;
 
   private ActivityManager activityManager;
 
@@ -375,45 +371,62 @@ public class BaseUIActivity extends UIForm {
   }
 
   /**
-   * Gets prettyTime.
+   * Gets last commented time of an activity.
+   *
+   * @return long
+   */
+  public long getLastCommentTime() {
+    long lastUpdatedComment = 0;
+    ExoSocialActivity lastComment;
+    List<ExoSocialActivity> comments = Utils.getActivityManager().getCommentsWithListAccess(activity, true).loadAsList(0, -1);
+    if (comments.size() != 0) {
+      lastComment = comments
+              .stream()
+              .max(Comparator.comparing(ExoSocialActivity::getUpdated)).orElse(null);
+      lastUpdatedComment = lastComment.getUpdated().getTime();
+    }
+    return lastUpdatedComment;
+  }
+
+  /**
+   * Gets prettyTime by timestamp.
    *
    * @param resourceBundle
-   * @param timestamp
-   * @param labelTimeType
+   * @param postedTime
    * @return String
    */
-  protected String getTimeString(WebuiBindingContext resourceBundle, long timestamp, String labelTimeType) throws Exception {
-    long time = (Instant.now().toEpochMilli() - timestamp) / 1000;
+  public String getPostedTimeString(WebuiBindingContext resourceBundle, long postedTime) throws Exception {
+    long time = (new Date().getTime() - postedTime) / 1000;
     long value;
     if (time < 60) {
-      return resourceBundle.appRes(labelTimeType+".label.Less_Than_A_Minute");
+      return resourceBundle.appRes("UIActivity.label.Less_Than_A_Minute");
     } else {
       if (time < 120) {
-        return resourceBundle.appRes(labelTimeType+".label.About_A_Minute");
+        return resourceBundle.appRes("UIActivity.label.About_A_Minute");
       } else {
         if (time < 3600) {
           value = Math.round(time / 60);
-          return resourceBundle.appRes(labelTimeType+".label.About_?_Minutes").replaceFirst("\\{0\\}", String.valueOf(value));
+          return resourceBundle.appRes("UIActivity.label.About_?_Minutes").replaceFirst("\\{0\\}", String.valueOf(value));
         } else {
           if (time < 7200) {
-            return resourceBundle.appRes(labelTimeType+".label.About_An_Hour");
+            return resourceBundle.appRes("UIActivity.label.About_An_Hour");
           } else {
             if (time < 86400) {
               value = Math.round(time / 3600);
-              return resourceBundle.appRes(labelTimeType+".label.About_?_Hours").replaceFirst("\\{0\\}", String.valueOf(value));
+              return resourceBundle.appRes("UIActivity.label.About_?_Hours").replaceFirst("\\{0\\}", String.valueOf(value));
             } else {
               if (time < 172800) {
-                return resourceBundle.appRes(labelTimeType+".label.About_A_Day");
+                return resourceBundle.appRes("UIActivity.label.About_A_Day");
               } else {
                 if (time < 2592000) {
                   value = Math.round(time / 86400);
-                  return resourceBundle.appRes(labelTimeType+".label.About_?_Days").replaceFirst("\\{0\\}", String.valueOf(value));
+                  return resourceBundle.appRes("UIActivity.label.About_?_Days").replaceFirst("\\{0\\}", String.valueOf(value));
                 } else {
                   if (time < 5184000) {
-                    return resourceBundle.appRes(labelTimeType+".label.About_A_Month");
+                    return resourceBundle.appRes("UIActivity.label.About_A_Month");
                   } else {
                     value = Math.round(time / 2592000);
-                    return resourceBundle.appRes(labelTimeType+".label.About_?_Months")
+                    return resourceBundle.appRes("UIActivity.label.About_?_Months")
                             .replaceFirst("\\{0\\}", String.valueOf(value));
                   }
                 }
@@ -423,28 +436,6 @@ public class BaseUIActivity extends UIForm {
         }
       }
     }
-  }
-
-  /**
-   * Gets formatted time of the last commented time.
-   *
-   * @param resourceBundle
-   * @param updatedTime Timestamp of the last comment
-   * @return String
-   */
-  public String getUpdateTimeString(WebuiBindingContext resourceBundle, long updatedTime) throws Exception {
-    return this.getTimeString(resourceBundle,updatedTime,"UIActivityCommented");
-  }
-
-  /**
-   * Gets prettyTime by timestamp of activities.
-   *
-   * @param resourceBundle
-   * @param postedTime
-   * @return String
-   */
-  public String getPostedTimeString(WebuiBindingContext resourceBundle, long postedTime) throws Exception {
-    return this.getTimeString(resourceBundle,postedTime,"UIActivity");
   }
 
   /**
@@ -526,22 +517,20 @@ public class BaseUIActivity extends UIForm {
   }
 
   /**
-   *
    * @param message edited message
    */
-  protected void editActivity(String message){
+  protected void editActivity(String message) {
     getActivity().setTitle(message);
     getActivity().setUpdated(new Date());
     Utils.getActivityManager().updateActivity(getActivity());
   }
 
   /**
-   *
    * @param commentActivity edited comment's activity
-   * @param message chnaged message
+   * @param message         chnaged message
    * @return
    */
-  protected ExoSocialActivity editCommentMessage(ExoSocialActivity commentActivity, String message){
+  protected ExoSocialActivity editCommentMessage(ExoSocialActivity commentActivity, String message) {
     commentActivity.setTitle(message);
     commentActivity.setUpdated(new Date());
     Utils.getActivityManager().saveComment(getActivity(), commentActivity);
@@ -568,7 +557,7 @@ public class BaseUIActivity extends UIForm {
     activity = getI18N(activity);
   }
 
-  public void setLikeComment(boolean isLiked, String commentId){
+  public void setLikeComment(boolean isLiked, String commentId) {
     Identity viewerIdentity = Utils.getViewerIdentity();
     ExoSocialActivity commentActivity = Utils.getActivityManager().getActivity(commentId);
     if (isLiked) {
@@ -667,7 +656,7 @@ public class BaseUIActivity extends UIForm {
 
     if (postContext == PostContext.SPACE) {
       space = uiActivitiesContainer.getSpace();
-    } else if(org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
+    } else if (org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
       Identity identityStreamOwner = Utils.getIdentityManager().getOrCreateIdentity(SpaceIdentityProvider.NAME,
               this.getActivity().getStreamOwner(),
               false);
@@ -764,7 +753,7 @@ public class BaseUIActivity extends UIForm {
       if (postContext == PostContext.SPACE) {
         space = uiActivitiesContainer.getSpace();
         spaceService = getApplicationComponent(SpaceService.class);
-      } else if(org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
+      } else if (org.exoplatform.social.core.activity.model.ActivityStream.Type.SPACE.equals(this.getActivity().getActivityStream().getType())) {
         Identity identityStreamOwner = Utils.getIdentityManager().getOrCreateIdentity(SpaceIdentityProvider.NAME,
                 this.getActivity().getStreamOwner(),
                 false);
@@ -840,7 +829,7 @@ public class BaseUIActivity extends UIForm {
       Utils.initUserProfilePopup(getId());
       String focusActivityId = Utils.getActivityID();
       String focusCommentID = Utils.getCommentID();
-      if(StringUtils.isNotBlank(focusCommentID)) {
+      if (StringUtils.isNotBlank(focusCommentID)) {
         ExoSocialActivity focusedActivity = Utils.getActivityManager().getActivity(focusCommentID);
         if (focusedActivity != null && focusedActivity.getParentCommentId() != null) {
           getAndSetUpdatedCommentId(focusedActivity.getParentCommentId());
@@ -976,7 +965,7 @@ public class BaseUIActivity extends UIForm {
       JavascriptManager jm = requestContext.getJavascriptManager();
       jm.require("SHARED/social-ui-activity", "activity").addScripts("activity.displayLike('#ContextBox" + activityId + "');");
 
-      if(StringUtils.isNotBlank(commentId)) {
+      if (StringUtils.isNotBlank(commentId)) {
         uiActivity.getAndSetUpdatedCommentId(commentId);
       }
       requestContext.addUIComponentToUpdateByAjax(uiActivity);
@@ -1136,7 +1125,7 @@ public class BaseUIActivity extends UIForm {
       BaseUIActivity uiActivity = event.getSource();
       uiActivity.setLikeComment(Boolean.parseBoolean(likeStatus[0]), likeStatus[1]);
       String commentId = requestContext.getRequestParameter("commentId");
-      if(StringUtils.isNotBlank(commentId)) {
+      if (StringUtils.isNotBlank(commentId)) {
         uiActivity.getAndSetUpdatedCommentId(commentId);
       }
       requestContext.addUIComponentToUpdateByAjax(uiActivity);
@@ -1151,7 +1140,7 @@ public class BaseUIActivity extends UIForm {
     public void execute(Event<BaseUIActivity> event) throws Exception {
       WebuiRequestContext requestContext = event.getRequestContext();
       BaseUIActivity uiActivity = event.getSource();
-      String message = ((UIFormTextAreaInput)uiActivity.getChildById(COMPOSER_TEXT_AREA_EDIT_INPUT + uiActivity.getActivity().getId())).
+      String message = ((UIFormTextAreaInput) uiActivity.getChildById(COMPOSER_TEXT_AREA_EDIT_INPUT + uiActivity.getActivity().getId())).
               getValue().replaceAll(HTML_AT_SYMBOL_ESCAPED_PATTERN, HTML_AT_SYMBOL_PATTERN);
 
       uiActivity.editActivity(message);
@@ -1173,7 +1162,7 @@ public class BaseUIActivity extends UIForm {
       BaseUIActivity uiActivity = event.getSource();
       ExoSocialActivity originalActivity = Utils.getActivityManager().getActivity(commentId);
 
-      uiActivity.editCommentMessage(originalActivity,message);
+      uiActivity.editCommentMessage(originalActivity, message);
       requestContext.addUIComponentToUpdateByAjax(uiActivity);
       Utils.initUserProfilePopup(uiActivity.getId());
       uiActivity.getParent().broadcast(event, event.getExecutionPhase());

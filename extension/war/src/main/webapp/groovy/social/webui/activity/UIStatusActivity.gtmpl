@@ -125,7 +125,7 @@
   
   //make sures commentFormFocused is set to false to prevent any refresh to focus, only focus after post a comment
   uicomponent.setCommentFormFocused(false);
-  def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime;
+  def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime, activityLastCommentedTime;
   def listPeopleLikeBlockClass = "", listPeopleBGClass = "";
 
   if (uicomponent.isLiked()) {
@@ -155,9 +155,16 @@
   activityPostedTime = uicomponent.getPostedTimeString(_ctx, activity.postedTime);
   activityUpdatedTime = uicomponent.getPostedTimeString(_ctx,activity.updated.getTime());
 
+  if (uicomponent.getLastCommentTime() != 0){
+    activityLastCommentedTime = uicomponent.getPostedTimeString(_ctx,uicomponent.getLastCommentTime());
+    activityLastCommentedTime = _ctx.appRes("UIActivity.label.CommentedForm").replace("{0}",activityLastCommentedTime);
+  } else{
+    activityLastCommentedTime = "";
+  }
+
   def ownerIdentity = uicomponent.ownerIdentity;
   def profile = ownerIdentity.profile;
-  
+
   if (uicomponent.isUserActivity()) {
     ownerUri = LinkProvider.getUserProfileUri(ownerIdentity.getRemoteId());
     ownerAvatar = profile.avatarUrl;
@@ -177,7 +184,7 @@
     ownerName = StringEscapeUtils.escapeHtml(profile.fullName);
   }
   def currentTime = System.currentTimeMillis();
-  
+
   String viewActivityTip = _ctx.appRes("UIActivity.msg.ViewActivity");
   def viewerId = Utils.getViewerIdentity().getId();
 %>
@@ -194,7 +201,7 @@
       <div id="ActivityContextBox${activity.id}">
       <h5 class="TitleContent clearfix">
         <a class="Text"  href="$ownerUri">$ownerName</a><br>
-          <span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" rel="tooltip" data-placement="bottom" title="$activityPostedTime" href="<%=uicomponent.getActivityPermalink(activity.id)%>"><%=_ctx.appRes("UIActivity.label.EditedFrom").replace("{0}",activityUpdatedTime)%></a></span>
+          <span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" rel="tooltip" data-placement="bottom" title="$activityPostedTime" href="<%=uicomponent.getActivityPermalink(activity.id)%>"><%=_ctx.appRes("UIActivity.label.EditedFrom").replace("{0}",activityPostedTime)%> <%if(activityLastCommentedTime)%> - $activityLastCommentedTime %></a></span>
                 <!--div class="pull-right"-->
 			    <%
 			  		if( activityDeletable ) {
@@ -219,7 +226,6 @@
 			     }
 			    %>
                 <!--/div-->
-
       </h5>
       <div class="Content">
         $activity.title

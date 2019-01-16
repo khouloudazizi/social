@@ -254,7 +254,7 @@
 					<a  href="$ownerUri">$ownerName</a>
 				</div>
 				<div class="dataInfor">
-					<span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" href="<%=uicomponent.getActivityPermalink(activity.id)%>">$activityPostedTime <% if(activityLastCommentedTime)%> - $activityLastCommentedTime %> </a></span>
+					<span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" href="<%=uicomponent.getActivityPermalink(activity.id)%>">$activityPostedTime <% if(activityLastCommentedTime)%> - $activityLastCommentedTime</a></span>
 				</div>
 			</div><!--end heading-->
 			<div class="description">$activity.title</div><!--end description-->

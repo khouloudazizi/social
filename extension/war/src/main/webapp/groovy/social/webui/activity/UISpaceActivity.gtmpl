@@ -185,14 +185,6 @@
     activityLastCommentedTime = "";
   }
 
-  if (uicomponent.getLastCommentTime() != 0){
-      activityLastCommentedTime = uicomponent.getPostedTimeString(_ctx,uicomponent.getLastCommentTime());
-      activityLastCommentedTime = _ctx.appRes("UIActivity.label.CommentedForm").replace("{0}",activityLastCommentedTime);
-    }
-    else{
-      activityLastCommentedTime = "";
-    }
-
   def spaceID, spaceImageSource;
   def ownerIdentity = uicomponent.ownerIdentity;
   def profile = ownerIdentity.profile;

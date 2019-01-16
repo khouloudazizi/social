@@ -116,10 +116,19 @@ public class GroupSpaceBindingServiceImpl implements GroupSpaceBindingService {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  public void deleteAllUserBindings(String userName) {
-    LOG.info("Delete all user bindings for user :" + userName);
-    groupSpaceBindingStorage.deleteAllUserBindings(userName);
-  }
+     * {@inheritDoc}
+     */
+    public void deleteAllUserBindings(String userName) {
+        LOG.info("Delete all user bindings for user :" + userName);
+        groupSpaceBindingStorage.deleteAllUserBindings(userName);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean hasUserBindings(String spaceId, String userName) {
+        LOG.info("Checking if member has binding :" + userName + " space:"+ spaceId);
+        return groupSpaceBindingStorage.hasUserBindings(spaceId,userName);
+    }
 }

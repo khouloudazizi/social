@@ -80,6 +80,13 @@ public interface GroupSpaceBindingService {
   void deleteUserBinding(UserSpaceBinding userSpaceBinding);
 
   /**
+   * Delete all the binding of a user
+   *
+   * @param user The user .
+   */
+  void deleteAllUserBindings(String user);
+
+  /**
    * Delete all group bindings for a specific space / role. When bindings is
    * deleted, all users in the group will be remove from space.
    * 
@@ -89,10 +96,12 @@ public interface GroupSpaceBindingService {
   void deleteAllSpaceBindings(String spaceId, String spaceRole);
 
   /**
-   * Delete all group bindings for a specific space / role. When bindings is
-   * deleted, all users in the group will be remove from space.
+   * Check if member has binding for this space
    *
-   * @param userName The space Id.
+   * @param spaceId The space Id.
+   * @param userName The username of the member.
+   * @return true if the member has binding for this space.
    */
-  void deleteAllUserBindings(String userName);
+  boolean hasUserBindings(String spaceId, String userName);
+
 }

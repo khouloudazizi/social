@@ -39,4 +39,12 @@ public interface UserSpaceBindingDAO extends GenericDAO<UserSpaceBindingEntity, 
    * @param userName Member in the space
    */
   void deleteAllUserBindings(String userName);
+
+  /**
+   * Check if member has binding for this space
+   *
+   * @param spaceId The space Id.
+   * @param userName The space Id.
+   */
+  boolean hasUserBindings(Long spaceId, String userName);
 }

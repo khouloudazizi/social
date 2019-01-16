@@ -348,39 +348,68 @@ public class RDBMSGroupSpaceBindingStorageTest extends AbstractCoreTest {
                  groupSpaceBindingStorage.findUserSpaceBindings(spaceId, "john").size());
   }
 
-    /**
-     * Test
-     * {@link org.exoplatform.social.core.storage.api.GroupSpaceBindingStorage#deleteAllUserBindings(String)}
-     *
-     * @throws Exception
-     **/
+  /**
+   * Test
+   * {@link org.exoplatform.social.core.storage.api.GroupSpaceBindingStorage#deleteAllUserBindings(String)}
+   *
+   * @throws Exception
+   **/
 
-    public void testDeleteAllUserBindings() throws Exception {
-        GroupSpaceBinding groupSpaceBinding = this.getGroupSpaceBindingInstance(1,
-                spaceId,
-                "member",
-                "/platform/administrators",
-                "Any");
-        groupSpaceBinding = groupSpaceBindingStorage.saveGroupBinding(groupSpaceBinding, true);
-        StorageUtils.persist();
-        tearDownGroupbindingList.add(groupSpaceBinding);
-        UserSpaceBinding userSpaceBinding = this.getUserBindingInstance(1, "john", spaceId, groupSpaceBinding);
-        userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
-        StorageUtils.persist();
-        userSpaceBinding = this.getUserBindingInstance(2, "john", spaceId, groupSpaceBinding);
-        userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
-        StorageUtils.persist();
-        userSpaceBinding = this.getUserBindingInstance(3, "mary", spaceId, groupSpaceBinding);
-        userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
-        tearDownUserbindingList.add(userSpaceBinding);
-        StorageUtils.persist();
-        groupSpaceBindingStorage.deleteAllUserBindings("john");
-        StorageUtils.persist();
-        assertEquals("groupSpaceBindingStorage.findUserBindingsbyMember(" + spaceId + ",'john') must return after deletion: " + 0,
-                0,
-                groupSpaceBindingStorage.findUserSpaceBindings(spaceId, "john").size());
-        assertEquals("groupSpaceBindingStorage.findUserBindingsbyMember(" + spaceId + ",'mary') must return after deletion: " + 1,
-                1,
-                groupSpaceBindingStorage.findUserSpaceBindings(spaceId, "mary").size());
-    }
+  public void testDeleteAllUserBindings() throws Exception {
+    GroupSpaceBinding groupSpaceBinding = this.getGroupSpaceBindingInstance(1,
+                                                                            spaceId,
+                                                                            "member",
+                                                                            "/platform/administrators",
+                                                                            "Any");
+    groupSpaceBinding = groupSpaceBindingStorage.saveGroupBinding(groupSpaceBinding, true);
+    StorageUtils.persist();
+    tearDownGroupbindingList.add(groupSpaceBinding);
+    UserSpaceBinding userSpaceBinding = this.getUserBindingInstance(1, "john", spaceId, groupSpaceBinding);
+    userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
+    StorageUtils.persist();
+    userSpaceBinding = this.getUserBindingInstance(2, "john", spaceId, groupSpaceBinding);
+    userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
+    StorageUtils.persist();
+    userSpaceBinding = this.getUserBindingInstance(3, "mary", spaceId, groupSpaceBinding);
+    userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
+    tearDownUserbindingList.add(userSpaceBinding);
+    StorageUtils.persist();
+    groupSpaceBindingStorage.deleteAllUserBindings("john");
+    StorageUtils.persist();
+    assertEquals("groupSpaceBindingStorage.findUserBindingsbyMember(" + spaceId + ",'john') must return after deletion: " + 0,
+                 0,
+                 groupSpaceBindingStorage.findUserSpaceBindings(spaceId, "john").size());
+    assertEquals("groupSpaceBindingStorage.findUserBindingsbyMember(" + spaceId + ",'mary') must return after deletion: " + 1,
+                 1,
+                 groupSpaceBindingStorage.findUserSpaceBindings(spaceId, "mary").size());
+  }
+
+  /**
+   * Test
+   * {@link org.exoplatform.social.core.storage.api.GroupSpaceBindingStorage#hasUserBindings(String, String)}
+   *
+   * @throws Exception
+   **/
+
+  public void testHasUserBindings() throws Exception {
+    GroupSpaceBinding groupSpaceBinding = this.getGroupSpaceBindingInstance(1,
+                                                                            spaceId,
+                                                                            "member",
+                                                                            "/platform/administrators",
+                                                                            "Any");
+    groupSpaceBinding = groupSpaceBindingStorage.saveGroupBinding(groupSpaceBinding, true);
+    StorageUtils.persist();
+    tearDownGroupbindingList.add(groupSpaceBinding);
+    UserSpaceBinding userSpaceBinding = this.getUserBindingInstance(1, "john", spaceId, groupSpaceBinding);
+    userSpaceBinding = groupSpaceBindingStorage.saveUserBinding(userSpaceBinding);
+    StorageUtils.persist();
+    tearDownUserbindingList.add(userSpaceBinding);
+    StorageUtils.persist();
+    assertEquals("groupSpaceBindingStorage.hasUserBindings(" + spaceId + ",'john') must return true ",
+                 true,
+                 groupSpaceBindingStorage.hasUserBindings(spaceId, "john"));
+    assertEquals("groupSpaceBindingStorage.hasUserBindings(" + spaceId + ",'mary') must return false ",
+                 false,
+                 groupSpaceBindingStorage.hasUserBindings(spaceId, "mary"));
+  }
 }

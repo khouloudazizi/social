@@ -44,4 +44,12 @@ public class UserSpaceBindingDAOImpl extends GenericDAOJPAImpl<UserSpaceBindingE
     query.executeUpdate();
   }
 
+  @Override
+  public boolean hasUserBindings(Long spaceId, String userName) {
+      TypedQuery<Long> query = getEntityManager().createNamedQuery("SocUserSpaceBinding.countBindingsForMembers",Long.class);
+      query.setParameter("spaceId", spaceId);
+      query.setParameter("userName", userName);
+      return query.getSingleResult().intValue()>0;
+  }
+
 }

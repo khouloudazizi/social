@@ -107,6 +107,11 @@ public class RDBMSGroupSpaceBindingStorageImpl implements GroupSpaceBindingStora
     userSpaceBindingDAO.deleteAllUserBindings(userName);
   }
 
+  @Override
+  public boolean hasUserBindings(String spaceId,String userName) {
+    return userSpaceBindingDAO.hasUserBindings(Long.parseLong(spaceId), userName);
+  }
+
   /**
    * Fills {@link GroupSpaceBinding}'s properties to
    * {@link GroupSpaceBindingEntity}'s.

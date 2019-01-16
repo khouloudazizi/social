@@ -30,7 +30,8 @@ import org.exoplatform.commons.api.persistence.ExoEntity;
     @NamedQuery(name = "SocUserSpaceBinding.findUserBindingsbyMember", query = "SELECT userSpaceBinding "
         + " FROM SocUserSpaceBinding userSpaceBinding"
         + " WHERE userSpaceBinding.space.id = :spaceId and userSpaceBinding.user = :userName"),
-    @NamedQuery(name = "SocUserSpaceBinding.deleteAllUserBindings", query = "DELETE FROM SocUserSpaceBinding userSpaceBinding WHERE userSpaceBinding.user = :userName") })
+    @NamedQuery(name = "SocUserSpaceBinding.deleteAllUserBindings", query = "DELETE FROM SocUserSpaceBinding userSpaceBinding WHERE userSpaceBinding.user = :userName"),
+    @NamedQuery(name = "SocUserSpaceBinding.countBindingsForMembers", query = "SELECT count(*) FROM SocUserSpaceBinding userSpaceBinding WHERE userSpaceBinding.user = :userName and userSpaceBinding.space.id = :spaceId") })
 public class UserSpaceBindingEntity implements Serializable {
 
   private static final long       serialVersionUID = -3088537806368295223L;

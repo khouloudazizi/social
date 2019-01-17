@@ -263,16 +263,20 @@ public class SpacesAdministrationServiceImpl implements Startable, SpacesAdminis
       }
       identity = new org.exoplatform.services.security.Identity(userId, entries);
     }
+    boolean checkMembership = false;
     List<MembershipEntry> superCreatorsMemberships = getSpaceCreatorsMemberships();
     if (superCreatorsMemberships != null && !superCreatorsMemberships.isEmpty()) {
       for (MembershipEntry superCreatorMembership : superCreatorsMemberships) {
         if (superCreatorMembership.getMembershipType().equals("*")) {
-          return identity.isMemberOf(superCreatorMembership.getGroup());
+          checkMembership = identity.isMemberOf(superCreatorMembership.getGroup());
         } else {
-          return identity.isMemberOf(superCreatorMembership);
+          checkMembership = identity.isMemberOf(superCreatorMembership);
+        }
+        if (checkMembership) {
+          return checkMembership;
         }
       }
     }
-    return false;
+    return checkMembership;
   }
 }

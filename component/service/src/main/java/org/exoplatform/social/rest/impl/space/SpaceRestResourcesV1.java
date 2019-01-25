@@ -43,6 +43,7 @@ import javax.ws.rs.core.*;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.StringEntity;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.PortalContainer;
@@ -59,6 +60,7 @@ import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.search.Sorting.OrderBy;
 import org.exoplatform.social.core.search.Sorting.SortBy;
+import org.exoplatform.social.core.service.LinkProvider;
 import org.exoplatform.social.core.space.SpaceException;
 import org.exoplatform.social.core.space.SpaceFilter;
 import org.exoplatform.social.core.space.SpaceUtils;
@@ -76,6 +78,9 @@ import org.exoplatform.social.rest.entity.DataEntity;
 import org.exoplatform.social.rest.entity.SpaceEntity;
 import org.exoplatform.social.service.rest.api.VersionResources;
 import org.exoplatform.social.service.rest.api.models.ActivityRestIn;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 @Path(VersionResources.VERSION_ONE + "/social/spaces")
 @Api(tags = VersionResources.VERSION_ONE + "/social/spaces", value = VersionResources.VERSION_ONE + "/social/spaces", description = "Operations on spaces with their activities and users")
@@ -360,7 +365,96 @@ public class SpaceRestResourcesV1 implements SpaceRestResources {
     builder.cacheControl(cc);
     return builder.cacheControl(cc).build();
   }
-  
+
+  /**
+   *
+   * @param uriInfo
+   * @param id
+   * @return
+   * @throws IOException
+   */
+  @GET
+  @Path("{id}/description")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RolesAllowed("users")
+  @ApiOperation(value = "Gets a space description by pretty name",
+          httpMethod = "GET",
+          response = Response.class,
+          notes = "This can only be done by the logged in user.")
+  @ApiResponses(value = {
+          @ApiResponse (code = 200, message = "Request fulfilled"),
+          @ApiResponse (code = 500, message = "Internal server error"),
+          @ApiResponse (code = 400, message = "Invalid query input"),
+          @ApiResponse (code = 404, message = "Resource not found")})
+  public Response getSpaceDescriptionByPrettyName(@Context UriInfo uriInfo,
+                                     @Context Request request,
+                                     @ApiParam(value = "Space pretty name", required = true) @PathParam("id") String id) throws IOException {
+
+    String authenticatedUser = ConversationState.getCurrent().getIdentity().getUserId();
+    SpaceService spaceService = CommonsUtils.getService(SpaceService.class);
+
+    Space space = spaceService.getSpaceByPrettyName(id);
+    if (space == null || (Space.HIDDEN.equals(space.getVisibility()) && ! spaceService.isMember(space, authenticatedUser) && ! spaceService.isSuperManager(authenticatedUser))) {
+      throw new WebApplicationException(Response.Status.NOT_FOUND);
+    }
+    String description = space.getDescription();
+    if (description == null) {
+      description = "";
+    }
+    String jsonEntity = "{\"description\":\"" + description + "\"}";
+    //
+    return EntityBuilder.getResponse(jsonEntity, uriInfo, RestUtils.getJsonMediaType(), Response.Status.OK);
+  }
+
+  /**
+   *
+   * @param uriInfo
+   * @param id
+   * @return
+   * @throws IOException
+   */
+  @GET
+  @Path("{id}/managers")
+  @Produces(MediaType.APPLICATION_JSON)
+  @RolesAllowed("users")
+  @ApiOperation(value = "Gets space managers by pretty name",
+          httpMethod = "GET",
+          response = Response.class,
+          notes = "This can only be done by the logged in user.")
+  @ApiResponses(value = {
+          @ApiResponse (code = 200, message = "Request fulfilled"),
+          @ApiResponse (code = 500, message = "Internal server error"),
+          @ApiResponse (code = 400, message = "Invalid query input"),
+          @ApiResponse (code = 404, message = "Resource not found")})
+  public Response getSpaceManagersByPrettyName(@Context UriInfo uriInfo,
+                                                  @Context Request request,
+                                                  @ApiParam(value = "Space pretty name", required = true) @PathParam("id") String id) throws IOException, JSONException {
+
+    String authenticatedUser = ConversationState.getCurrent().getIdentity().getUserId();
+    SpaceService spaceService = CommonsUtils.getService(SpaceService.class);
+
+    Space space = spaceService.getSpaceByPrettyName(id);
+    if (space == null || (Space.HIDDEN.equals(space.getVisibility()) && ! spaceService.isMember(space, authenticatedUser) && ! spaceService.isSuperManager(authenticatedUser))) {
+      throw new WebApplicationException(Response.Status.NOT_FOUND);
+    }
+    JSONArray jsonArray = new JSONArray();
+    for (String manager : space.getManagers()) {
+      JSONObject jsonObject = new JSONObject();
+      Identity identity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME, manager, false);
+      Profile userProfile = identity.getProfile();
+      jsonObject.put("avatar", getAvatarUrl(userProfile));
+      jsonObject.put("fullName", userProfile.getFullName());
+      jsonArray.put(jsonObject);
+    }
+    //
+    return EntityBuilder.getResponse(jsonArray.toString(), uriInfo, RestUtils.getJsonMediaType(), Response.Status.OK);
+  }
+
+  private String getAvatarUrl(Profile profile) {
+    return CommonsUtils.getCurrentDomain()
+            + ((profile != null && profile.getAvatarUrl() != null) ? profile.getAvatarUrl() : LinkProvider.PROFILE_DEFAULT_AVATAR_URL);
+  }
+
   /**
    * {@inheritDoc}
    */

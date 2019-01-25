@@ -148,7 +148,7 @@ public class DefaultSpaceApplicationHandler implements SpaceApplicationHandler {
       NodeContext<NodeContext<?>> parentNodeCtx = navService.loadNode(NodeModel.SELF_MODEL, navContext, Scope.CHILDREN, null);
 
       //
-      NodeContext<NodeContext<?>> homeNodeCtx = createPageNodeFromApplication(navContext, parentNodeCtx, space, spaceApplicationConfigPlugin.getHomeApplication(), null, true);
+      NodeContext<NodeContext<?>> homeNodeCtx = createHomePageNodeFromApplication(navContext, parentNodeCtx, space, spaceApplicationConfigPlugin.getHomeApplication(), null, true);
       SpaceService spaceService = getSpaceService();
       
 
@@ -349,6 +349,101 @@ public class DefaultSpaceApplicationHandler implements SpaceApplicationHandler {
       }
     }
     return null;
+  }
+
+  /**
+   * Creates home page node from application. - Creates Home Application instance from appId. <br> - Creates Home Page instance and set
+   * the newly-created application for the home page; adds application to container. <br> - Creates PageNode instance and
+   * returns that pageNode.
+   *
+   * @param space
+   * @param spaceApplication
+   * @param isRoot
+   * @return
+   * @since 5.2.0
+   */
+  private NodeContext<NodeContext<?>> createHomePageNodeFromApplication(NavigationContext navContext, NodeContext<NodeContext<?>> nodeCtx, Space space,
+                                                                        SpaceApplication spaceApplication,
+                                                                        String appName,
+                                                                        boolean isRoot) throws SpaceException {
+    String appId = spaceApplication.getPortletName();
+    Application app = getApplication(space, appId);
+    String contentId = app.getContentId();
+    if (contentId == null) {
+      contentId = app.getCategoryName() + "/" + app.getApplicationName();
+    }
+    String appInstanceId = PortalConfig.GROUP_TYPE + "#" + space.getGroupId() + ":/" + contentId
+            + "/" + app.getApplicationName() + System.currentTimeMillis();
+
+    org.exoplatform.portal.config.model.Application<Portlet> portletApplication = createPortletApplication(appInstanceId, space, isRoot);
+    portletApplication.setAccessPermissions(new String[]{"*:" + space.getGroupId()});
+    portletApplication.setShowInfoBar(false);
+
+    String pageTitle = space.getDisplayName() + " - " + app.getDisplayName();
+    String pageName = app.getApplicationName();
+    //is the application installed?
+    if (SpaceUtils.isInstalledApp(space, appId) && (appName != null)) {
+      pageName = appName;
+    }
+    UserPortalConfigService userPortalConfigService = getUserPortalConfigService();
+    Page page = null;
+    try {
+      page = userPortalConfigService.createPageTemplate("spaceHomePage",
+              PortalConfig.GROUP_TYPE,
+              space.getGroupId());
+      page.setName(pageName);
+      page.setTitle(pageTitle);
+
+      //set permission for page
+      String visibility = space.getVisibility();
+      if (visibility.equals(Space.PUBLIC)) {
+        page.setAccessPermissions(new String[]{UserACL.EVERYONE});
+      } else {
+        page.setAccessPermissions(new String[]{"*:" + space.getGroupId()});
+      }
+      page.setEditPermission("manager:" + space.getGroupId());
+
+
+      SiteKey siteKey = navContext.getKey();
+      PageKey pageKey = new PageKey(siteKey, page.getName());
+      PageState pageState = new PageState(
+              page.getTitle(),
+              page.getDescription(),
+              page.isShowMaxWindow(),
+              page.getFactoryId(),
+              page.getAccessPermissions() != null ? Arrays.asList(page.getAccessPermissions()) : null,
+              page.getEditPermission(), Arrays.asList(page.getMoveAppsPermissions()), Arrays.asList(page.getMoveContainersPermissions()));
+
+      //setting some data to page.
+      setPermissionForPage(page.getChildren(), "*:" + space.getGroupId());
+//      setHomePage(space, app, portletApplication, page);
+
+      pageService.savePage(new PageContext(pageKey, pageState));
+      dataStorage.save(page);
+      page = dataStorage.getPage(page.getPageId());
+      PageContext pageContext = pageService.loadPage(PageKey.parse(page.getPageId()));
+      pageContext.update(page);
+    } catch (Exception e) {
+      LOG.warn(e.getMessage(), e);
+    }
+
+
+    if (isRoot) {
+      pageName = space.getUrl();
+    } else {
+      if (spaceApplication.getUri() != null && !spaceApplication.getUri().isEmpty()) {
+        pageName = spaceApplication.getUri();
+      }
+
+    }
+    NodeContext<NodeContext<?>> childNodeCtx = nodeCtx.add(null, pageName);
+    Builder nodeStateBuilder = new NodeState.Builder().icon(spaceApplication.getIcon()).pageRef(PageKey.parse(page.getPageId()));
+    WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
+    if (context != null && !context.getApplicationResourceBundle().containsKey(appId + ".label.name")) {
+      nodeStateBuilder.label(app.getDisplayName());
+    }
+    childNodeCtx.setState(nodeStateBuilder.build());
+    return childNodeCtx;
   }
 
   /**

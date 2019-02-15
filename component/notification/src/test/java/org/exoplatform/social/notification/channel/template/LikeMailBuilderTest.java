@@ -79,7 +79,7 @@ public class LikeMailBuilderTest extends AbstractPluginTest {
     //STEP 2 like activity
     activityManager.saveLike(activity, demoIdentity);
 
-    assertMadeMailDigestNotifications(1);
+    assertMadeMailDigestNotifications(2);
     List<NotificationInfo> list = assertMadeMailDigestNotifications(rootIdentity.getRemoteId(), 1);
     NotificationInfo likeNotification = list.get(0);
     
@@ -98,7 +98,7 @@ public class LikeMailBuilderTest extends AbstractPluginTest {
     activityManager.saveLike(activity, demoIdentity);
     activityManager.saveLike(activity, johnIdentity);
     //
-    assertMadeMailDigestNotifications(3);
+    assertMadeMailDigestNotifications(9);
     List<NotificationInfo> list = assertMadeMailDigestNotifications(rootIdentity.getRemoteId(), 3);
     
     NotificationContext ctx = NotificationContextImpl.cloneInstance();
@@ -126,7 +126,7 @@ public class LikeMailBuilderTest extends AbstractPluginTest {
     
     activityManager.saveLike(activity, maryIdentity);
     
-    assertMadeMailDigestNotifications(1);
+    assertMadeMailDigestNotifications(2);
     List<NotificationInfo> list = assertMadeMailDigestNotifications(rootIdentity.getRemoteId(), 1);
     NotificationInfo likeNotification = list.get(0);
     
@@ -152,7 +152,7 @@ public class LikeMailBuilderTest extends AbstractPluginTest {
     activityManager.saveLike(activity, demoIdentity);
     activityManager.saveLike(activity, johnIdentity);
 
-    assertMadeMailDigestNotifications(2);
+    assertMadeMailDigestNotifications(5);
     list = assertMadeMailDigestNotifications(rootIdentity.getRemoteId(), 2);
 
     // john unlike

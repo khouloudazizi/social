@@ -16,10 +16,7 @@
  */
 package org.exoplatform.social.notification;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,7 +107,7 @@ public class Utils {
     return (id != null);
   }
   
-  public static void sendToCommeters(Set<String> receivers, String[] commenters, String poster) {
+  public static void sendToCommeters  (Set<String> receivers, String[] commenters, String poster) {
     receivers.addAll(getDestinataires(commenters, poster));
   }
   
@@ -144,7 +141,10 @@ public class Utils {
       receivers.add(activityPosterRemoteId);
     }
   }
-  
+
+  public static void sendToActivityLiker(Set<String> receivers, String[] activityLikerIds) {
+    Arrays.stream(activityLikerIds).forEach(activitylikerid -> receivers.add(Utils.getUserId(activitylikerid)));
+  }
   public static void sendToMentioners(Set<String> receivers, String[] mentioners, String poster) {
     receivers.addAll(getDestinataires(mentioners, poster));
   }

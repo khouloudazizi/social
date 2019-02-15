@@ -68,7 +68,7 @@ public class LikeWebBuilderTest extends AbstractPluginTest {
     //STEP 2 like activity
     activityManager.saveLike(activity, demoIdentity);
     
-    assertMadeWebNotifications(1);
+    assertMadeWebNotifications(2);
     List<NotificationInfo> list = assertMadeWebNotifications(rootIdentity.getRemoteId(), 1);
     NotificationInfo likeNotification = list.get(0);
     

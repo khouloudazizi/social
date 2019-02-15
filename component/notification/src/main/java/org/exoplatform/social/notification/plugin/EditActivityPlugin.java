@@ -39,6 +39,7 @@ public class EditActivityPlugin extends BaseNotificationPlugin {
             Utils.sendToCommeters(receivers, activity.getCommentedIds(), activity.getPosterId());
             Utils.sendToStreamOwner(receivers, activity.getStreamOwner(), activity.getPosterId());
             Utils.sendToActivityPoster(receivers, activity.getPosterId(), activity.getPosterId());
+            Utils.sendToActivityLiker(receivers, activity.getLikeIdentityIds());
 
         //
         return NotificationInfo.instance()

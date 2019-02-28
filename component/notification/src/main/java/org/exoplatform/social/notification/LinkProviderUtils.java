@@ -288,7 +288,7 @@ public static final String RESOURCE_URL = "social/notifications";
           if(contentLinks.length > 1) {
             contenLink = contentLinks[0];
           }
-          return getPortalLoginRedirectURL().replace("/rest","") + contenLink;
+          return CommonsUtils.getCurrentDomain() + contenLink;
         } else if (activity.isComment() && (activityType.contains("answer:"))) {
           return Utils.getActivityManager().getParentActivity(activity).getTemplateParams().get("Link");
         } else if (activity.isComment()) {

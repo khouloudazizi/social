@@ -621,7 +621,7 @@ public class RDBMSActivityStorageImpl implements ActivityStorage {
   private void createStreamItem(StreamType streamType, ActivityEntity activity, Long ownerId){
     StreamItemEntity streamItem = new StreamItemEntity(streamType);
     streamItem.setOwnerId(ownerId);
-    if (streamType == StreamType.POSTER || streamType == StreamType.SPACE || streamType == StreamType.MENTIONER) {
+    if (streamType == StreamType.POSTER || streamType == StreamType.SPACE || streamType == StreamType.MENTIONER || streamType == StreamType.COMMENTER) {
       streamItem.setUpdatedDate(activity.getUpdatedDate());
     } else {
       streamItem.setUpdatedDate(null);

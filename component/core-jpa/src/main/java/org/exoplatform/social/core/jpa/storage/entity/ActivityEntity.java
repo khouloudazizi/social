@@ -135,16 +135,16 @@ import org.exoplatform.commons.api.persistence.ExoEntity;
                     + " item.ownerId in (:owners) "
                     + " ORDER BY item.updatedDate DESC"),
         @NamedQuery(name = "SocActivity.getActivityIdsFeedNoConnections",
-                query = "SELECT distinct item.activity.id as activityId, item.updatedDate as updatedDate FROM SocStreamItem item WHERE "
+                query = "SELECT distinct item.activity.id as activityId, item.activity.updatedDate as updatedDate FROM SocStreamItem item WHERE "
                     + " item.activity.hidden = false AND "
                     + " item.ownerId in (:owners) "
-                    + " ORDER BY item.updatedDate DESC"),
+                    + " AND item.activity.isComment = false ORDER BY item.activity.updatedDate DESC"),
         @NamedQuery(name = "SocActivity.getActivityIdsFeed",
-                query = "SELECT distinct item.activity.id as activityId, item.updatedDate as updatedDate FROM SocStreamItem item WHERE "
+                query = "SELECT distinct item.activity.id as activityId, item.activity.updatedDate as updatedDate FROM SocStreamItem item WHERE "
                     + " item.activity.hidden = false AND "
                     + " ( item.ownerId in (:owners) OR "
                     + "   ( item.ownerId in (:connections) AND item.streamType = :connStreamType ) "
-                    + " ) ORDER BY item.updatedDate DESC"),
+                    + " ) AND item.activity.isComment = false ORDER BY item.activity.updatedDate DESC"),
         @NamedQuery(name = "SocActivity.getActivityFeedNoConnections",
                 query = "SELECT distinct item.activity.id, item.updatedDate FROM SocStreamItem item WHERE "
                     + " item.activity.hidden = false AND "

@@ -78,7 +78,6 @@ var UISpaceNavigation = {
 	    var liElements = ul.find('> li');
 	    liElements.addClass('item');
 	    autoMoveApps();
-        UISpaceNavigation.initStickyBanner();
     });
 
     $(window).resize(function(){

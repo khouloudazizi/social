@@ -24,15 +24,11 @@
                                             <!--[if mso]>
                                                 <td valign="top" width="90" bgcolor="#ffffff" style="background-color: #ffffff;">
                                                      <img width="70" height="70" border="1" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" />
-                                                </td>                                        
-                                            <div style="display:none">
+                                                </td>
                                             <![endif]-->
-                                            <td valign="top" width="90px" bgcolor="#ffffff" style="background-color: #ffffff;">
-                                                <img width="70px" height="70px" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" /
+                                            <td valign="top" width="90px" bgcolor="#ffffff" style="background-color: #ffffff; mso-hide:all;">
+                                                <img width="70px" height="70px" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" />
                                             </td>
-                                            <!--[if mso]>
-                                                </div>
-                                            <![endif]-->
                                             <td  valign="top" bgcolor="#ffffff" style="background-color: #ffffff;">
                                                 <p style="margin:0 0 10px; line-height: 20px; color: #333333; font-size:13px; font-family:'HelveticaNeue bold', Arial, sans-serif;">
 	                                                   <%

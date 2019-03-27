@@ -25,15 +25,10 @@
                                                 <td valign="top" width="90" bgcolor="#ffffff" style="background-color: #ffffff;">
                                                     <img width="70" height="70" border="1" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" />
                                                 </td>
-                                                <div style="display:none">
                                                 <![endif]-->
-                                                <td valign="top" width="90px" bgcolor="#ffffff" style="background: #ffffff;">
-                                                    <img width="70px" height="70px" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" /
-                                                </td>
-                                                <!--[if mso]>
-                                                </div>
-                                                <![endif]-->
+                                                <td valign="top" width="90px" bgcolor="#ffffff" style="background: #ffffff; mso-hide:all;">
                                                     <img width="70px" height="70px" style="margin-top: 5px;border-radius: 4px;border: 1px solid #c7c7c7;" src="$AVATAR" alt="<%=_ctx.escapeHTML(USER)%>" />
+                                                </td>
                                                 <td  valign="top" bgcolor="#ffffff" style="background: #ffffff;">
                                                     <p style="margin:0 0 10px 0;line-height: 20px; color: #333333; font-size:13px;font-family:'HelveticaNeue bold',Arial,sans-serif">
                                                          <%

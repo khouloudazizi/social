@@ -150,6 +150,7 @@ public class ActivityDAOImpl extends GenericDAOJPAImpl<ActivityEntity, Long> imp
       query.setParameter("connStreamType", StreamType.POSTER);
     }
     query.setParameter("owners", owners);
+    query.setParameter("comStreamType", StreamType.COMMENTER);
 
     if (limit > 0) {
       query.setFirstResult(offset > 0 ? offset : 0);

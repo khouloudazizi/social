@@ -147,10 +147,9 @@ public class ActivityDAOImpl extends GenericDAOJPAImpl<ActivityEntity, Long> imp
     TypedQuery<Tuple> query = getEntityManager().createNamedQuery(queryName, Tuple.class);
     if (!connections.isEmpty()) {
       query.setParameter("connections", connections);
-      query.setParameter("connStreamType", StreamType.POSTER);
     }
     query.setParameter("owners", owners);
-    query.setParameter("comStreamType", StreamType.COMMENTER);
+    query.setParameter("connStreamType", StreamType.POSTER);
 
     if (limit > 0) {
       query.setFirstResult(offset > 0 ? offset : 0);

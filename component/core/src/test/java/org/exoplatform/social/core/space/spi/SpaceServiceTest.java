@@ -26,7 +26,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.portal.mop.navigation.NodeContext;
 import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.portal.mop.navigation.NavigationContext;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.Group;
 import org.exoplatform.services.organization.MembershipType;
@@ -2357,6 +2359,35 @@ public class SpaceServiceTest extends AbstractCoreTest {
    * @since 1.2.0-GA
    */
   public void testActivateApplication() throws Exception {
+    String spaceName = "testSpace";
+    String creator = "root";
+    Space space = new Space();
+    space.setDisplayName(spaceName);
+    space.setPrettyName(spaceName);
+    space.setGroupId("/spaces/" + space.getPrettyName());
+    space.setRegistration(Space.OPEN);
+    space.setDescription("description of space" + spaceName);
+    space.setType(DefaultSpaceApplicationHandler.NAME);
+    space.setVisibility(Space.PRIVATE);
+    space.setRegistration(Space.OPEN);
+    space.setPriority(Space.INTERMEDIATE_PRIORITY);
+    String[] managers = new String[] {creator};
+    String[] members = new String[] {creator};
+    space.setManagers(managers);
+    space.setMembers(members);
+    spaceService.createSpace(space,creator);
+    spaceService.initApps(space);
+    space.getApp();
+    assertTrue("DashboardPortlet:Dashboard:true:active,SpaceSettingPortlet:Space Settings:false:active,MembersPortlet:Members:true:active".contains(space.getApp()));
+    spaceService.removeApplication(space,"dashbord","DashboardPortlet");
+    assertFalse("DashboardPortlet:Dashboard:true:active,SpaceSettingPortlet:Space Settings:false:active,MembersPortlet:Members:true:active".contains(space.getApp()));
+    spaceService.activateApplication(space,"DashboardPortlet");
+    NavigationContext navContext = SpaceUtils.getGroupNavigationContext(space.getGroupId());
+    NodeContext<NodeContext<?>> homeNodeCtx = SpaceUtils.getHomeNodeWithChildren(navContext, space.getUrl());
+    assertEquals("dashbord",homeNodeCtx.getNodes().iterator().next().getName());
+
+
+
     //TODO Complete this
   }
 

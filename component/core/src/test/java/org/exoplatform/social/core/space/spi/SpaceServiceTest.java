@@ -17,9 +17,7 @@
 package org.exoplatform.social.core.space.spi;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -34,6 +32,7 @@ import org.exoplatform.services.organization.Group;
 import org.exoplatform.services.organization.MembershipType;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.User;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.services.security.MembershipEntry;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -2359,6 +2358,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
    * @since 1.2.0-GA
    */
   public void testActivateApplication() throws Exception {
+    startSessionAs("root");
     String spaceName = "testSpace";
     String creator = "root";
     Space space = new Space();
@@ -2371,23 +2371,31 @@ public class SpaceServiceTest extends AbstractCoreTest {
     space.setVisibility(Space.PRIVATE);
     space.setRegistration(Space.OPEN);
     space.setPriority(Space.INTERMEDIATE_PRIORITY);
-    String[] managers = new String[] {creator};
-    String[] members = new String[] {creator};
-    space.setManagers(managers);
-    space.setMembers(members);
+    space.setManagers(new String[]{creator});
+    space.setMembers(new String[]{creator});
+
     spaceService.createSpace(space,creator);
     spaceService.initApps(space);
     space.getApp();
-    assertTrue("DashboardPortlet:Dashboard:true:active,SpaceSettingPortlet:Space Settings:false:active,MembersPortlet:Members:true:active".contains(space.getApp()));
-    spaceService.removeApplication(space,"dashbord","DashboardPortlet");
-    assertFalse("DashboardPortlet:Dashboard:true:active,SpaceSettingPortlet:Space Settings:false:active,MembersPortlet:Members:true:active".contains(space.getApp()));
+    assertTrue(space.getApp().contains("DashboardPortlet"));
+    spaceService.removeApplication(space,"DashboardPortlet","Dashboard");
+    space.getApp();
+    assertFalse(space.getApp().contains("DashboardPortlet"));
     spaceService.activateApplication(space,"DashboardPortlet");
+    space.getApp();
+    assertTrue(space.getApp().contains("DashboardPortlet"));
+
     NavigationContext navContext = SpaceUtils.getGroupNavigationContext(space.getGroupId());
     NodeContext<NodeContext<?>> homeNodeCtx = SpaceUtils.getHomeNodeWithChildren(navContext, space.getUrl());
-    assertEquals("dashbord",homeNodeCtx.getNodes().iterator().next().getName());
-
-
-
+    Iterator<NodeContext<?>> navigationNodes = homeNodeCtx.getNodes().iterator();
+    boolean found = false;
+    while(navigationNodes.hasNext()){
+      NodeContext<?> node = navigationNodes.next();
+      if ("dashboard".equals(node.getName())){
+        found = true;
+      }
+    }
+    assertTrue(found);
     //TODO Complete this
   }
 

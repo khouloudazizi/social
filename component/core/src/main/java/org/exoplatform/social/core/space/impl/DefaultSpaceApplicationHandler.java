@@ -259,6 +259,7 @@ public class DefaultSpaceApplicationHandler implements SpaceApplicationHandler {
     NavigationService navService = (NavigationService) container.getComponentInstance(NavigationService.class);
     NavigationContext navContext;
     NodeContext<NodeContext<?>> homeNodeCtx = null;
+
     try {
       navContext = SpaceUtils.getGroupNavigationContext(space.getGroupId());
       homeNodeCtx = SpaceUtils.getHomeNodeWithChildren(navContext, space.getUrl());
@@ -267,11 +268,10 @@ public class DefaultSpaceApplicationHandler implements SpaceApplicationHandler {
       LOG.warn("space navigation not found.", e);
       return;
     }
-
     SpaceApplication spaceApplication = null;
     for(SpaceApplication application : getSpaceService().getSpaceApplicationConfigPlugin().getSpaceApplicationList()){
-      if (appId.equals(application.getPortletName())){
-        spaceApplication = application;
+      if (appId.equals(application.getPortletName()) && !SpaceUtils.isInstalledApp(space, appId)) {
+         spaceApplication = application;
       }
     }
 

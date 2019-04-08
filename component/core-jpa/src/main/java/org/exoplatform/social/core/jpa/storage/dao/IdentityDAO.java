@@ -54,7 +54,10 @@ public interface IdentityDAO extends GenericDAO<IdentityEntity, Long> {
    */
   void hardDeleteIdentity(long identityId);
 
-  /**
+
+  List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, String sortField, long offset, long limit);
+
+    /**
    * Get all identities by providerId sorted by sortField
    * 
    * @param providerId

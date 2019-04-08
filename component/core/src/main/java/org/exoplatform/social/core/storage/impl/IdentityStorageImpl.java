@@ -1080,7 +1080,16 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
 
     return listIdentity;
   }
-  
+
+  @Override
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter, String sortField,
+                                                                  long offset, long limit,
+                                                                  boolean forceLoadOrReloadProfile) throws IdentityStorageException {
+    // this is a placeholder impl to run tests
+    return getIdentitiesByProfileFilter(providerId, new ProfileFilter(), offset, limit, true);
+
+  }
+
   /**
    * {@inheritDoc}
    */

@@ -40,6 +40,7 @@ import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.jpa.search.ExtendProfileFilter;
 import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
@@ -138,6 +139,13 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
     TypedQuery[] queries = qb.build(getEntityManager());
 
     return new JPAListAccess<>(IdentityEntity.class, queries[0], queries[1]);
+  }
+
+
+  @Override
+  public List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, String sortField, long offset, long limit) {
+    Query query = getSortedIdentitiesQueryByFirstLetter(filter, sortField);
+    return getResultsFromQuery(query, 0, offset, limit, String.class);
   }
 
   @Override
@@ -335,6 +343,31 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
 
     Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString());
     return query;
+  }
+
+
+  private Query getSortedIdentitiesQueryByFirstLetter(ExtendProfileFilter profileFilter, String sortField) {
+    // Oracle and MSSQL support only 1/0 for boolean, Postgresql supports only TRUE/FALSE, MySQL supports both
+    String dbBoolFalse = isOrcaleDialect() || isMSSQLDialect() ? "0" : "FALSE";
+    String dbBoolTrue = isOrcaleDialect() || isMSSQLDialect() ? "1" : "TRUE";
+    // Oracle Dialect in Hibernate 4 is not registering NVARCHAR correctly, see HHH-10495
+    StringBuilder queryStringBuilder =
+            isOrcaleDialect() ? new StringBuilder("SELECT to_char(identity_main.remote_id), identity_main.identity_id, to_char(identity_prop_sort.value) \n")
+                    :isMSSQLDialect() ? new StringBuilder("SELECT try_convert(varchar(200), identity_main.remote_id) as remote_id , identity_main.identity_id, try_convert(varchar(200), identity_prop_sort.value) as identity_prop_sort_value \n")
+                    : new StringBuilder("SELECT (identity_main.remote_id), identity_main.identity_id, (identity_prop_sort.value) \n");
+    queryStringBuilder.append(" FROM SOC_IDENTITIES identity_main \n");
+    queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop_sort \n");
+    queryStringBuilder.append("   ON identity_main.identity_id = identity_prop_sort.identity_id \n");
+    queryStringBuilder.append(" WHERE identity_main.deleted = "+dbBoolFalse+"\n");
+    queryStringBuilder.append(" AND identity_main.enabled = "+dbBoolTrue+"\n");
+    queryStringBuilder.append(" AND identity_main.provider_id = '"+profileFilter.getProviderId()+"'\n");
+    queryStringBuilder.append(" AND (lower(identity_prop_sort.value) like '"+Character.toLowerCase(profileFilter.getFirstCharacterOfName())+"%')\n");
+    queryStringBuilder.append(" AND (identity_prop_sort.name = '"+sortField+"')\n");
+    queryStringBuilder.append(" ORDER BY identity_prop_sort.value ASC");
+
+    Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString());
+    return query;
+
   }
 
   private <T> List<T> getResultsFromQuery(Query query, int fieldIndex, long offset, long limit, Class<T> clazz) {

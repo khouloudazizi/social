@@ -427,7 +427,32 @@ public class CachedIdentityStorage implements IdentityStorage {
     return buildIdentities(keys);
     
   }
-  
+
+  @Override
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter, String sortField,
+                                                                  long offset, long limit,
+                                                                  boolean forceLoadOrReloadProfile) throws IdentityStorageException {
+    //
+    IdentityFilterKey key = new IdentityFilterKey(providerId, profileFilter);
+    ListIdentitiesKey listKey = new ListIdentitiesKey(key, offset, limit);
+
+    //
+    ListIdentitiesData keys = identitiesCache.get(
+            new ServiceContext<ListIdentitiesData>() {
+              public ListIdentitiesData execute() {
+                List<Identity> got = storage.getSortedIdentitiesByFirstCharacterOfName(
+                        providerId, profileFilter, sortField, offset, limit, forceLoadOrReloadProfile);
+                return buildIds(got);
+              }
+            },
+            listKey);
+
+    //
+    LOG.trace("getSortedIdentitiesByFirstCharacterOfName:: return " + keys.getIds().size());
+    return buildIdentities(keys);
+
+  }
+
   /**
    * {@inheritDoc}
    */

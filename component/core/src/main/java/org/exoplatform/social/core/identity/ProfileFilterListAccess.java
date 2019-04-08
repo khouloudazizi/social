@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 
@@ -136,7 +137,8 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
       }
     } else {
       if (profileFilter.getFirstCharacterOfName() != EMPTY_CHARACTER) {
-        identities = identityStorage.getIdentitiesByFirstCharacterOfName(providerId, profileFilter, offset,
+        String sortField = System.getProperty("exo.people.directory.sortField", Profile.FULL_NAME);
+        identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName(providerId, profileFilter, sortField, offset,
                                                                          usedLimit, forceLoadProfile);
       } else if (profileFilter.isEmpty()) {
         if(profileFilter.getViewerIdentity() == null) {

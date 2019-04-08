@@ -653,6 +653,7 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
     getIdentityDAO().update(entity);
   }
 
+
   @Override
   public List<Identity> getIdentitiesByFirstCharacterOfName(String providerId,
                                                             ProfileFilter profileFilter,
@@ -660,6 +661,28 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
                                                             long limit,
                                                             boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     return getIdentitiesByProfileFilter(providerId, profileFilter, offset, limit, forceLoadOrReloadProfile);
+  }
+
+  @Override
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId,
+                                                                  ProfileFilter profileFilter, String sortField,
+                                                                  long offset,
+                                                                  long limit,
+                                                                  boolean forceLoadOrReloadProfile) throws IdentityStorageException {
+    ExtendProfileFilter xFilter = new ExtendProfileFilter(profileFilter);
+    xFilter.setProviderId(providerId);
+    List<String> usernames =  getIdentityDAO().findSortedIdentitiesByFirstLetter(xFilter, sortField, offset, limit);
+    List<Identity> identities = new ArrayList<>();
+    if (usernames != null && !usernames.isEmpty()) {
+      for (String username : usernames) {
+        Identity identity = getOrCreateUserIdentityUsingCache(providerId, username);
+        if (identity != null) {
+          identities.add(identity);
+        }
+      }
+    }
+    return identities;
+
   }
 
   @Override
@@ -718,6 +741,7 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
       return 0;
     }
   }
+
 
   public List<Identity> getIdentitiesForUnifiedSearch(final String providerId,
                                                       final ProfileFilter profileFilter,

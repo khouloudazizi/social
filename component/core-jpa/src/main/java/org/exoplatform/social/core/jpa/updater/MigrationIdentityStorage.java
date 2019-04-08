@@ -132,6 +132,13 @@ public class MigrationIdentityStorage implements IdentityStorage {
   }
 
   @Override
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter, String sortField,
+                                                                  long offset, long limit,
+                                                                  boolean forceLoadOrReloadProfile) throws IdentityStorageException {
+    return jpaStorage.getSortedIdentitiesByFirstCharacterOfName(providerId,profileFilter,sortField,offset,limit,forceLoadOrReloadProfile);
+  }
+
+  @Override
   public List<Identity> getIdentitiesForMentions(String providerId, ProfileFilter profileFilter, Type type, long offset, long limit, boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     return jpaStorage.getIdentitiesForMentions(providerId, profileFilter, type, offset, limit, forceLoadOrReloadProfile);
   }

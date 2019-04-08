@@ -147,8 +147,15 @@ public interface IdentityStorage {
       final String providerId, final ProfileFilter profileFilter, long offset, long limit,
       boolean forceLoadOrReloadProfile)
       throws IdentityStorageException;
-  
-  /**
+
+  List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId,
+                                                             ProfileFilter profileFilter,
+                                                             String sortField,
+                                                             long offset,
+                                                             long limit,
+                                                             boolean forceLoadOrReloadProfile) throws IdentityStorageException;
+
+    /**
    * Gets the identities by profile filter.
    *
    * @param providerId Id of provider.

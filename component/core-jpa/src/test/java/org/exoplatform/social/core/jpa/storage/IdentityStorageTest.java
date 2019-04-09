@@ -543,7 +543,52 @@ public class IdentityStorageTest extends AbstractCoreTest {
     filter.setFirstCharacterOfName('L');
     assertEquals(5, identityStorage.getIdentitiesByFirstCharacterOfName("organization", filter, 0, 10, false).size());
   }
-  
+
+
+  /**
+   * Tests {@link IdenityStorage#getSortedIdentitiesByFirstCharaterOfName(String, char, int, int, boolean)}
+   *
+   */
+  @MaxQueryNumber(1100)
+  public void testGetSortedIdentitiesByFirstCharacterOfName() throws Exception {
+
+    String[] FirstNameList = {"John","Bob","Alain", "Brian", "Dylan", "Cary"};
+    String[] LastNameList = {"Dupond","Smith","Wilson","Lafleur", "Bontemps", "Durand"};
+    for (int i = 0; i < 6; i++) {
+      String remoteId = "username" + i;
+      Identity identity = new Identity("organization", remoteId);
+      identityManager.saveIdentity(identity);
+      Profile profile = new Profile(identity);
+      profile.setProperty(Profile.FIRST_NAME, FirstNameList[i]);
+      profile.setProperty(Profile.LAST_NAME, LastNameList[i]);
+      profile.setProperty(Profile.FULL_NAME, FirstNameList[i] + " " +  LastNameList[i]);
+      profile.setProperty(Profile.POSITION, "developer");
+      profile.setProperty(Profile.GENDER, "male");
+
+      identityManager.saveProfile(profile);
+      identity.setProfile(profile);
+      tearDownIdentityList.add(identity);
+    }
+
+
+
+    final ProfileFilter filter = new ProfileFilter();
+    filter.setFirstCharacterOfName('B');
+    String sortField = Profile.FULL_NAME;
+    List<Identity> identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, sortField, 0,
+            20,false);
+    assertEquals(identities.size(), 2);
+    assertEquals(identities.get(0).getProfile().getFullName(), "Bob Smith");
+    assertEquals(identities.get(1).getProfile().getFullName(), "Brian Lafleur");
+
+    sortField = Profile.LAST_NAME;
+    filter.setFirstCharacterOfName('D');
+    identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, sortField, 0,
+            20,false);
+    assertEquals(identities.size(), 2);
+    assertEquals(identities.get(0).getProfile().getFullName(), "John Dupond");
+    assertEquals(identities.get(1).getProfile().getFullName(), "Cary Durand");
+  }
   /**
    * Tests {@link IdenityStorage#getIdentitiesByProfileFilterCount(String, ProfileFilter)}
    * 

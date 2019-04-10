@@ -2384,21 +2384,17 @@ public class SpaceServiceTest extends AbstractCoreTest {
     StorageUtils.persist();
 
     assertTrue(space.getApp().contains("DashboardPortlet"));
-    spaceService.removeApplication(space,"DashboardPortlet","Dashboard");
+    spaceService.removeApplication(space, "DashboardPortlet", "Dashboard");
     assertFalse(space.getApp().contains("DashboardPortlet"));
-    spaceService.activateApplication(space,"DashboardPortlet");
+    spaceService.activateApplication(space, "DashboardPortlet");
     assertTrue(space.getApp().contains("DashboardPortlet"));
 
     NavigationContext navContext = SpaceUtils.getGroupNavigationContext(space.getGroupId());
     NodeContext<NodeContext<?>> homeNodeCtx = SpaceUtils.getHomeNodeWithChildren(navContext, space.getUrl());
-    Iterator<NodeContext<?>> navigationNodes = homeNodeCtx.getNodes().iterator();
-    boolean found = false;
-    while(navigationNodes.hasNext()){
-      NodeContext<?> node = navigationNodes.next();
-      if ("dashboard".equals(node.getName())){
-        found = true;
-      }
-    }
+    boolean found = homeNodeCtx.getNodes().stream()
+            .filter(node -> "dashboard".equals(node.getName()))
+            .findAny()
+            .isPresent();
     assertTrue(found);
   }
 

@@ -32,7 +32,6 @@ import org.exoplatform.services.organization.Group;
 import org.exoplatform.services.organization.MembershipType;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.User;
-import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.services.security.MembershipEntry;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -143,7 +142,8 @@ public class SpaceServiceTest extends AbstractCoreTest {
     identityStorage.saveIdentity(member2);
     identityStorage.saveIdentity(member3);
 
-    tearDownUserList = new ArrayList<Identity>();
+    StorageUtils.persist();
+
     tearDownUserList.add(demo);
     tearDownUserList.add(tom);
     tearDownUserList.add(raul);
@@ -175,13 +175,6 @@ public class SpaceServiceTest extends AbstractCoreTest {
     end();
     begin();
 
-    for (Identity identity : tearDownUserList) {
-      try {
-        identityStorage.deleteIdentity(identity);
-      } catch (IdentityStorageException e) {
-        // It's expected on some identities that could be deleted in tests
-      }
-    }
     for (Space space : tearDownSpaceList) {
       Identity spaceIdentity = identityStorage.findIdentity(SpaceIdentityProvider.NAME, space.getPrettyName());
       if (spaceIdentity != null) {
@@ -197,6 +190,18 @@ public class SpaceServiceTest extends AbstractCoreTest {
         // It's expected on some entities that could be deleted in tests
       }
     }
+
+    StorageUtils.persist();
+
+    for (Identity identity : tearDownUserList) {
+      try {
+        identityStorage.deleteIdentity(identity);
+      } catch (IdentityStorageException e) {
+        // It's expected on some identities that could be deleted in tests
+      }
+    }
+
+    StorageUtils.persist();
     super.tearDown();
   }
 
@@ -2360,7 +2365,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
   public void testActivateApplication() throws Exception {
     startSessionAs("root");
     String spaceName = "testSpace";
-    String creator = "root";
+    String creator = "john";
     Space space = new Space();
     space.setDisplayName(spaceName);
     space.setPrettyName(spaceName);
@@ -2373,16 +2378,15 @@ public class SpaceServiceTest extends AbstractCoreTest {
     space.setPriority(Space.INTERMEDIATE_PRIORITY);
     space.setManagers(new String[]{creator});
     space.setMembers(new String[]{creator});
+    space = spaceService.createSpace(space, "root");
+    tearDownSpaceList.add(space);
 
-    spaceService.createSpace(space,creator);
-    spaceService.initApps(space);
-    space.getApp();
+    StorageUtils.persist();
+
     assertTrue(space.getApp().contains("DashboardPortlet"));
     spaceService.removeApplication(space,"DashboardPortlet","Dashboard");
-    space.getApp();
     assertFalse(space.getApp().contains("DashboardPortlet"));
     spaceService.activateApplication(space,"DashboardPortlet");
-    space.getApp();
     assertTrue(space.getApp().contains("DashboardPortlet"));
 
     NavigationContext navContext = SpaceUtils.getGroupNavigationContext(space.getGroupId());
@@ -2396,7 +2400,6 @@ public class SpaceServiceTest extends AbstractCoreTest {
       }
     }
     assertTrue(found);
-    //TODO Complete this
   }
 
   /**

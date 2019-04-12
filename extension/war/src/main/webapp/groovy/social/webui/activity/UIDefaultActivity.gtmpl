@@ -297,10 +297,8 @@
 				</div>
 				<div class="dataInfor">
 				   <%  if (isManager) {%>
-                      <span><i class="uiIconCrownAdmin"></i>&nbsp;Manager</span>
-                   <%
-            	   }
-        	       %>
+                                       <span><i class="uiIconCrownAdmin"></i>&nbsp;Manager</span>
+                                  <%}%>
 
 					<span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" rel="tooltip" data-placement="bottom" href="<%=uicomponent.getActivityPermalink(activity.id)%>" <% if(activity.postedTime != activity.updated.getTime() ){%> title="$postedTimeTooltip"> $activityUpdatedTime <%} else {%> >$activityPostedTime <%}%></a></span>
 

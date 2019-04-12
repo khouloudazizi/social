@@ -140,7 +140,7 @@
 
   //make sures commentFormFocused is set to false to prevent any refresh to focus, only focus after post a comment
   uicomponent.setCommentFormFocused(false);
-  def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime;
+  def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime, managers,creator, ownerNameprofile, uritab;
   def listPeopleLikeBlockClass = "", listPeopleBGClass = "";
 
   if (!likesDisplayed) {
@@ -198,6 +198,9 @@
     ownerAvatar = ownerIdentity.profile.avatarUrl;
     ownerName = StringEscapeUtils.escapeHtml(ownerIdentity.profile.fullName);
   }
+
+  uritab = ownerUri.split("/");
+
   def currentTime = System.currentTimeMillis();
   String viewActivityTip = _ctx.appRes("UIActivity.msg.ViewActivity");
   def deleteActivityTip = _ctx.appRes("UIActivity.msg.DeleteActivity");
@@ -206,9 +209,12 @@
   if (uicomponent.isUserActivity() && uicomponent.isSpaceStreamOwner() && !uicomponent.isUISpaceActivitiesDisplay()) {
           Space spaceSource = Utils.getSpaceService().getSpaceByPrettyName(streamOwner);
           spaceID = spaceSource.getId();
+          managers = spaceSource.managers;
+          isManager = ArrayUtils.contains(managers,uritab[uritab.length - 1]);
           if (spaceSource != null) {
             spaceSourceURI = LinkProvider.getSpaceUri(spaceSource.url);
              spaceName = spaceSource.displayName;
+
       		spaceImageSource = spaceSource.getAvatarUrl();
       		if (spaceImageSource == null) {
       			spaceImageSource = LinkProvider.SPACE_DEFAULT_AVATAR_URL;
@@ -276,6 +282,7 @@
 	                <div class="ownerName">
     					<a  href="$ownerUri">$ownerName</a>
     				</div>
+
 					<div class="spaceName">
 						<a class="space-avatar" href="$spaceSourceURI" space-data="$spaceID"><span class="uiIconArrowRightMini uiIconLightGray"></span>
 							<img  class="avatarMini" alt="$spaceName" src="$spaceImageSource"/>&nbsp;$spaceName
@@ -289,6 +296,12 @@
 					<%}%>
 				</div>
 				<div class="dataInfor">
+				   <%  if (isManager) {%>
+                      <span><i class="uiIconCrownAdmin"></i>&nbsp;Manager</span>
+                   <%
+            	   }
+        	       %>
+
 					<span class="dateTime"><i class="uiIconClock  uiIconLightGray"></i>&nbsp;<a id="EditActivityTime${activity.id}" rel="tooltip" data-placement="bottom" href="<%=uicomponent.getActivityPermalink(activity.id)%>" <% if(activity.postedTime != activity.updated.getTime() ){%> title="$postedTimeTooltip"> $activityUpdatedTime <%} else {%> >$activityPostedTime <%}%></a></span>
 
 					<%

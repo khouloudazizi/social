@@ -10,7 +10,8 @@ const config = merge(webpackCommonConfig, {
     path: path.resolve(__dirname, `./target/${app}/`),
     filename: 'js/[name].bundle.js',
     libraryTarget: 'amd'
-  }
+  },
+    devtool: 'source-map'
 });
 
 module.exports = config;

@@ -13,7 +13,7 @@ let config = merge(webpackCommonConfig, {
     path: path.resolve(`${exoServerPath}/webapps/${app}/`),
     filename: 'js/[name].bundle.js'
   },
-    devtool: 'cheap-module-eval-source-map'
+  devtool: 'cheap-module-eval-source-map'
 });
 
 module.exports = config;

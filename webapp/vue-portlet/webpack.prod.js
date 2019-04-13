@@ -11,7 +11,7 @@ const config = merge(webpackCommonConfig, {
     filename: 'js/[name].bundle.js',
     libraryTarget: 'amd'
   },
-    devtool: 'source-map'
+  devtool: 'source-map'
 });
 
 module.exports = config;

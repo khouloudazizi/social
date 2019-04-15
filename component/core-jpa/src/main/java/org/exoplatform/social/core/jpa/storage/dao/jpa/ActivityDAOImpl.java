@@ -137,6 +137,9 @@ public class ActivityDAOImpl extends GenericDAOJPAImpl<ActivityEntity, Long> imp
     }
 
     List<Long> owners = new ArrayList<>();
+    List<StreamType> streamTypes = new ArrayList<>();
+    streamTypes.add(StreamType.POSTER);
+    streamTypes.add(StreamType.SPACE);
     owners.add(ownerId);
     if (spaceIds != null && !spaceIds.isEmpty()) {
       for (String id : spaceIds) {
@@ -149,7 +152,7 @@ public class ActivityDAOImpl extends GenericDAOJPAImpl<ActivityEntity, Long> imp
       query.setParameter("connections", connections);
     }
     query.setParameter("owners", owners);
-    query.setParameter("connStreamType", StreamType.POSTER);
+    query.setParameter("streamTypes", streamTypes);
 
     if (limit > 0) {
       query.setFirstResult(offset > 0 ? offset : 0);

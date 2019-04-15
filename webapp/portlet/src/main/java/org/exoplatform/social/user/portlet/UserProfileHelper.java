@@ -2,6 +2,7 @@ package org.exoplatform.social.user.portlet;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.Query;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.webui.application.WebuiRequestContext;
+import org.joda.time.DateTime;
 
 public class UserProfileHelper {
   
@@ -94,8 +96,9 @@ public class UserProfileHelper {
   public static List<Map<String, String>> getSortedExperiences(Profile currentProfile) {
     List<Map<String, String>> experiences = getMultiValues(currentProfile, Profile.EXPERIENCES);
     if (experiences != null) {
-      experiences.sort((exp1, exp2) -> isCurrent(exp1) ? -1 : 1);
+      experiences.sort((exp1, exp2) -> isCurrent(exp1) || getEndDate(exp1).after(getEndDate(exp2)) ? -1 :1 );
     }
+
     return experiences;
   }
   
@@ -179,6 +182,14 @@ public class UserProfileHelper {
 
   private static boolean isCurrent(Map<String, String> srcExperience) {
     return Boolean.valueOf(String.valueOf(srcExperience.get(Profile.EXPERIENCES_IS_CURRENT)));
+  }
+
+  private static Date getEndDate(Map<String, String> srcExperience) {
+    try {
+      return new SimpleDateFormat("MM/dd/yyyy").parse(srcExperience.get(Profile.EXPERIENCES_END_DATE));
+    } catch (Exception ex){
+      return DateTime.now().toDate();
+    }
   }
 
   private static void putExperienceData(Map<String, String> srcExperience, Map<String, String> destExperience, String key) {

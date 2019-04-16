@@ -1,4 +1,4 @@
-import { spacesConstants } from './spacesAdministrationConstants.js';
+import { spacesConstants } from '../js/spacesConstants.js';
 
 export function getSpaces(){
   return fetch(`${spacesConstants.SOCIAL_SPACE_API}?sort=date&order=desc&limit=${spacesConstants.SPACES_PER_PAGE}&returnSize=true`, {credentials: 'include'}).then(resp => resp.json());
@@ -18,11 +18,15 @@ export function deleteSpaceById(id){
     method: 'delete'});
 }
 
-export function getSpaceLinkSetting(spaceDisplayName,groupId){
-  const spaceName = spaceDisplayName.toLowerCase().split(' ').join('_');
-  const groupIdTab = groupId.toLowerCase().split('/');
-  const groupName  = groupIdTab[groupIdTab.length-1];
-  return `${spacesConstants.PORTAL}${spacesConstants.PROFILE_SPACE_LINK}${groupName}/${spaceName}/settings`;
+export function getSpaceLinkSetting(spaceDisplayName, groupId) {
+  if(spaceDisplayName && groupId) {
+    const spaceName = spaceDisplayName.toLowerCase().split(' ').join('_');
+    const groupIdTab = groupId.toLowerCase().split('/');
+    const groupName  = groupIdTab[groupIdTab.length-1];
+    return `${spacesConstants.PORTAL}${spacesConstants.PROFILE_SPACE_LINK}${groupName}/${spaceName}/settings`;
+  } else {
+    return null;
+  }
 }
 
 export function getUserPermissions(userName) {

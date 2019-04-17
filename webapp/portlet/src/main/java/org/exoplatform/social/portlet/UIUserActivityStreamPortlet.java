@@ -28,18 +28,14 @@ import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.space.model.Space;
-import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.webui.Utils;
 import org.exoplatform.social.webui.composer.PopupContainer;
 import org.exoplatform.social.webui.composer.UIComposer;
 import org.exoplatform.social.webui.composer.UIComposer.PostContext;
 import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
-import org.exoplatform.social.webui.space.UISpaceAccess;
-import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
-import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIPortletApplication;
 import org.exoplatform.webui.core.lifecycle.UIApplicationLifecycle;
 import org.exoplatform.webui.event.Event;
@@ -74,8 +70,8 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
   private static final String SINGLE_ACTIVITY_REDIRECT_LINK_PREFIX = "activity/redirect";
   private static final String NOTIFICATION_REST_PREFIX = "/locale/portlet/social/notifications/redirectUrl";
   private static final Log LOG = ExoLogger.getLogger(UIUserActivityStreamPortlet.class.getName());
-  private String userId = null;
   static private final String ALL_SPACE_LINK = "all-spaces";
+  private String userId = null;
 
   /**
    * constructor
@@ -86,7 +82,8 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
     viewerName = Utils.getViewerRemoteId();
     ownerName = Utils.getOwnerRemoteId();
     uiComposer = addChild(UIComposer.class, null, null);
-    activityId = Utils.getActivityID();    
+    activityId = Utils.getActivityID();
+    userId = Util.getPortalRequestContext().getRemoteUser();
     
     if (activityId != null) {
       uiComposer.setPostContext(PostContext.SINGLE);
@@ -253,25 +250,12 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
    * @return space type
    */
   public String getSpaceType(Space space){
-    String currentUserId =getUserId();
-    if (Utils.getSpaceService().isInvitedUser(space, currentUserId)) { // Received
+    if (Utils.getSpaceService().isInvitedUser(space, userId)) { // Received
       return ("INVITED");
-    } else if (Utils.getSpaceService().isPendingUser(space, currentUserId)) { // Sent
+    } else if (Utils.getSpaceService().isPendingUser(space, userId)) { // Sent
       return ("SENT");
     }
     return ("NONE"); // No relationship with this space.
-  }
-
-  /**
-   * Gets current remote user.
-   *
-   * @return remote user
-   */
-  private String getUserId() {
-    if (userId == null) {
-      userId = Util.getPortalRequestContext().getRemoteUser();
-    }
-    return userId;
   }
 
   /**
@@ -283,7 +267,7 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
     public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
       UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
       WebuiRequestContext ctx = event.getRequestContext();
-      String userId = uiUserActivityStreamPortlet.getUserId();
+      String userId = uiUserActivityStreamPortlet.userId;
       Space space = uiUserActivityStreamPortlet.getActivitySpace();
       Utils.getSpaceService().addPendingUser(space, userId);
       event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.href = '" + Utils.getSpaceHomeURL(space) + "';})();");
@@ -299,7 +283,7 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
     @Override
     public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
       UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
-      String userId = uiUserActivityStreamPortlet.getUserId();
+      String userId = uiUserActivityStreamPortlet.userId;
       Space space = uiUserActivityStreamPortlet.getActivitySpace();
       Utils.getSpaceService().addMember(space, userId);
 
@@ -316,7 +300,7 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
     @Override
     public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
       UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
-      String userId = uiUserActivityStreamPortlet.getUserId();
+      String userId = uiUserActivityStreamPortlet.userId;
       Space space = uiUserActivityStreamPortlet.getActivitySpace();
       Utils.getSpaceService().removeInvitedUser(space, userId);
       event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.reload(true);})();");
@@ -329,7 +313,7 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
   static public class AcceptInvitationActionListener extends EventListener<UIUserActivityStreamPortlet> {
     public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
       UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
-      String userId = uiUserActivityStreamPortlet.getUserId();
+      String userId = uiUserActivityStreamPortlet.userId;
       Space space = uiUserActivityStreamPortlet.getActivitySpace();
       Utils.getSpaceService().addMember(space, userId);
      // event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.href = '" + Utils.getSpaceHomeURL(space) + "';})();");

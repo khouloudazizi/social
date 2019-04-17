@@ -27,7 +27,6 @@
   import org.exoplatform.social.webui.composer.UIComposer;
   import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
   import org.exoplatform.social.webui.Utils;
-  import org.exoplatform.social.webui.space.UIManageAllSpaces;
 
   def currentRemoteId = Utils.getViewerRemoteId();
   def currentServerTime = java.util.Calendar.getInstance().getTimeInMillis();

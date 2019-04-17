@@ -28,14 +28,22 @@ import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.space.model.Space;
+import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.webui.Utils;
 import org.exoplatform.social.webui.composer.PopupContainer;
 import org.exoplatform.social.webui.composer.UIComposer;
 import org.exoplatform.social.webui.composer.UIComposer.PostContext;
 import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
+import org.exoplatform.social.webui.space.UISpaceAccess;
+import org.exoplatform.web.application.ApplicationMessage;
+import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
+import org.exoplatform.webui.config.annotation.EventConfig;
+import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIPortletApplication;
 import org.exoplatform.webui.core.lifecycle.UIApplicationLifecycle;
+import org.exoplatform.webui.event.Event;
+import org.exoplatform.webui.event.EventListener;
 
 /**
  * UIUserActivityStreamPortlet.java
@@ -47,7 +55,13 @@ import org.exoplatform.webui.core.lifecycle.UIApplicationLifecycle;
  */
 @ComponentConfig(
   lifecycle = UIApplicationLifecycle.class,
-  template = "app:/groovy/social/portlet/UIUserActivityStreamPortlet.gtmpl"
+  template = "app:/groovy/social/portlet/UIUserActivityStreamPortlet.gtmpl",
+  events = {
+    @EventConfig(listeners = UIUserActivityStreamPortlet.RequestToJoinActionListener.class),
+    @EventConfig(listeners = UIUserActivityStreamPortlet.JoinActionListener.class),
+    @EventConfig(listeners = UIUserActivityStreamPortlet.IgnoreInvitationActionListener.class),
+    @EventConfig(listeners = UIUserActivityStreamPortlet.AcceptInvitationActionListener.class)
+  }
 )
 public class UIUserActivityStreamPortlet extends UIPortletApplication {
   private String ownerName;
@@ -60,6 +74,9 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
   private static final String SINGLE_ACTIVITY_REDIRECT_LINK_PREFIX = "activity/redirect";
   private static final String NOTIFICATION_REST_PREFIX = "/locale/portlet/social/notifications/redirectUrl";
   private static final Log LOG = ExoLogger.getLogger(UIUserActivityStreamPortlet.class.getName());
+  private String userId = null;
+  static private final String ALL_SPACE_LINK = "all-spaces";
+
   /**
    * constructor
    *
@@ -202,6 +219,125 @@ public class UIUserActivityStreamPortlet extends UIPortletApplication {
     LOG.debug("Activity title is NULL");
     return null;
   }
+
+  /**
+   * Get the activity space
+   * @return Space
+   */
+  public Space getActivitySpace(){
+    Space space = null;
+    ExoSocialActivity activity = Utils.getActivityManager().getActivity(activityId);
+    if(activity != null){
+      space = Utils.getSpaceService().getSpaceByPrettyName(activity.getStreamOwner());
+    }
+    return space;
+  }
+
+  /**
+   * Check the visibility of the space.
+   *
+   * @param space
+   * @return space visibility
+   */
+  public boolean isVisibleSpace(Space space){
+    if(space.getVisibility().equals(Space.HIDDEN)){
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * check the relation between the user and the space.
+   *
+   * @param space
+   * @return space type
+   */
+  public String getSpaceType(Space space){
+    String currentUserId =getUserId();
+    if (Utils.getSpaceService().isInvitedUser(space, currentUserId)) { // Received
+      return ("INVITED");
+    } else if (Utils.getSpaceService().isPendingUser(space, currentUserId)) { // Sent
+      return ("SENT");
+    }
+    return ("NONE"); // No relationship with this space.
+  }
+
+  /**
+   * Gets current remote user.
+   *
+   * @return remote user
+   */
+  private String getUserId() {
+    if (userId == null) {
+      userId = Util.getPortalRequestContext().getRemoteUser();
+    }
+    return userId;
+  }
+
+  /**
+   * Listener for request to join space action.
+   */
+  static public class RequestToJoinActionListener extends EventListener<UIUserActivityStreamPortlet> {
+
+    @Override
+    public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
+      UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
+      WebuiRequestContext ctx = event.getRequestContext();
+      String userId = uiUserActivityStreamPortlet.getUserId();
+      Space space = uiUserActivityStreamPortlet.getActivitySpace();
+      Utils.getSpaceService().addPendingUser(space, userId);
+      event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.href = '" + Utils.getSpaceHomeURL(space) + "';})();");
+      ctx.addUIComponentToUpdateByAjax(uiUserActivityStreamPortlet);
+    }
+  }
+
+  /**
+   * This action is triggered when user click on join button
+   */
+  static public class JoinActionListener extends EventListener<UIUserActivityStreamPortlet> {
+
+    @Override
+    public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
+      UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
+      String userId = uiUserActivityStreamPortlet.getUserId();
+      Space space = uiUserActivityStreamPortlet.getActivitySpace();
+      Utils.getSpaceService().addMember(space, userId);
+
+      event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.href = '" + Utils.getSpaceHomeURL(space) + "';})();");
+      event.getRequestContext().addUIComponentToUpdateByAjax(uiUserActivityStreamPortlet);
+    }
+
+  }
+  /**
+   * This action trigger when user click on refuse button.
+   */
+  static public class IgnoreInvitationActionListener extends EventListener<UIUserActivityStreamPortlet> {
+
+    @Override
+    public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
+      UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
+      String userId = uiUserActivityStreamPortlet.getUserId();
+      Space space = uiUserActivityStreamPortlet.getActivitySpace();
+      Utils.getSpaceService().removeInvitedUser(space, userId);
+      event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.reload(true);})();");
+    }
+
+  }
+  /**
+   * Listens event when user accept an invited to join the space
+   */
+  static public class AcceptInvitationActionListener extends EventListener<UIUserActivityStreamPortlet> {
+    public void execute(Event<UIUserActivityStreamPortlet> event) throws Exception {
+      UIUserActivityStreamPortlet uiUserActivityStreamPortlet = event.getSource();
+      String userId = uiUserActivityStreamPortlet.getUserId();
+      Space space = uiUserActivityStreamPortlet.getActivitySpace();
+      Utils.getSpaceService().addMember(space, userId);
+     // event.getRequestContext().getJavascriptManager().getRequireJS().addScripts("(function(){ window.location.href = '" + Utils.getSpaceHomeURL(space) + "';})();");
+      event.getRequestContext().addUIComponentToUpdateByAjax(uiUserActivityStreamPortlet);
+    }
+  }
+
+
 
   /**
    * Renders popup message in case this child has not rendered in template.

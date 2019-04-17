@@ -22,8 +22,7 @@ public class UserProfileHelperTest {
         experience1.put(Profile.EXPERIENCES_ID, "1");
         experience1.put(Profile.EXPERIENCES_COMPANY, "Google");
         experience1.put(Profile.EXPERIENCES_POSITION, "Developer");
-        experience1.put(Profile.EXPERIENCES_IS_CURRENT, "false");
-        experience1.put(Profile.EXPERIENCES_END_DATE,"01/12/2002");
+        experience1.put(Profile.EXPERIENCES_IS_CURRENT, "true");
         experience1.put(Profile.EXPERIENCES_START_DATE,"01/09/2001");
         experiences.add(experience1);
         Map<String, String> experience2 = new HashMap<>();
@@ -59,9 +58,9 @@ public class UserProfileHelperTest {
         assertEquals(4, displayExperiences.size());
         // The current experience must be the first one
         assertEquals("3", displayExperiences.get(0).get(Profile.EXPERIENCES_ID));
-        assertEquals("4", displayExperiences.get(1).get(Profile.EXPERIENCES_ID));
-        assertEquals("2", displayExperiences.get(2).get(Profile.EXPERIENCES_ID));
-        assertEquals("1", displayExperiences.get(3).get(Profile.EXPERIENCES_ID));
+        assertEquals("1", displayExperiences.get(1).get(Profile.EXPERIENCES_ID));
+        assertEquals("4", displayExperiences.get(2).get(Profile.EXPERIENCES_ID));
+        assertEquals("2", displayExperiences.get(3).get(Profile.EXPERIENCES_ID));
     }
 
     @Test

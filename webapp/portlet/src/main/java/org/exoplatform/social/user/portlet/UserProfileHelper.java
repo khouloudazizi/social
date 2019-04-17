@@ -96,7 +96,7 @@ public class UserProfileHelper {
   public static List<Map<String, String>> getSortedExperiences(Profile currentProfile) {
     List<Map<String, String>> experiences = getMultiValues(currentProfile, Profile.EXPERIENCES);
     if (experiences != null) {
-      experiences.sort((exp1, exp2) -> isCurrent(exp1) || getEndDate(exp1).after(getEndDate(exp2)) ? -1 :1 );
+      Collections.sort(experiences, Comparator.comparing((Map<String, String> experience ) ->  isCurrent( experience )).thenComparing((Map<String, String> experience ) -> getStartDate( experience )).reversed());
     }
 
     return experiences;
@@ -184,9 +184,9 @@ public class UserProfileHelper {
     return Boolean.valueOf(String.valueOf(srcExperience.get(Profile.EXPERIENCES_IS_CURRENT)));
   }
 
-  private static Date getEndDate(Map<String, String> srcExperience) {
+  private static Date getStartDate(Map<String, String> srcExperience) {
     try {
-      return new SimpleDateFormat("MM/dd/yyyy").parse(srcExperience.get(Profile.EXPERIENCES_END_DATE));
+      return new SimpleDateFormat("MM/dd/yyyy").parse(srcExperience.get(Profile.EXPERIENCES_START_DATE));
     } catch (Exception ex){
       return DateTime.now().toDate();
     }

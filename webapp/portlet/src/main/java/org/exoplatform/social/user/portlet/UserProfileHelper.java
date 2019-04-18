@@ -184,8 +184,8 @@ public class UserProfileHelper {
     return Boolean.valueOf(String.valueOf(srcExperience.get(Profile.EXPERIENCES_IS_CURRENT)));
   }
 
-  private static Date getStartDate(Map<String, String> srcExperience) {
-    return java.sql.Date.valueOf(LocalDate.parse(srcExperience.get(Profile.EXPERIENCES_START_DATE),DATE_TIME_FORMATTER));
+  private static LocalDate getStartDate(Map<String, String> srcExperience) {
+    return LocalDate.parse(srcExperience.get(Profile.EXPERIENCES_START_DATE),DATE_TIME_FORMATTER);
   }
 
   private static void putExperienceData(Map<String, String> srcExperience, Map<String, String> destExperience, String key) {

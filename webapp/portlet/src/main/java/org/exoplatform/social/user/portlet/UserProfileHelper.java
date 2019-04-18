@@ -2,9 +2,9 @@ package org.exoplatform.social.user.portlet;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +13,6 @@ import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.organization.Query;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.webui.application.WebuiRequestContext;
-import org.joda.time.DateTime;
 
 public class UserProfileHelper {
   
@@ -24,6 +23,7 @@ public class UserProfileHelper {
   final public static String URL_KEY = "url";
   final public static String OTHER_KEY = "other";
   final public static String DEFAULT_PROTOCOL = "http://";
+  final public static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
   enum StatusIconCss {
     DEFAULT("", ""),
@@ -96,7 +96,7 @@ public class UserProfileHelper {
   public static List<Map<String, String>> getSortedExperiences(Profile currentProfile) {
     List<Map<String, String>> experiences = getMultiValues(currentProfile, Profile.EXPERIENCES);
     if (experiences != null) {
-      Collections.sort(experiences, Comparator.comparing((Map<String, String> experience ) ->  isCurrent( experience )).thenComparing((Map<String, String> experience ) -> getStartDate( experience )).reversed());
+      Collections.sort(experiences, Comparator.comparing(UserProfileHelper::isCurrent).thenComparing(UserProfileHelper::getStartDate).reversed());
     }
 
     return experiences;
@@ -185,11 +185,7 @@ public class UserProfileHelper {
   }
 
   private static Date getStartDate(Map<String, String> srcExperience) {
-    try {
-      return new SimpleDateFormat("MM/dd/yyyy").parse(srcExperience.get(Profile.EXPERIENCES_START_DATE));
-    } catch (Exception ex){
-      return DateTime.now().toDate();
-    }
+    return java.sql.Date.valueOf(LocalDate.parse(srcExperience.get(Profile.EXPERIENCES_START_DATE),DATE_TIME_FORMATTER));
   }
 
   private static void putExperienceData(Map<String, String> srcExperience, Map<String, String> destExperience, String key) {

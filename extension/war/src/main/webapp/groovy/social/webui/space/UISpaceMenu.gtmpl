@@ -111,21 +111,24 @@ if(appSelected == null || appSelected.length() == 0) {
                 <%if (banner != null) {%>
                 <li>
                     <a href="<%=uicomponent.event("RemoveBanner");%>"><%=_ctx.appRes("UIBannerUploader.label.Remove")%></a>
-                </li>
-                <%}%>
-            </ul>
+                </li> 
+                <%}%>                    
+            </ul> 
           </div>
         <%}%>
         <h3>$spaceName</h3>
         <ul class="spaceMenuApps menuApps pull-left"></ul>
       </div>
 <nav>
+<%
+String spaceHomeAppLabel = _ctx.appRes(uicomponent.getId() + ".label.SpaceHomePage");
+%>
 
 <ul class="nav nav-tabs spaceMenuTab" id="spaceMenuTab" style="visibility: hidden;">
 <li class="$selectedClazz">
 <a <%=activityStreamUrl%>>
         <i class="uiIconAppSpaceHomePage uiIconDefaultApp"></i>
-<span class="tabName">Activity Stream</span>
+<span class="tabName"> $spaceHomeAppLabel</span>
 </a>
 </li>
 

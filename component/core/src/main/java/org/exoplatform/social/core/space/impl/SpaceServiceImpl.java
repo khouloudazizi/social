@@ -195,11 +195,6 @@ public class SpaceServiceImpl implements SpaceService {
     return spaceStorage.getSpaceByDisplayName(spaceDisplayName);
   }
 
-
-  public String[] getManagerSpaces(Space space) {
-    return space.getManagers();
-  }
-
   /**
    * {@inheritDoc}
    */

@@ -142,7 +142,7 @@ def streamOwner = activity.getStreamOwner();
 
     //make sures commentFormFocused is set to false to prevent any refresh to focus, only focus after post a comment
     uicomponent.setCommentFormFocused(false);
-    def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime, managers,creator, ownerNameprofile, uritab;
+    def ownerName, ownerUri = "#", ownerAvatar, activityPostedTime, activityPostedTimeInSpace, activityUpdatedTime, managers;
     def listPeopleLikeBlockClass = "", listPeopleBGClass = "";
 
     if (!likesDisplayed) {

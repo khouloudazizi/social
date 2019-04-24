@@ -62,9 +62,6 @@ public interface SpaceService {
      */
     Space getSpaceByPrettyName(String spacePrettyName);
 
-
-    String[] getManagerSpaces(Space space);
-
     /**
      * Gets a space by its group Id.
      *

@@ -17,6 +17,7 @@
 package org.exoplatform.social.user.portlet;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.portlet.MimeResponse;
 import javax.portlet.ResourceRequest;
@@ -85,7 +86,8 @@ public class UIMiniConnectionsPortlet extends UIAbstractUserPortlet {
 
   private String profileListHTML() throws Exception {
     StringBuilder html = new StringBuilder("");
-    List<Identity> identities = Utils.getRelationshipManager().getLastConnections(currentProfile.getIdentity(), MAX_DISPLAY);
+    List<Identity> identities = Utils.getRelationshipManager().getLastConnections(currentProfile.getIdentity(), MAX_DISPLAY).stream()
+            .filter(Identity::isEnable).collect(Collectors.toList());;
     connectionSize = identities.size();
     for (Identity identity : identities) {
       ProfileBean profile = new ProfileBean(identity);

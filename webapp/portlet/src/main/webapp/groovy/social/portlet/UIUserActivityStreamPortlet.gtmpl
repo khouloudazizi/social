@@ -22,25 +22,15 @@
 %>
 <%
 
-  import org.apache.commons.lang.StringEscapeUtils
-  import org.exoplatform.social.webui.composer.PopupContainer;
-  import org.exoplatform.social.webui.composer.UIComposer;
-  import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
-  import org.exoplatform.social.webui.Utils;
+import org.exoplatform.social.webui.Utils
 
-  def currentRemoteId = Utils.getViewerRemoteId();
+def currentRemoteId = Utils.getViewerRemoteId();
   def currentServerTime = java.util.Calendar.getInstance().getTimeInMillis();
 
-  def requestToJoinSpaceAction = uicomponent.event("RequestToJoin") + "; false";
-  def joinSpaceAction = uicomponent.event("Join") + "; false";
-  def ignoreInvitationAction = uicomponent.event("IgnoreInvitation") + "; false";
-  def acceptInvitationAction = uicomponent.event("AcceptInvitation") + "; false";
-  String requestToJoinSpaceLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIManageAllSpaces.label.action_request_to_join"));
-  String JoinSpaceLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIManageAllSpaces.label.action_join"));
-  String acceptInvitationLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIManageAllSpaces.label.accept_invitation_to_join_space"));
-  String ignoreInvitationLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIManageAllSpaces.label.ignore_invitation_to_join_space"));
-  String activityNotFoundLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIUserActivitiesDisplay.label.activityNotFound"));
-
+  def requestToJoinSpaceAction = uicomponent.event("RequestToJoin");
+  def joinSpaceAction = uicomponent.event("Join");
+  def ignoreInvitationAction = uicomponent.event("IgnoreInvitation");
+  def acceptInvitationAction = uicomponent.event("AcceptInvitation");
 
   def requireJs = _ctx.getRequestContext().getJavascriptManager().getRequireJS();
   requireJs.require("SHARED/social-ui-activity", "activity")
@@ -69,39 +59,39 @@
                        if(uicomponent.isVisibleSpace(space)) {
                          def spaceRegistration = space.getRegistration();
                          def spaceDisplayName = space.getDisplayName();
-                         def typeOfSpace = uicomponent.getSpaceType(space);
+                         def typeOfSpace = uicomponent.getSpaceMembershipType(space);
 
-                         String requestedToJoinSpaceLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UISpaceAcess.requested-join-space"));
+                         String requestedToJoinSpaceLabel = _ctx.appRes("UISpaceAcess.requested-join-space");
                          requestedToJoinSpaceLabel = requestedToJoinSpaceLabel.replace("{0}",spaceDisplayName);
-                         String invitedToJoinSpaceLabel = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UISpaceAccess.invited-space"));
+                         String invitedToJoinSpaceLabel = _ctx.appRes("UISpaceAccess.invited-space");
                          invitedToJoinSpaceLabel = invitedToJoinSpaceLabel.replace("{0}", spaceDisplayName);
-                         String restrictedOpenSpace = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIUserActivitiesDisplay.label.restrictedOpenSpace"));
+                         String restrictedOpenSpace = _ctx.appRes("UIUserActivitiesDisplay.label.restrictedOpenSpace");
                          restrictedOpenSpace = restrictedOpenSpace.replace("{0}", spaceDisplayName);
-                         String restrictedClosedSpace = StringEscapeUtils.escapeJavaScript(_ctx.appRes("UIUserActivitiesDisplay.label.restrictedClosedSpace"));
+                         String restrictedClosedSpace = _ctx.appRes("UIUserActivitiesDisplay.label.restrictedClosedSpace");
                          restrictedClosedSpace = restrictedClosedSpace.replace("{0}", spaceDisplayName);
                   %>
                          <h4><%=_ctx.appRes("UIUserActivitiesDisplay.label.restrictedContent")%></h4>
-                  <%     if(spaceRegistration.equals("validation")){
-                           if(typeOfSpace.equals("SENT")){
+                  <%     if(uicomponent.VALIDATION_SPACE_REGISTRATION.equals(spaceRegistration)){
+                           if(uicomponent.SPACE_RELATIONSHIP_SENT.equals(typeOfSpace)){
 		          %>
                              <p> <%=requestedToJoinSpaceLabel%> </p>
                   <%
-                           } else if(typeOfSpace.equals("INVITED")) {
+                           } else if(uicomponent.SPACE_RELATIONSHIP_INVITED.equals(typeOfSpace)) {
                   %>
                                <p> <%=invitedToJoinSpaceLabel%> </p>
-                               <button type="button" class="btn" onclick="<%= ignoreInvitationAction %>"> $ignoreInvitationLabel </button>
-                               <button type="button" class="btn btn-primary" onclick="<%= acceptInvitationAction %>"> $acceptInvitationLabel </button>
+                               <button type="button" class="btn" onclick="<%= ignoreInvitationAction %>"> <%=_ctx.appRes("UIManageAllSpaces.label.ignore_invitation_to_join_space")%> </button>
+                               <button type="button" class="btn btn-primary" onclick="<%= acceptInvitationAction %>"> <%=_ctx.appRes("UIManageAllSpaces.label.accept_invitation_to_join_space")%> </button>
                   <%
                            } else {
                   %>
                                <p> <%=restrictedOpenSpace%> </p>
-                               <button type="button" class="btn btn-primary" onclick="<%= requestToJoinSpaceAction %>">$requestToJoinSpaceLabel</button>
+                               <button type="button" class="btn btn-primary" onclick="<%= requestToJoinSpaceAction %>"> <%=_ctx.appRes("UIManageAllSpaces.label.action_request_to_join")%> </button>
                   <%
                            }
-                         } else if(spaceRegistration.equals("open")){
+                         } else if(uicomponent.OPEN_SPACE_REGISTRATION.equals(spaceRegistration)){
                   %>
                              <p> <%=restrictedOpenSpace%> </p>
-                             <button type="button" class="btn btn-primary" onclick="<%= joinSpaceAction %>">$JoinSpaceLabel</button>
+                             <button type="button" class="btn btn-primary" onclick="<%= joinSpaceAction %>"> <%=_ctx.appRes("UIManageAllSpaces.label.action_join")%> </button>
                   <%
                            } else {
                   %>
@@ -110,11 +100,11 @@
                             }
                        } else{
                   %>
-                           <h4><%= activityNotFoundLabel %></h4>
+                           <h4><%= _ctx.appRes("UIUserActivitiesDisplay.label.activityNotFound") %></h4>
                   <%     }
                      } else{
                   %>
-                         <h4><%= activityNotFoundLabel %></h4>
+                         <h4><%= _ctx.appRes("UIUserActivitiesDisplay.label.activityNotFound") %></h4>
                   <%  } %>
 		        </div>
 		      </div>

@@ -32,6 +32,7 @@ import org.exoplatform.social.core.storage.api.RelationshipStorage;
 import org.exoplatform.social.core.storage.RelationshipStorageException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The Class RelationshipManager implements RelationshipManager without caching.
@@ -591,7 +592,7 @@ public class RelationshipManagerImpl implements RelationshipManager {
 
   @Override
   public List<Identity> getLastConnections(Identity identity, int limit) {
-    return storage.getLastConnections(identity, limit);
+    return storage.getLastConnections(identity, limit).stream().filter(Identity::isEnable).collect(Collectors.toList());
   }
   
   /**

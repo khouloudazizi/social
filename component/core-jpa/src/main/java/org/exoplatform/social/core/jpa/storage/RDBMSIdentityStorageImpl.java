@@ -525,6 +525,11 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
     return (int)getIdentityDAO().countIdentityByProvider(providerId);
   }
 
+  @Override
+  public String getDefaultIdentitiesSortField() {
+    return identityDAO.getDefaultIdentitiesSortField();
+  }
+
   /**
    * Gets the type.
    *
@@ -665,13 +670,13 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
 
   @Override
   public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId,
-                                                                  ProfileFilter profileFilter, String sortField,
+                                                                  ProfileFilter profileFilter,
                                                                   long offset,
                                                                   long limit,
                                                                   boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     ExtendProfileFilter xFilter = new ExtendProfileFilter(profileFilter);
     xFilter.setProviderId(providerId);
-    List<String> usernames =  getIdentityDAO().findSortedIdentitiesByFirstLetter(xFilter, sortField, offset, limit);
+    List<String> usernames =  getIdentityDAO().findSortedIdentitiesByFirstLetter(xFilter, offset, limit);
     List<Identity> identities = new ArrayList<>();
     if (usernames != null && !usernames.isEmpty()) {
       for (String username : usernames) {

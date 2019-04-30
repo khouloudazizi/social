@@ -132,6 +132,12 @@ public interface IdentityStorage {
   public int getIdentitiesCount (final String providerId) throws IdentityStorageException;
 
   /**
+   * Gets the default sort field for identities
+   * @throws IdentityStorageException
+   */
+  public String getDefaultIdentitiesSortField ();
+
+  /**
    * Gets the identities by profile filter.
    *
    * @param providerId Id of provider.
@@ -150,7 +156,6 @@ public interface IdentityStorage {
 
   List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId,
                                                              ProfileFilter profileFilter,
-                                                             String sortField,
                                                              long offset,
                                                              long limit,
                                                              boolean forceLoadOrReloadProfile) throws IdentityStorageException;

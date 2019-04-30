@@ -24,6 +24,7 @@ import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.profile.ProfileFilter;
+import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 
 /**
@@ -79,6 +80,9 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
     this.profileFilter = profileFilter;
     this.providerId = providerId;
     this.forceLoadProfile = forceLoadProfile;
+    this.profileFilter.setSorting(new Sorting(Sorting.SortBy.getEnumByString(identityStorage.getDefaultIdentitiesSortField()), Sorting.OrderBy.ASC));
+
+
   }
   
   /**
@@ -137,8 +141,7 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
       }
     } else {
       if (profileFilter.getFirstCharacterOfName() != EMPTY_CHARACTER) {
-        String sortField = System.getProperty("exo.people.directory.sortField", Profile.FULL_NAME);
-        identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName(providerId, profileFilter, sortField, offset,
+        identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName(providerId, profileFilter, offset,
                                                                          usedLimit, forceLoadProfile);
       } else if (profileFilter.isEmpty()) {
         if(profileFilter.getViewerIdentity() == null) {

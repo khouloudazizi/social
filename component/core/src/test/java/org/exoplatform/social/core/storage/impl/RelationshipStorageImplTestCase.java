@@ -651,10 +651,10 @@ public class RelationshipStorageImplTestCase extends AbstractCoreTest {
     List<Identity> got = storage.getConnectionsByFilter(spearsIdentity, new ProfileFilter(), 0, 10);
     
     assertEquals(4, got.size());
-    assertEquals(christmasIdentity, got.get(0));
-    assertEquals(kellyIdentity, got.get(1));
-    assertEquals(tweedyIdentity, got.get(2));
-    assertEquals(williamsIdentity, got.get(3));
+    assertTrue(got.contains(christmasIdentity));
+    assertTrue(got.contains(kellyIdentity));
+    assertTrue(got.contains(tweedyIdentity));
+    assertTrue(got.contains(williamsIdentity));
   }
   
   @MaxQueryNumber(591)

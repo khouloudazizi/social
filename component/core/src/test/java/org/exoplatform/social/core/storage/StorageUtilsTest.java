@@ -190,7 +190,7 @@ public class StorageUtilsTest extends TestCase {
     assertEquals("Abc", list.get(2).getProfile().getFullName());
     
     //
-    StorageUtils.sortIdentitiesByFullName(list, true);
+    StorageUtils.sortIdentitiesBySortField(list, Profile.FULL_NAME, true);
     
     //after sort
     assertEquals("Abc", list.get(0).getProfile().getFullName());

@@ -170,8 +170,13 @@ public class ProfileSearchConnector {
       esQuery.append("   \"sort\": {\"lastUpdatedDate\": {\"order\": \""
           + (sorting.orderBy == null ? "desc" : sorting.orderBy.name()) + "\"}}\n");
     } else {
-      esQuery.append("   \"sort\": {\"name.raw\": {\"order\": \"asc\"}}\n");
+      String sortField = "name";
+      if (sorting != null && (SortBy.FIRSTNAME.equals(sorting.sortBy) || SortBy.LASTNAME.equals(sorting.sortBy) || SortBy.FULLNAME.equals(sorting.sortBy))) {
+        sortField=sorting.sortBy.getName();
+      }
+      esQuery.append("   \"sort\": {\""+sortField+".raw\": {\"order\": \"asc\"}}\n");
     }
+
     StringBuilder esSubQuery = new StringBuilder();
     esSubQuery.append("       ,\n");
     esSubQuery.append("\"query\" : {\n");
@@ -298,8 +303,14 @@ public class ProfileSearchConnector {
     //
     if (firstChar != '\u0000') {
       char lowerCase = Character.toLowerCase(firstChar);
-      char upperCase = Character.toUpperCase(firstChar);;
-      esExp.append("lastName.whitespace:").append("(").append(upperCase).append(StorageUtils.ASTERISK_STR).append(" OR ").append(lowerCase).append(StorageUtils.ASTERISK_STR).append(")");
+      char upperCase = Character.toUpperCase(firstChar);
+
+      Sorting sorting = filter.getSorting();
+      String filterField = "lastName";
+      if (sorting != null && (SortBy.FIRSTNAME.equals(sorting.sortBy) || SortBy.FULLNAME.equals(sorting.sortBy) || SortBy.LASTNAME.equals(sorting.sortBy))) {
+        filterField = sorting.sortBy.getName();
+      }
+      esExp.append(filterField+".whitespace:").append("(").append(upperCase).append(StorageUtils.ASTERISK_STR).append(" OR ").append(lowerCase).append(StorageUtils.ASTERISK_STR).append(")");
       return esExp.toString();
     }
 

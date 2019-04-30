@@ -31,6 +31,7 @@ import org.exoplatform.social.common.lifecycle.SocialChromatticLifeCycle;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.chromattic.entity.ProfileEntity;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.query.JCRProperties;
@@ -340,14 +341,14 @@ public class StorageUtils {
    * @param asc
    * @return sorted list
    */
-  public static List<Identity> sortIdentitiesByFullName(List<Identity> list, final boolean asc) {
+  public static List<Identity> sortIdentitiesBySortField(List<Identity> list, String sortField, final boolean asc) {
     //
     Collections.sort(list, new Comparator<Identity>() {
       public int compare(Identity o1, Identity o2) {
         if (asc)
-          return (o1.getProfile().getFullName()).compareTo(o2.getProfile().getFullName());
+          return (o1.getProfile().getProperty(sortField).toString()).compareTo(o2.getProfile().getProperty(sortField).toString());
         else
-          return (o1.getProfile().getFullName()).compareTo(o2.getProfile().getFullName()) / -1;
+          return (o1.getProfile().getProperty(sortField).toString()).compareTo(o2.getProfile().getProperty(sortField).toString()) / -1;
       }
     });
 

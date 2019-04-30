@@ -24,6 +24,7 @@ import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.social.core.jpa.search.ExtendProfileFilter;
 import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
 import org.exoplatform.social.core.jpa.storage.entity.IdentityEntity;
+import org.exoplatform.social.core.storage.IdentityStorageException;
 
 import java.util.List;
 import java.util.Map;
@@ -55,7 +56,7 @@ public interface IdentityDAO extends GenericDAO<IdentityEntity, Long> {
   void hardDeleteIdentity(long identityId);
 
 
-  List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, String sortField, long offset, long limit);
+  List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, long offset, long limit);
 
     /**
    * Get all identities by providerId sorted by sortField
@@ -67,4 +68,11 @@ public interface IdentityDAO extends GenericDAO<IdentityEntity, Long> {
    * @return
    */
   List<String> getAllIdsByProviderSorted(String providerId, String sortField, long offset, long limit);
+
+
+  /**
+   * Gets the default sort field for identities
+   * @throws IdentityStorageException
+   */
+  public String getDefaultIdentitiesSortField ();
 }

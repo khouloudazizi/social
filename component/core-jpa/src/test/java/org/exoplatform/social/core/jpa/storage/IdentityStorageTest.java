@@ -29,6 +29,7 @@ import org.exoplatform.social.core.jpa.test.QueryNumberTest;
 import org.exoplatform.social.core.model.AvatarAttachment;
 import org.exoplatform.social.core.model.BannerAttachment;
 import org.exoplatform.social.core.profile.ProfileFilter;
+import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.service.LinkProvider;
 import org.exoplatform.social.core.space.SpaceUtils;
 import org.exoplatform.social.core.space.impl.DefaultSpaceApplicationHandler;
@@ -574,20 +575,20 @@ public class IdentityStorageTest extends AbstractCoreTest {
 
     final ProfileFilter filter = new ProfileFilter();
     filter.setFirstCharacterOfName('B');
-    String sortField = Profile.FULL_NAME;
-    List<Identity> identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, sortField, 0,
+    // Default sort
+    List<Identity> identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, 0,
             20,false);
-    assertEquals(identities.size(), 2);
-    assertEquals(identities.get(0).getProfile().getFullName(), "Bob Smith");
-    assertEquals(identities.get(1).getProfile().getFullName(), "Brian Lafleur");
+    assertEquals(2,identities.size());
+    assertEquals("Bob Smith",identities.get(0).getProfile().getFullName());
+    assertEquals("Brian Lafleur", identities.get(1).getProfile().getFullName());
 
-    sortField = Profile.LAST_NAME;
+    filter.setSorting(new Sorting(Sorting.SortBy.LASTNAME, Sorting.OrderBy.ASC));
     filter.setFirstCharacterOfName('D');
-    identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, sortField, 0,
+    identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, 0,
             20,false);
-    assertEquals(identities.size(), 2);
-    assertEquals(identities.get(0).getProfile().getFullName(), "John Dupond");
-    assertEquals(identities.get(1).getProfile().getFullName(), "Cary Durand");
+    assertEquals(2, identities.size());
+    assertEquals("John Dupond",identities.get(0).getProfile().getFullName());
+    assertEquals("Cary Durand",identities.get(1).getProfile().getFullName());
   }
   /**
    * Tests {@link IdenityStorage#getIdentitiesByProfileFilterCount(String, ProfileFilter)}

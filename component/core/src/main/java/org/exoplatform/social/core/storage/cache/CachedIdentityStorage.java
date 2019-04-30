@@ -402,6 +402,11 @@ public class CachedIdentityStorage implements IdentityStorage {
 
   }
 
+  @Override
+  public String getDefaultIdentitiesSortField() {
+    return storage.getDefaultIdentitiesSortField();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -429,7 +434,7 @@ public class CachedIdentityStorage implements IdentityStorage {
   }
 
   @Override
-  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter, String sortField,
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter,
                                                                   long offset, long limit,
                                                                   boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     //
@@ -441,7 +446,7 @@ public class CachedIdentityStorage implements IdentityStorage {
             new ServiceContext<ListIdentitiesData>() {
               public ListIdentitiesData execute() {
                 List<Identity> got = storage.getSortedIdentitiesByFirstCharacterOfName(
-                        providerId, profileFilter, sortField, offset, limit, forceLoadOrReloadProfile);
+                        providerId, profileFilter, offset, limit, forceLoadOrReloadProfile);
                 return buildIds(got);
               }
             },

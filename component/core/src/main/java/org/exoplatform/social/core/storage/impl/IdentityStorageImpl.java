@@ -47,6 +47,8 @@ import org.chromattic.ext.ntdef.Resource;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.MembershipTypeHandler;
@@ -99,11 +101,12 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
   /** Logger */
   private static final Log LOG = ExoLogger.getLogger(IdentityStorageImpl.class);
 
+
   private IdentityStorage identityStorage;
   private RelationshipStorage relationshipStorage;
   private SpaceStorage spaceStorage;
   private OrganizationService organizationService;
-  
+
 
   static enum PropNs {
 
@@ -1023,6 +1026,11 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
   }
 
   @Override
+  public String getDefaultIdentitiesSortField() {
+    return Profile.FULL_NAME;
+  }
+
+  @Override
   public List<Identity> getIdentities(String providerId, long offset, long limit) {
     // this is a placeholder impl to run tests
     return getIdentitiesByProfileFilter(providerId, new ProfileFilter(), offset, limit, true);
@@ -1082,7 +1090,7 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
   }
 
   @Override
-  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter, String sortField,
+  public List<Identity> getSortedIdentitiesByFirstCharacterOfName(String providerId, ProfileFilter profileFilter,
                                                                   long offset, long limit,
                                                                   boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     // this is a placeholder impl to run tests

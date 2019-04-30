@@ -37,6 +37,8 @@ import javax.persistence.TypedQuery;
 import org.exoplatform.commons.api.persistence.ExoTransactional;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -48,6 +50,7 @@ import org.exoplatform.social.core.jpa.storage.dao.jpa.query.ProfileQueryBuilder
 import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
 import org.exoplatform.social.core.jpa.storage.entity.IdentityEntity;
 import org.exoplatform.social.core.relationship.model.Relationship.Type;
+import org.exoplatform.social.core.search.Sorting;
 
 /**
  * @author <a href="mailto:tuyennt@exoplatform.com">Tuyen Nguyen The</a>.
@@ -55,7 +58,19 @@ import org.exoplatform.social.core.relationship.model.Relationship.Type;
 public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> implements IdentityDAO {
   
   private static final Log LOG = ExoLogger.getLogger(IdentityDAOImpl.class);
+  private String defaultIdentitiesSortField = Profile.FULL_NAME;
+  private String DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME = "defaultIdentitiesSortField";
 
+  public IdentityDAOImpl (InitParams initParams) {
+    super();
+    if (initParams != null) {
+      ValueParam defaultIdentitiesSortFieldParam = initParams.getValueParam(DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME);
+      if (defaultIdentitiesSortFieldParam != null && defaultIdentitiesSortFieldParam.getValue() != null) {
+        defaultIdentitiesSortField = defaultIdentitiesSortFieldParam.getValue();
+      }
+    }
+
+  }
   @Override
   public IdentityEntity create(IdentityEntity entity) {
     IdentityEntity exists = findByProviderAndRemoteId(entity.getProviderId(), entity.getRemoteId());
@@ -143,8 +158,8 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
 
 
   @Override
-  public List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, String sortField, long offset, long limit) {
-    Query query = getSortedIdentitiesQueryByFirstLetter(filter, sortField);
+  public List<String> findSortedIdentitiesByFirstLetter(ExtendProfileFilter filter, long offset, long limit) {
+    Query query = getSortedIdentitiesQueryByFirstLetter(filter);
     return getResultsFromQuery(query, 0, offset, limit, String.class);
   }
 
@@ -152,6 +167,11 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
   public List<String> getAllIdsByProviderSorted(String providerId, String sortField, long offset, long limit) {
     Query query = getIdentitiesQuerySortedByField(providerId, sortField);
     return getResultsFromQuery(query, 0, offset, limit, String.class);
+  }
+
+  @Override
+  public String getDefaultIdentitiesSortField() {
+    return this.defaultIdentitiesSortField;
   }
 
   @Override
@@ -346,11 +366,18 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
   }
 
 
-  private Query getSortedIdentitiesQueryByFirstLetter(ExtendProfileFilter profileFilter, String sortField) {
+  private Query getSortedIdentitiesQueryByFirstLetter(ExtendProfileFilter profileFilter) {
     // Oracle and MSSQL support only 1/0 for boolean, Postgresql supports only TRUE/FALSE, MySQL supports both
     String dbBoolFalse = isOrcaleDialect() || isMSSQLDialect() ? "0" : "FALSE";
     String dbBoolTrue = isOrcaleDialect() || isMSSQLDialect() ? "1" : "TRUE";
     // Oracle Dialect in Hibernate 4 is not registering NVARCHAR correctly, see HHH-10495
+
+    String sortField = this.defaultIdentitiesSortField;
+    Sorting sorting = profileFilter.getSorting();
+    if (sorting != null && (Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) || Sorting.SortBy.LASTNAME.equals(sorting.sortBy) || Sorting.SortBy.FULLNAME.equals(sorting.sortBy))) {
+      sortField=sorting.sortBy.getName();
+    }
+
     StringBuilder queryStringBuilder =
             isOrcaleDialect() ? new StringBuilder("SELECT to_char(identity_main.remote_id), identity_main.identity_id, to_char(identity_prop_sort.value) \n")
                     :isMSSQLDialect() ? new StringBuilder("SELECT try_convert(varchar(200), identity_main.remote_id) as remote_id , identity_main.identity_id, try_convert(varchar(200), identity_prop_sort.value) as identity_prop_sort_value \n")

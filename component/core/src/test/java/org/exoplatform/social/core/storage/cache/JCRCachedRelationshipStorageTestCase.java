@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.profile.ProfileFilter;
@@ -351,6 +352,16 @@ public class JCRCachedRelationshipStorageTestCase extends AbstractCoreTest {
   private Identity createIdentity(String remoteId) {
     Identity identity = new Identity("organization", remoteId);
     identityStorage.saveIdentity(identity);
+
+    Profile profile = new Profile(identity);
+    profile.setProperty(Profile.FIRST_NAME, remoteId +"FirstName");
+    profile.setProperty(Profile.LAST_NAME, remoteId + "LastName");
+    profile.setProperty(Profile.FULL_NAME, remoteId +"FirstName" +  " " + remoteId +  "LastName");
+    profile.setProperty("position", "developer");
+    profile.setProperty("gender", "male");
+    identity.setProfile(profile);
+
+    identityStorage.saveProfile(profile);
     tearDownIdentityList.add(identity.getId());
     return identity;
   }

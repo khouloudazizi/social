@@ -23,6 +23,7 @@ import org.exoplatform.social.common.ListAccessValidator;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.profile.ProfileFilter;
+import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.social.core.storage.api.RelationshipStorage;
 
@@ -73,6 +74,8 @@ public class ConnectionFilterListAccess implements ListAccess<Identity> {
     if (profileFilter.getViewerIdentity() == null) {
       profileFilter.setViewerIdentity(identity);
     }
+    profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityStorage.getDefaultIdentitiesSortField()), Sorting.OrderBy.ASC));
+
   }
   
   /**

@@ -300,7 +300,7 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
     StorageUtils.applyFilter(whereExpression, filter);
 
     //
-    builder.where(whereExpression.toString()).orderBy(ProfileEntity.fullName.getName(), Ordering.ASC);
+    builder.where(whereExpression.toString()).orderBy(identityStorage.getDefaultIdentitiesSortField(), Ordering.ASC);
     
     QueryImpl<ProfileEntity> queryImpl = (QueryImpl<ProfileEntity>) builder.get();
     ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
@@ -1143,7 +1143,7 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       throws RelationshipStorageException {
     //
     if (profileFilter.isEmpty()) {
-      return StorageUtils.sortIdentitiesByFullName(getIncomingRelationships(existingIdentity, offset, limit), true);
+      return StorageUtils.sortIdentitiesBySortField(getIncomingRelationships(existingIdentity, offset, limit), identityStorage.getDefaultIdentitiesSortField(), true);
     }
 
     List<Identity> identities = getStorage().getIncomingRelationships(existingIdentity, 0, -1);
@@ -1159,7 +1159,7 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       throws RelationshipStorageException {
 
     if (profileFilter.isEmpty()) {
-      return StorageUtils.sortIdentitiesByFullName(getOutgoingRelationships(existingIdentity, offset, limit), true);
+      return StorageUtils.sortIdentitiesBySortField(getOutgoingRelationships(existingIdentity, offset, limit), identityStorage.getDefaultIdentitiesSortField(), true);
     }
     
     List<Identity> identities = getStorage().getOutgoingRelationships(existingIdentity, 0, -1);

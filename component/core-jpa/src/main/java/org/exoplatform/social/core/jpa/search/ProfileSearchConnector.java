@@ -171,8 +171,8 @@ public class ProfileSearchConnector {
           + (sorting.orderBy == null ? "desc" : sorting.orderBy.name()) + "\"}}\n");
     } else {
       String sortField = "name";
-      if (sorting != null && (SortBy.FIRSTNAME.equals(sorting.sortBy) || SortBy.LASTNAME.equals(sorting.sortBy) || SortBy.FULLNAME.equals(sorting.sortBy))) {
-        sortField=sorting.sortBy.getName();
+      if (sorting != null && (SortBy.firstName.equals(sorting.sortBy) || SortBy.lastName.equals(sorting.sortBy))) {
+        sortField=sorting.sortBy.name();
       }
       esQuery.append("   \"sort\": {\""+sortField+".raw\": {\"order\": \"asc\"}}\n");
     }
@@ -307,10 +307,14 @@ public class ProfileSearchConnector {
 
       Sorting sorting = filter.getSorting();
       String filterField = "lastName";
-      if (sorting != null && (SortBy.FIRSTNAME.equals(sorting.sortBy) || SortBy.FULLNAME.equals(sorting.sortBy) || SortBy.LASTNAME.equals(sorting.sortBy))) {
-        filterField = sorting.sortBy.getName();
+      if (sorting != null && (SortBy.firstName.equals(sorting.sortBy) || SortBy.fullName.equals(sorting.sortBy) || SortBy.lastName.equals(sorting.sortBy))) {
+        filterField = sorting.sortBy.name();
+        if (SortBy.fullName.equals(sorting.sortBy)) {
+          // in es, the fullname is stored in field name.
+          filterField="name";
+        }
       }
-      esExp.append(filterField+".whitespace:").append("(").append(upperCase).append(StorageUtils.ASTERISK_STR).append(" OR ").append(lowerCase).append(StorageUtils.ASTERISK_STR).append(")");
+      esExp.append(filterField+".raw:").append("(").append(upperCase).append(StorageUtils.ASTERISK_STR).append(" OR ").append(lowerCase).append(StorageUtils.ASTERISK_STR).append(")");
       return esExp.toString();
     }
 

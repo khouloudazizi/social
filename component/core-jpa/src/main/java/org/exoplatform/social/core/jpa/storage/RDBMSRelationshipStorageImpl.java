@@ -405,7 +405,6 @@ public class RDBMSRelationshipStorageImpl implements RelationshipStorage {
         LOG.warn("Incompatible returned connection entity, the ownerId {} is not receiver, neither sender", ownerId);
       }
     }
-
     return identities;
   }
 

@@ -80,7 +80,7 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
     this.profileFilter = profileFilter;
     this.providerId = providerId;
     this.forceLoadProfile = forceLoadProfile;
-    this.profileFilter.setSorting(new Sorting(Sorting.SortBy.getEnumByString(identityStorage.getDefaultIdentitiesSortField()), Sorting.OrderBy.ASC));
+    this.profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityStorage.getDefaultIdentitiesSortField()), Sorting.OrderBy.ASC));
 
 
   }

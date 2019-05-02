@@ -14,26 +14,7 @@ public class Sorting implements Serializable, Cloneable {
   }
 
   public static enum SortBy {
-    RELEVANCY("RELEVANCY"), DATE("DATE"), TITLE("TITLE"), LASTNAME ("lastName"), FULLNAME("fullName"), FIRSTNAME("firstName");
-
-    private String name;
-
-    //Constructeur
-    SortBy(String name){
-      this.name = name;
-    }
-
-
-    public String getName() {
-      return name;
-    }
-
-    public static SortBy getEnumByString(String name){
-      for(SortBy sortBy : SortBy.values()){
-        if(sortBy.name.equals(name)) return sortBy;
-      }
-      return null;
-    }
+    RELEVANCY, DATE, TITLE, lastName, firstName, fullName
   }
 
   public final SortBy sortBy;

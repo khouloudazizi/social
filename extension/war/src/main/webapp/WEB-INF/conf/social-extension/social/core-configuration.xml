@@ -122,9 +122,7 @@
 
   <component>
     <key>org.exoplatform.social.core.jpa.storage.dao.IdentityDAO</key>
-    <type>org.exoplatform.soc
-
-      ial.core.jpa.storage.dao.jpa.IdentityDAOImpl</type>
+    <type>org.exoplatform.social.core.jpa.storage.dao.jpa.IdentityDAOImpl</type>
     <init-params>
       <value-param>
         <name>defaultIdentitiesSortField</name>

@@ -897,7 +897,7 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
 
   @Override
   public List<IdentityWithRelationship> getIdentitiesWithRelationships(final String identityId, int offset, int limit)  throws IdentityStorageException {
-    ListAccess<Entry<IdentityEntity, ConnectionEntity>> list = getIdentityDAO().findAllIdentitiesWithConnections(Long.valueOf(identityId), Profile.FULL_NAME);
+    ListAccess<Entry<IdentityEntity, ConnectionEntity>> list = getIdentityDAO().findAllIdentitiesWithConnections(Long.valueOf(identityId), identityDAO.getDefaultIdentitiesSortField());
     return EntityConverterUtils.convertToIdentitiesWithRelationship(list, offset, limit);
   }
 

@@ -16,21 +16,27 @@
  */
 package org.exoplatform.social.core.jpa.storage.dao.jpa;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.exoplatform.commons.api.persistence.ExoTransactional;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.jpa.storage.dao.ConnectionDAO;
 import org.exoplatform.social.core.jpa.storage.dao.jpa.query.RelationshipQueryBuilder;
 import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.relationship.model.Relationship.Type;
+import org.exoplatform.social.core.search.Sorting;
 
 /**
  * Created by The eXo Platform SAS
@@ -73,6 +79,11 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
 
   @Override
   public List<ConnectionEntity> getConnections(Identity identity, Type status, long offset, long limit) {
+    return getConnections(identity, status,offset,limit,null);
+  }
+
+  @Override
+  public List<ConnectionEntity> getConnections(Identity identity, Type status, long offset, long limit, Sorting sorting) {
     Long ownerId = Long.valueOf(identity.getId());
 
     String queryName = null;
@@ -80,9 +91,9 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
       queryName = "SocConnection.getConnectionsWithoutStatus";
     } else {
       if(status == Type.INCOMING) {
-        return getSenders(ownerId, Type.PENDING, (int) offset, (int) limit);
+        return getSenders(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else if(status == Type.OUTGOING) {
-        return getReceivers(ownerId, Type.PENDING, (int) offset, (int) limit);
+        return getReceivers(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else {
         queryName = "SocConnection.getConnectionsWithStatus";
       }
@@ -288,19 +299,9 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     return query.getSingleResult();
   }
 
-  private List<ConnectionEntity> getReceivers(long receiverId, Type status, int offset, int limit) {
-    EntityManager em = getEntityManager();
-    String queryName = null;
-    if (status == null || status == Type.ALL) {
-      queryName = "SocConnection.getReceiverBySenderWithoutStatus";
-    } else {
-      queryName = "SocConnection.getReceiverBySenderWithStatus";
-    }
-    TypedQuery<ConnectionEntity> query = em.createNamedQuery(queryName, ConnectionEntity.class);
-    query.setParameter("identityId", receiverId);
-    if (status != null && status != Type.ALL) {
-      query.setParameter("status", status);
-    }
+  private List<ConnectionEntity> getReceivers(long receiverId, Type status, int offset, int limit, Sorting sorting) {
+
+    Query query = getConnectionQuery(receiverId,status, "SENDER", sorting);
     if (offset > 0) {
       query.setFirstResult(offset);
     }
@@ -311,19 +312,8 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     return receiversList;
   }
 
-  private List<ConnectionEntity> getSenders(long receiverId, Type status, int offset, int limit) {
-    EntityManager em = getEntityManager();
-    String queryName = null;
-    if(status ==  null || status == Type.ALL) {
-      queryName = "SocConnection.getSenderByReceiverWithoutStatus";
-    } else {
-      queryName = "SocConnection.getSenderByReceiverWithStatus";
-    }
-    TypedQuery<ConnectionEntity> query = em.createNamedQuery(queryName, ConnectionEntity.class);
-    query.setParameter("identityId", receiverId);
-    if(status !=  null && status != Type.ALL) {
-      query.setParameter("status", status);
-    }
+  private List<ConnectionEntity> getSenders(long receiverId, Type status, int offset, int limit, Sorting sorting) {
+    Query query = getConnectionQuery(receiverId,status, "RECEIVER", sorting);
     if (offset > 0) {
       query.setFirstResult(offset);
     }
@@ -332,5 +322,35 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     }
     return query.getResultList();
   }
+
+  private Query getConnectionQuery(long currentId, Type status, String connectionDirection, Sorting sorting) {
+    String otherDirection = connectionDirection.equals("RECEIVER") ? "SENDER" : "RECEIVER";
+    StringBuilder queryStringBuilder = new StringBuilder("SELECT c.CONNECTION_ID, c.SENDER_ID, c.RECEIVER_ID, c.STATUS, c.UPDATED_DATE FROM SOC_CONNECTIONS c\n");
+
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop \n")
+              .append("   ON c."+otherDirection+"_ID = identity_prop.identity_id \n");
+    }
+
+    queryStringBuilder.append("WHERE c.")
+            .append(connectionDirection)
+            .append("_ID =")
+            .append(currentId);
+
+
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy+"'\n");
+    }
+    if (status != null && status != Type.ALL) {
+      queryStringBuilder.append(" AND c.STATUS = "+status.ordinal());
+    }
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" ORDER BY identity_prop.value ASC");
+    }
+    Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString(), ConnectionEntity.class);
+    return query;
+  }
+
+
 
 }

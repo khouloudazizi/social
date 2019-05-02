@@ -117,7 +117,7 @@
     <init-params>
       <value-param>
         <name>defaultIdentitiesSortField</name>
-        <value>${exo.people.directory.sortField}</value>
+        <value>${exo.people.directory.sortField:}</value>
       </value-param>
     </init-params>
   </component>

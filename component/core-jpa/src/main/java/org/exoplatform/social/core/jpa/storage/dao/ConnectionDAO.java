@@ -24,6 +24,7 @@ import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.relationship.model.Relationship;
 import org.exoplatform.social.core.relationship.model.Relationship.Type;
+import org.exoplatform.social.core.search.Sorting;
 
 /**
  * Created by The eXo Platform SAS
@@ -59,7 +60,16 @@ public interface ConnectionDAO extends GenericDAO<ConnectionEntity, Long> {
    */
   ConnectionEntity getConnection(Long sender, Long receiver);
 
-  
+  /**
+   * @param identity the Identity
+   * @param type type of connection
+   * @param offset the start index
+   * @param limit the max items to load
+   * @param sorting the filed on which sort the connection entities
+   * @return list of connection entities
+   */
+  List<ConnectionEntity> getConnections(Identity identity, Type type, long offset, long limit, Sorting sorting);
+
   /**
    * @param identity the Identity
    * @param type type of connection

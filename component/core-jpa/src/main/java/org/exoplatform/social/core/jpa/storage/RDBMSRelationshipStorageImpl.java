@@ -389,7 +389,7 @@ public class RDBMSRelationshipStorageImpl implements RelationshipStorage {
   private List<Identity> searchConnections(Identity owner, Type status, long offset, long limit, Sorting sorting) {
     long ownerId = Long.valueOf(owner.getId());
 
-    List<ConnectionEntity> connections = connectionDAO.getConnections(owner, status, offset, limit);
+    List<ConnectionEntity> connections = connectionDAO.getConnections(owner, status, offset, limit, sorting);
     List<Identity> identities = new ArrayList<Identity>();
 
     for (ConnectionEntity connectionEntity : connections) {

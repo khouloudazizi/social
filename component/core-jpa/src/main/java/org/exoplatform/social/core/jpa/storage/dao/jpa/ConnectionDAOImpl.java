@@ -88,29 +88,16 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
 
     String queryName = null;
     if (status == null || status == Type.ALL) {
-      queryName = "SocConnection.getConnectionsWithoutStatus";
+      return get2DirectionsConnections(false, ownerId, status, (int) offset,(int) limit, sorting);
     } else {
       if(status == Type.INCOMING) {
         return getSenders(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else if(status == Type.OUTGOING) {
         return getReceivers(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else {
-        queryName = "SocConnection.getConnectionsWithStatus";
+        return get2DirectionsConnections(true, ownerId, status, (int) offset,(int) limit, sorting);
       }
     }
-
-    TypedQuery<ConnectionEntity> query = getEntityManager().createNamedQuery(queryName, ConnectionEntity.class);
-    query.setParameter("identityId", ownerId);
-    if (status != null && status != Type.ALL) {
-      query.setParameter("status", status);
-    }
-    if (offset > 0) {
-      query.setFirstResult((int) offset);
-    }
-    if (limit > 0) {
-      query.setMaxResults((int) limit);
-    }
-    return query.getResultList();
   }
 
   @Override
@@ -351,6 +338,46 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     return query;
   }
 
+  private List<ConnectionEntity> get2DirectionsConnections(boolean withStatus, long receiverId, Type status, int offset, int limit, Sorting sorting) {
+
+
+    Query query = get2DirectionConnectionQuery(withStatus, receiverId,status, sorting);
+
+    if (offset > 0) {
+      query.setFirstResult(offset);
+    }
+    if (limit > 0) {
+      query.setMaxResults(limit);
+    }
+    List<ConnectionEntity> receiversList = query.getResultList();
+    return receiversList;
+  }
+
+  private Query get2DirectionConnectionQuery(boolean withStatus, long currentId, Type status, Sorting sorting) {
+    StringBuilder queryStringBuilder = new StringBuilder("SELECT c.CONNECTION_ID, c.SENDER_ID, c.RECEIVER_ID, c.STATUS, c.UPDATED_DATE FROM SOC_CONNECTIONS c\n");
+
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop \n")
+              .append("   ON (c.SENDER_ID = identity_prop.identity_id AND identity_prop.identity_id!="+currentId+")\n")
+              .append("   OR (c.RECEIVER_ID = identity_prop.identity_id AND identity_prop.identity_id!="+currentId+")\n");
+    }
+
+    queryStringBuilder.append("WHERE (c.SENDER_ID ="+currentId);
+    queryStringBuilder.append(" OR c.RECEIVER_ID ="+currentId+")");
+
+
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy+"'\n");
+    }
+    if (withStatus && status != null && status != Type.ALL) {
+      queryStringBuilder.append(" AND c.STATUS = "+status.ordinal());
+    }
+    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" ORDER BY identity_prop.value ASC");
+    }
+    Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString(), ConnectionEntity.class);
+    return query;
+  }
 
 
 }

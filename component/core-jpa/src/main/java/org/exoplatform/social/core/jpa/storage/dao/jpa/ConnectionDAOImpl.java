@@ -176,7 +176,7 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     if (identity == null) {
       throw new IllegalArgumentException("identity is null. Can't query the whole database.");
     }
-    TypedQuery<ConnectionEntity> query = getEntityManager().createNamedQuery("SocConnection.getConnectionsWithStatus", ConnectionEntity.class);
+    TypedQuery<ConnectionEntity> query = getEntityManager().createNamedQuery("SocConnection.getLastConnectionsWithStatus", ConnectionEntity.class);
     long id = Long.parseLong(identity.getId());
     query.setParameter("identityId", id);
     query.setParameter("status", Relationship.Type.CONFIRMED);

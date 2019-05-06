@@ -46,21 +46,28 @@ import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
                 query = "SELECT DISTINCT identity.id FROM SocIdentityEntity AS identity WHERE "
                         + " identity.providerId = '" + SpaceIdentityProvider.NAME + "' AND "
                         + " identity.remoteId IN "
-                        + "   (SELECT DISTINCT spaceMember.space.prettyName FROM SocSpaceMember AS spaceMember where "
-                        + "     spaceMember.userId = :userId AND "
-                        + "     spaceMember.status = :status "
-                        + "   ) "),
+                        + " (SELECT DISTINCT spaceMember.space.prettyName FROM SocSpaceMember AS spaceMember"
+                        + " WHERE spaceMember.userId = :userId "
+                        + " AND   spaceMember.status = :status )"),
         @NamedQuery(name = "SpaceMember.getSpaceMembersByStatus",
                 query = "SELECT spaceMember.userId FROM SocSpaceMember AS spaceMember "
                         + " WHERE spaceMember.status = :status "
-                        + " AND   spaceMember.space.id = :spaceId "),
+                        + " AND   spaceMember.space.id = :spaceId "
+                        + " AND   spaceMember.userId IN ( "
+                        + " SELECT identity.remoteId FROM SocIdentityEntity AS identity"
+                        + " WHERE  identity.enabled = true "
+                        + " AND    identity.deleted = false )"),
         @NamedQuery(name = "SpaceMember.countSpaceMembersByStatus",
                 query = "SELECT count(*) FROM SocSpaceMember AS spaceMember "
                         + " WHERE spaceMember.status = :status "
-                        + " AND   spaceMember.space.id = :spaceId "),
-        @NamedQuery(name = "SpaceMember.getMember", query = "SELECT mem FROM SocSpaceMember mem WHERE mem.userId = :userId AND mem.space.id = :spaceId AND mem.status = :status"),
-        @NamedQuery(name = "SpaceMember.deleteByUsername", query = "DELETE FROM SocSpaceMember sm WHERE sm.userId = :username"),
-        @NamedQuery(name = "SpaceMember.getSpaceMemberShip", query = "SELECT mem FROM SocSpaceMember mem WHERE mem.userId = :userId AND mem.space.id = :spaceId")})
+                        + " AND   spaceMember.space.id = :spaceId "
+                        + " AND   spaceMember.userId IN ( "
+                        + " SELECT identity.remoteId FROM SocIdentityEntity AS identity"
+                        + " WHERE  identity.enabled = true "
+                        + " AND    identity.deleted = false )"),
+        @NamedQuery(name = "SpaceMember.getMember", query = "SELECT spaceMember FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :userId AND spaceMember.space.id = :spaceId AND spaceMember.status = :status "),
+        @NamedQuery(name = "SpaceMember.deleteByUsername", query = "DELETE FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :username "),
+        @NamedQuery(name = "SpaceMember.getSpaceMemberShip", query = "SELECT spaceMember FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :userId AND spaceMember.space.id = :spaceId ")})
 public class SpaceMemberEntity implements Serializable {
 
   private static final long serialVersionUID = 1015703779692801839L;

@@ -34,6 +34,7 @@ import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
+import org.exoplatform.social.core.storage.cache.SocialStorageCacheService;
 
 /**
  * Listens to user updating events.
@@ -46,7 +47,7 @@ import org.exoplatform.social.core.storage.api.IdentityStorage;
 public class SocialUserEventListenerImpl extends UserEventListener {
 
   private static final Log LOG = ExoLogger.getLogger(SocialUserEventListenerImpl.class);
-  
+
   @Override
   public void preSave(User user, boolean isNew) throws Exception {
 
@@ -150,6 +151,7 @@ public class SocialUserEventListenerImpl extends UserEventListener {
       try {
         if(identity != null) {
           storage.hardDeleteIdentity(identity);
+          clearSpacesMembershipCache();
         }
       } catch (Exception e) {
         LOG.warn("Problem occurred when deleting user named " + identity.getRemoteId(), e);
@@ -171,11 +173,18 @@ public class SocialUserEventListenerImpl extends UserEventListener {
       if (identity != null) {
         IdentityManager idm = CommonsUtils.getService(IdentityManager.class);
         idm.processEnabledIdentity(user.getUserName(), user.isEnabled());
+        clearSpacesMembershipCache();
       } else {
         LOG.warn(String.format("Social's Identity(%s) not found!", user.getUserName()));
       }
     } finally {
       RequestLifeCycle.end();
     }
+  }
+
+  private void clearSpacesMembershipCache(){
+    SocialStorageCacheService storageCacheService = PortalContainer.getInstance().getComponentInstanceOfType(SocialStorageCacheService.class);
+    storageCacheService.getSpaceCache().clearCache();
+    storageCacheService.getIdentitiesCache().clearCache();
   }
 }

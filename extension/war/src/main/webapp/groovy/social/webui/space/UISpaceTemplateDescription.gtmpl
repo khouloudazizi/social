@@ -1,0 +1,4 @@
+<div id="<%=uicomponent.id%>" class="center" style="margin-bottom:8px;">
+    <i class="uiIconInformation" style="color:inherit;font-size:16px;"></i>
+    <%=_ctx.appRes("space.template.description." + uicomponent.getTemplateName())%>
+</div>

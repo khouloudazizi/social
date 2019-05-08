@@ -72,6 +72,7 @@ public class UISpaceSettings extends UIFormInputSet {
     initTypeSelectBox(uiFormTypesSelectBox);
     uiFormTypesSelectBox.setOnChange(TEMPLATES_ONCHANGE);
     addUIFormInput(uiFormTypesSelectBox);
+    addChild(UISpaceTemplateDescription.class, null, "UISpaceTemplateDescription");
     addUIFormInput(new UIFormTextAreaInput(SPACE_DESCRIPTION, SPACE_DESCRIPTION, ""));
   }
   
@@ -80,13 +81,6 @@ public class UISpaceSettings extends UIFormInputSet {
     ResourceBundle resourceBundle = context.getApplicationResourceBundle();
     getUIStringInput(SPACE_DISPLAY_NAME).setHTMLAttribute(HTML_ATTRIBUTE_PLACEHOLDER, resourceBundle.getString("UISpaceSettings.label.spaceDisplayName"));
     UIFormSelectBox uiFormTypesSelectBox = getUIFormSelectBox(SPACE_TEMPLATE);
-    String key = "space.template.description." + uiFormTypesSelectBox.getValue();
-    String descriptionLabel;
-    try {
-      descriptionLabel = resourceBundle.getString(key);
-    } catch (MissingResourceException e) {
-      descriptionLabel = null;
-    }
     //Fix bug SOC-4821
     String scripts = new StringBuilder("(function(jq){jq(\"textarea#")
                         .append(SPACE_DESCRIPTION)

@@ -86,6 +86,10 @@ public class UISpaceAddForm extends UIForm {
   static private final String MSG_SPACE_CREATION_SUCCESS = "UISpaceAddForm.msg.space_creation_success";
   static private final String MSG_ERROR_SPACE_ALREADY_EXIST = "UISpaceAddForm.msg.error_space_already_exist";
   static private final String MSG_ERROR_SPACE_PERMISSION = "UISpaceAddForm.msg.error_space_permission";
+  static private final String VISIBLE_OPEN_SPACE = "UISpaceVisibility.label.VisibleAndOpenSpace";
+  static private final String VISIBLE_VALIDATION_SPACE = "UISpaceVisibility.label.VisibleAndValidationSpace";
+  static private final String VISIBLE_CLOSE_SPACE = "UISpaceVisibility.label.VisibleAndCloseSpace";
+  static private final String HIDDEN_SPACE = "UISpaceVisibility.label.HiddenSpace";
   private final String SPACE_SETTINGS = "UISpaceSettings";
   private final String SPACE_VISIBILITY = "UISpaceVisibility";
   
@@ -245,11 +249,6 @@ public class UISpaceAddForm extends UIForm {
   }
 
   static public class ChangeOptionActionListener extends EventListener<UISpaceAddForm> {
-    private final String VISIBLE_OPEN_SPACE = "UISpaceVisibility.label.VisibleAndOpenSpace";
-    private final String VISIBLE_VALIDATION_SPACE = "UISpaceVisibility.label.VisibleAndValidationSpace";
-    private final String VISIBLE_CLOSE_SPACE = "UISpaceVisibility.label.VisibleAndCloseSpace";
-    private final String HIDDEN_SPACE = "UISpaceVisibility.label.HiddenSpace";
-
     @Override
     public void execute(Event<UISpaceAddForm> event) throws Exception {
       UISpaceAddForm uiSpaceAddForm = event.getSource();
@@ -298,11 +297,34 @@ public class UISpaceAddForm extends UIForm {
       String registration = spaceTemplate.getRegistration();
       UISpaceAddForm uiForm = uiSpaceSettings.getAncestorOfType(UISpaceAddForm.class);
       UISpaceVisibility uiSpaceVisibility = uiForm.findFirstComponentOfType(UISpaceVisibility.class);
+      UISpaceTemplateDescription uiSpaceTemplateDescription = uiSpaceSettings.getChild(UISpaceTemplateDescription.class);
       UIFormRadioBoxInput uiVisibility = uiSpaceVisibility.findComponentById(uiSpaceVisibility.UI_SPACE_VISIBILITY);
       UIFormRadioBoxInput uiRegistration = uiSpaceVisibility.findComponentById(uiSpaceVisibility.UI_SPACE_REGISTRATION);
+      uiSpaceTemplateDescription.setTemplateName(templateName);
       uiVisibility.setValue(visibility);
       uiRegistration.setValue(registration);
-      event.getRequestContext().addUIComponentToUpdateByAjax(uiSpaceVisibility);
+      UIFormInputInfo uiFormInfo = uiSpaceVisibility.getChild(UIFormInputInfo.class);
+      WebuiRequestContext ctx = event.getRequestContext();
+      ResourceBundle resApp = ctx.getApplicationResourceBundle();
+      String visibleAndOpenSpace = resApp.getString(VISIBLE_OPEN_SPACE);
+      String visibleAndValidationSpace = resApp.getString(VISIBLE_VALIDATION_SPACE);
+      String visibleAndCloseSpace = resApp.getString(VISIBLE_CLOSE_SPACE);
+      String hiddenSpace = resApp.getString(HIDDEN_SPACE);
+      boolean isPrivate = Space.PRIVATE.equals(visibility);
+      boolean isOpen = Space.OPEN.equals(registration);
+      boolean isValidation = Space.VALIDATION.equals(registration);
+      boolean isClose = Space.CLOSE.equals(registration);
+      if (isPrivate && isOpen) {
+        uiFormInfo.setValue(visibleAndOpenSpace);
+      } else if (isPrivate && isValidation) {
+        uiFormInfo.setValue(visibleAndValidationSpace);
+      } else if (isPrivate && isClose) {
+        uiFormInfo.setValue(visibleAndCloseSpace);
+      } else {
+        uiFormInfo.setValue(hiddenSpace);
+      }
+      ctx.addUIComponentToUpdateByAjax(uiSpaceTemplateDescription);
+      ctx.addUIComponentToUpdateByAjax(uiSpaceVisibility);
     }
   }
 }

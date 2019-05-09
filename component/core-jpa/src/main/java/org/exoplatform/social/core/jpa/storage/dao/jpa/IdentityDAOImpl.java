@@ -374,8 +374,8 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
 
     String sortField = this.defaultIdentitiesSortField;
     Sorting sorting = profileFilter.getSorting();
-    if (sorting != null && (Sorting.SortBy.firstName.equals(sorting.sortBy) || Sorting.SortBy.lastName.equals(sorting.sortBy) || Sorting.SortBy.fullName.equals(sorting.sortBy))) {
-      sortField=sorting.sortBy.name();
+    if (sorting != null && (Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) || Sorting.SortBy.LASTNAME.equals(sorting.sortBy) || Sorting.SortBy.FULLNAME.equals(sorting.sortBy))) {
+      sortField=sorting.sortBy.getFieldName();
     }
 
     StringBuilder queryStringBuilder =

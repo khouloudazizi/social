@@ -74,7 +74,7 @@ public class ConnectionFilterListAccess implements ListAccess<Identity> {
     if (profileFilter.getViewerIdentity() == null) {
       profileFilter.setViewerIdentity(identity);
     }
-    profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityStorage.getDefaultIdentitiesSortField()), Sorting.OrderBy.ASC));
+    profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityStorage.getDefaultIdentitiesSortField().toUpperCase()), Sorting.OrderBy.ASC));
 
   }
   

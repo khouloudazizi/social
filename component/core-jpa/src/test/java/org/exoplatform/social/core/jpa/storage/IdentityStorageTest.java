@@ -582,7 +582,7 @@ public class IdentityStorageTest extends AbstractCoreTest {
     assertEquals("Bob Smith",identities.get(0).getProfile().getFullName());
     assertEquals("Brian Lafleur", identities.get(1).getProfile().getFullName());
 
-    filter.setSorting(new Sorting(Sorting.SortBy.lastName, Sorting.OrderBy.ASC));
+    filter.setSorting(new Sorting(Sorting.SortBy.LASTNAME, Sorting.OrderBy.ASC));
     filter.setFirstCharacterOfName('D');
     identities = identityStorage.getSortedIdentitiesByFirstCharacterOfName("organization", filter, 0,
             20,false);

@@ -314,7 +314,7 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     String otherDirection = connectionDirection.equals("RECEIVER") ? "SENDER" : "RECEIVER";
     StringBuilder queryStringBuilder = new StringBuilder("SELECT c.CONNECTION_ID, c.SENDER_ID, c.RECEIVER_ID, c.STATUS, c.UPDATED_DATE FROM SOC_CONNECTIONS c\n");
 
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
       queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop \n")
               .append("   ON c."+otherDirection+"_ID = identity_prop.identity_id \n");
     }
@@ -325,13 +325,13 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
             .append(currentId);
 
 
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
-      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy+"'\n");
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy.getFieldName()+"'\n");
     }
     if (status != null && status != Type.ALL) {
       queryStringBuilder.append(" AND c.STATUS = "+status.ordinal());
     }
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
       queryStringBuilder.append(" ORDER BY identity_prop.value ASC");
     }
     Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString(), ConnectionEntity.class);
@@ -356,7 +356,7 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
   private Query get2DirectionConnectionQuery(boolean withStatus, long currentId, Type status, Sorting sorting) {
     StringBuilder queryStringBuilder = new StringBuilder("SELECT c.CONNECTION_ID, c.SENDER_ID, c.RECEIVER_ID, c.STATUS, c.UPDATED_DATE FROM SOC_CONNECTIONS c\n");
 
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
       queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop \n")
               .append("   ON (c.SENDER_ID = identity_prop.identity_id AND identity_prop.identity_id!="+currentId+")\n")
               .append("   OR (c.RECEIVER_ID = identity_prop.identity_id AND identity_prop.identity_id!="+currentId+")\n");
@@ -366,13 +366,13 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     queryStringBuilder.append(" OR c.RECEIVER_ID ="+currentId+")");
 
 
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
-      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy+"'\n");
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
+      queryStringBuilder.append(" AND identity_prop.name = '"+sorting.sortBy.getFieldName()+"'\n");
     }
     if (withStatus && status != null && status != Type.ALL) {
       queryStringBuilder.append(" AND c.STATUS = "+status.ordinal());
     }
-    if (sorting!=null && (Sorting.SortBy.fullName.equals(sorting.sortBy) ||Sorting.SortBy.firstName.equals(sorting.sortBy) ||Sorting.SortBy.lastName.equals(sorting.sortBy))) {
+    if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
       queryStringBuilder.append(" ORDER BY identity_prop.value ASC");
     }
     Query query = getEntityManager().createNativeQuery(queryStringBuilder.toString(), ConnectionEntity.class);

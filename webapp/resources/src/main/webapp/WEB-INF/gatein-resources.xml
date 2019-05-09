@@ -445,4 +445,16 @@
       <as>jQuery</as>
     </depends>
   </module>
+  <module>
+    <name>usersAndGroupsBound</name>
+    <script>
+      <path>/javascript/eXo/social/webui/UIUsersAndGroupsBound.js</path>
+    </script>
+    <depends>
+      <module>jquery</module>
+    </depends>
+    <depends>
+      <module>suggester</module>
+    </depends>
+  </module>
 </gatein-resources>

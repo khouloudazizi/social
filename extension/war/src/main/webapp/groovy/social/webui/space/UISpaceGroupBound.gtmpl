@@ -1,7 +1,7 @@
 <%
 /*
 <!--
-    Copyright (C) 2003-2010 eXo Platform SAS.
+    Copyright (C) 2003-2019 eXo Platform SAS.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU Affero General Public License
@@ -20,28 +20,17 @@
 */
 %>
 <%
-  import org.exoplatform.webui.core.UIPopupWindow;
-  import org.exoplatform.webui.form.UIFormInputInfo;
-  import org.exoplatform.webui.form.input.UICheckBoxInput;
-  
-  def lblCheckbox = _ctx.appRes("${uicomponent.id}.label.checkbox");
-  def lblSelectedGroup = _ctx.appRes("${uicomponent.id}.label.selected_group");
-  
-  def uiCheckbox = uicomponent.getChild(UICheckBoxInput.class);
-  def checked = uiCheckbox.isChecked();
-  def hasGroupWithManagerRole = uicomponent.hasGroupWithManagerRole();
+String placeholder = _ctx.appRes("UISpaceGroupBound.input.placeholder");
 %>
 <div class="uiSpaceGroupBound" id="$uicomponent.id">
-  <%if (checked) {%>
-  <div class="uiGroupSelected"><%= lblSelectedGroup %>: <strong><% uicomponent.renderChild(UIFormInputInfo.class) %></strong></div>
-  <%}%>
-  
-  <%if (hasGroupWithManagerRole) {
-    uiCheckbox.setEnable(true); %>
-	  <div class="uiGroupBoundCheckBox"><% uicomponent.renderChild(UICheckBoxInput.class) %></div>
-  <% } else {
-    uiCheckbox.setEnable(false); %>
-	  <div class="uiGroupBoundCheckBox"><% uicomponent.renderChild(UICheckBoxInput.class) %> </div>
-  <% } %>
-  <div class="groupBoundPopup"><% uicomponent.renderChild(UIPopupWindow.class) %></div>
+  <div class="mention-input">
+    <% uicomponent.renderChild("users-groups") %>
+  </div>
 </div>
+<%
+def rcontext = _ctx.getRequestContext();
+def jsManager = rcontext.getJavascriptManager();
+def requireJs = jsManager.getRequireJS();
+requireJs.require("SHARED/usersAndGroupsBound", "bound");
+requireJs.addScripts("bound.build('users-groups', '/portal/rest/social/people/suggestUsersSpacesGroups/json', '$placeholder');");
+%>

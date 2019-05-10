@@ -53,18 +53,18 @@ import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
                 query = "SELECT spaceMember.userId FROM SocSpaceMember AS spaceMember "
                         + " WHERE spaceMember.status = :status "
                         + " AND   spaceMember.space.id = :spaceId "
-                        + " AND   spaceMember.userId IN ( "
+                        + " AND   spaceMember.userId NOT IN ( "
                         + " SELECT identity.remoteId FROM SocIdentityEntity AS identity"
-                        + " WHERE  identity.enabled = true "
-                        + " AND    identity.deleted = false )"),
+                        + " WHERE  identity.enabled = FALSE "
+                        + " OR     identity.deleted = TRUE )"),
         @NamedQuery(name = "SpaceMember.countSpaceMembersByStatus",
                 query = "SELECT count(*) FROM SocSpaceMember AS spaceMember "
                         + " WHERE spaceMember.status = :status "
                         + " AND   spaceMember.space.id = :spaceId "
-                        + " AND   spaceMember.userId IN ( "
+                        + " AND   spaceMember.userId NOT IN ( "
                         + " SELECT identity.remoteId FROM SocIdentityEntity AS identity"
-                        + " WHERE  identity.enabled = true "
-                        + " AND    identity.deleted = false )"),
+                        + " WHERE  identity.enabled = FALSE "
+                        + " OR     identity.deleted = TRUE )"),
         @NamedQuery(name = "SpaceMember.getMember", query = "SELECT spaceMember FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :userId AND spaceMember.space.id = :spaceId AND spaceMember.status = :status "),
         @NamedQuery(name = "SpaceMember.deleteByUsername", query = "DELETE FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :username "),
         @NamedQuery(name = "SpaceMember.getSpaceMemberShip", query = "SELECT spaceMember FROM SocSpaceMember spaceMember WHERE spaceMember.userId = :userId AND spaceMember.space.id = :spaceId ")})

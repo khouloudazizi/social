@@ -130,7 +130,7 @@ public class SpaceMemberAnyMembershipUpgradeTest extends BaseCoreTest {
 
     space = spaceService.getSpaceByGroupId(space.getGroupId());
 
-    assertEquals(totalCount + members.length, space.getMembers().length);
+    assertEquals(totalCount, space.getMembers().length);
   }
 
   public void testMultiSpacesUpgrade() throws Exception{

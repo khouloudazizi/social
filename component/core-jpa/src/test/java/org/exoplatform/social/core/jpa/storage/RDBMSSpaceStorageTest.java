@@ -19,6 +19,8 @@ package org.exoplatform.social.core.jpa.storage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.exoplatform.social.core.identity.model.Identity;
+import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
 import org.exoplatform.social.core.space.SpaceFilter;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.storage.api.SpaceStorage;
@@ -99,6 +101,7 @@ public class RDBMSSpaceStorageTest extends SpaceStorageTest {
   public void testGetLastAccessedSpace() {
     //create a new space
     Space space = getSpaceInstance(1);
+    resetSpaceIdentitesStatus(space);
     spaceStorage.saveSpace(space,true);
     tearDownSpaceList.add(space);
     // Update space accessed
@@ -178,4 +181,92 @@ public class RDBMSSpaceStorageTest extends SpaceStorageTest {
     assertEquals("my_space_test_0", spaces.get(3).getPrettyName());
   }
 
+    private void resetSpaceIdentitesStatus(Space space){
+        String[] ids = space.getMembers();
+        for(String id : ids){
+            Identity identity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME,id,true);
+            if(identity != null) {
+                identity.setDeleted(false);
+                identity.setEnable(true);
+                identityManager.updateIdentity(identity);
+            }
+        }
+    }
+
+    public void testDeletedSpaceMember() {
+        //create a new space
+        Space space = getSpaceInstance(1);
+        resetSpaceIdentitesStatus(space);
+        Identity spaceMemberIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME,"raul",true);
+        spaceMemberIdentity.setDeleted(true);
+        identityManager.updateIdentity(spaceMemberIdentity);
+        tearDownSpaceList.add(space);
+        spaceStorage.saveSpace(space,true);
+        cacheService.getSpaceCache().clearCache();
+        cacheService.getSpaceSimpleCache().clearCache();
+        Space spaceFromCache = spaceStorage.getSpaceById(space.getId());
+        assertNotNull(spaceFromCache.getMembers());
+        // There is 5 members including 1 deleted
+        assertEquals(4,spaceFromCache.getMembers().length);
+        assertNotNull(spaceFromCache.getManagers());
+        assertEquals(2,spaceFromCache.getManagers().length);
+    }
+
+    public void testDisabledSpaceMember() {
+        //create a new space
+        Space space = getSpaceInstance(1);
+        resetSpaceIdentitesStatus(space);
+        Identity spaceMemberIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME,"raul",true);
+        spaceMemberIdentity.setEnable(false);
+        identityManager.updateIdentity(spaceMemberIdentity);
+        tearDownSpaceList.add(space);
+        spaceStorage.saveSpace(space,true);
+        cacheService.getSpaceCache().clearCache();
+        cacheService.getSpaceSimpleCache().clearCache();
+        Space spaceFromCache = spaceStorage.getSpaceById(space.getId());
+        assertNotNull(spaceFromCache.getMembers());
+        // There is 5 members including 1 disabled
+        assertEquals(4,spaceFromCache.getMembers().length);
+        assertNotNull(spaceFromCache.getManagers());
+        assertEquals(2,spaceFromCache.getManagers().length);
+    }
+
+    public void testDeletedSpaceManager() {
+        //create a new space
+        Space space = getSpaceInstance(1);
+        resetSpaceIdentitesStatus(space);
+        Identity spaceManagerIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME,"demo",true);
+        spaceManagerIdentity.setDeleted(true);
+        identityManager.updateIdentity(spaceManagerIdentity);
+        tearDownSpaceList.add(space);
+        spaceStorage.saveSpace(space,true);
+        cacheService.getSpaceCache().clearCache();
+        cacheService.getSpaceSimpleCache().clearCache();
+        Space spaceFromCache = spaceStorage.getSpaceById(space.getId());
+        assertNotNull(spaceFromCache.getMembers());
+        // There is 5 members including 1 deleted
+        assertEquals(4,spaceFromCache.getMembers().length);
+        assertNotNull(spaceFromCache.getManagers());
+        // There is 1 manager deleted
+        assertEquals(1,spaceFromCache.getManagers().length);
+    }
+
+    public void testDisabledSpaceManager(){
+        Space space = getSpaceInstance(1);
+        resetSpaceIdentitesStatus(space);
+        Identity spaceManagerIdentity = identityManager.getOrCreateIdentity(OrganizationIdentityProvider.NAME,"demo",true);
+        spaceManagerIdentity.setEnable(false);
+        identityManager.updateIdentity(spaceManagerIdentity);
+        tearDownSpaceList.add(space);
+        spaceStorage.saveSpace(space,true);
+        cacheService.getSpaceCache().clearCache();
+        cacheService.getSpaceSimpleCache().clearCache();
+        Space spaceFromCache = spaceStorage.getSpaceById(space.getId());
+        assertNotNull(spaceFromCache.getMembers());
+        // There is 5 members including 1 disabled
+        assertEquals(4,spaceFromCache.getMembers().length);
+        assertNotNull(spaceFromCache.getManagers());
+        // There is 1 manager disabled
+        assertEquals(1,spaceFromCache.getManagers().length);
+    }
 }

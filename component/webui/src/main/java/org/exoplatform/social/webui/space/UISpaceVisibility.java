@@ -47,9 +47,6 @@ public class UISpaceVisibility extends UIFormInputSet {
   public UISpaceVisibility(String name) throws Exception {
     super(name);
     setComponentConfig(getClass(), null);
-//    List<SelectItemOption<String>> spaceVisibility = new ArrayList<SelectItemOption<String>>(3);
-//    SelectItemOption<String> publicOption = new SelectItemOption<String>(Space.PUBLIC);
-//    spaceVisibility.add(publicOption);
     List<SelectItemOption<String>> spaceVisibility = new ArrayList<SelectItemOption<String>>(2);
     SelectItemOption<String> privateOption = new SelectItemOption<String>(Space.PRIVATE);
     spaceVisibility.add(privateOption);
@@ -80,12 +77,5 @@ public class UISpaceVisibility extends UIFormInputSet {
                                                                       spaceRegistration);
     uiRadioRegistration.setValue(Space.OPEN);
     addUIFormInput(uiRadioRegistration);
-
-    UIFormInputInfo visibilityInfo = new UIFormInputInfo("Visibility", null, null);
-    WebuiRequestContext webReqCtx = WebuiRequestContext.getCurrentInstance();
-    ResourceBundle resApp = webReqCtx.getApplicationResourceBundle();
-    String visibleAndOpen = resApp.getString(VISIBLE_VALIDATION_SPACE);
-    visibilityInfo.setValue(visibleAndOpen);
-    addUIFormInput(visibilityInfo);
   }
 }

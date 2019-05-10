@@ -1,14 +1,14 @@
 (function($) {
   var bound = {
-    build(selector, url, placeholder) {
+    build: function(selector, url, placeholder) {
       $('#' + selector).suggester({
         type: 'tag',
+        placeholder: placeholder,
         plugins: ['remove_button', 'restore_on_backspace'],
         create: false,
         createOnBlur: false,
         highlight: false,
         openOnFocus: false,
-        placeholder: placeholder,
         sourceProviders: ['exo:social'],
         valueField: 'text',
         labelField: 'text',
@@ -17,10 +17,10 @@
         dropdownParent: 'body',
         hideSelected: true,
         renderMenuItem: function(item, escape) {
-          return `<div class="item">${escape(item.value)}</div>`;
+          return '<div class="item">' + escape(item.value) + '</div>';
         },
         renderItem: function(item) {
-          return `<div class="item">${item.text}</div>`;
+          return '<div class="item">' + item.text + '</div>';
         },
         onItemRemove: function(item) {
           this.$input[0].selectize.removeOption(item);
@@ -68,7 +68,7 @@
           }
         }
       });
-    },
+    }
   };
 
   return bound;

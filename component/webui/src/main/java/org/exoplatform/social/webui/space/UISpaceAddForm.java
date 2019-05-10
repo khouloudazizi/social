@@ -37,7 +37,6 @@ import org.exoplatform.social.core.space.SpacesAdministrationService;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
 import org.exoplatform.social.core.space.spi.SpaceTemplateService;
-import org.exoplatform.social.webui.UISocialGroupSelector;
 import org.exoplatform.social.webui.Utils;
 import org.exoplatform.web.application.ApplicationMessage;
 import org.exoplatform.web.application.JavascriptManager;
@@ -51,7 +50,6 @@ import org.exoplatform.webui.event.Event;
 import org.exoplatform.webui.event.Event.Phase;
 import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.form.*;
-import org.exoplatform.webui.form.input.UICheckBoxInput;
 
 import static org.exoplatform.social.webui.space.UISpaceSettings.SPACE_TEMPLATE;
 
@@ -67,8 +65,6 @@ import static org.exoplatform.social.webui.space.UISpaceSettings.SPACE_TEMPLATE;
   template = "system:/groovy/webui/form/UIFormWithTitle.gtmpl",
   events = {
     @EventConfig(listeners = UISpaceAddForm.CreateActionListener.class),
-    @EventConfig(listeners = UISpaceAddForm.ToggleUseGroupActionListener.class, phase = Phase.DECODE),
-    @EventConfig(listeners = UISpaceAddForm.ChangeOptionActionListener.class, phase = Phase.DECODE),
     @EventConfig(listeners = UISpaceAddForm.ChangeTemplateActionListener.class, phase = Phase.DECODE)
   }
 )
@@ -86,10 +82,6 @@ public class UISpaceAddForm extends UIForm {
   static private final String MSG_SPACE_CREATION_SUCCESS = "UISpaceAddForm.msg.space_creation_success";
   static private final String MSG_ERROR_SPACE_ALREADY_EXIST = "UISpaceAddForm.msg.error_space_already_exist";
   static private final String MSG_ERROR_SPACE_PERMISSION = "UISpaceAddForm.msg.error_space_permission";
-  static private final String VISIBLE_OPEN_SPACE = "UISpaceVisibility.label.VisibleAndOpenSpace";
-  static private final String VISIBLE_VALIDATION_SPACE = "UISpaceVisibility.label.VisibleAndValidationSpace";
-  static private final String VISIBLE_CLOSE_SPACE = "UISpaceVisibility.label.VisibleAndCloseSpace";
-  static private final String HIDDEN_SPACE = "UISpaceVisibility.label.HiddenSpace";
   private final String SPACE_SETTINGS = "UISpaceSettings";
   private final String SPACE_VISIBILITY = "UISpaceVisibility";
   
@@ -223,69 +215,6 @@ public class UISpaceAddForm extends UIForm {
     }
   }
 
-  /**
-   * listener for toggle use existing group action When this action is triggered, a group selector
-   * poup will show up for choosing.
-   */
-  static public class ToggleUseGroupActionListener extends EventListener<UISpaceAddForm> {
-    @Override
-    public void execute(Event<UISpaceAddForm> event) throws Exception {
-      UISpaceAddForm uiSpaceAddForm = event.getSource();
-      UISpaceGroupBound uiSpaceGroupBound = uiSpaceAddForm.getChild(UISpaceGroupBound.class);
-      UICheckBoxInput uiUseExistingGroup = uiSpaceGroupBound.getChild(UICheckBoxInput.class);
-      if (uiUseExistingGroup.isChecked()) {
-        UIPopupWindow uiPopup = uiSpaceGroupBound.getChild(UIPopupWindow.class);
-        UISocialGroupSelector uiGroupSelector = uiSpaceAddForm.createUIComponent(UISocialGroupSelector.class,
-                null,
-                null);
-        uiPopup.setUIComponent(uiGroupSelector);
-        uiPopup.setShowMask(true);
-        uiPopup.setShow(true);
-      } else {
-        UIFormInputInfo uiFormInputInfo = uiSpaceGroupBound.getChild(UIFormInputInfo.class);
-        uiFormInputInfo.setValue(null);
-      }
-    }
-  }
-
-  static public class ChangeOptionActionListener extends EventListener<UISpaceAddForm> {
-    @Override
-    public void execute(Event<UISpaceAddForm> event) throws Exception {
-      UISpaceAddForm uiSpaceAddForm = event.getSource();
-      WebuiRequestContext ctx = event.getRequestContext();
-      ResourceBundle resApp = ctx.getApplicationResourceBundle();
-
-      String visibleAndOpenSpace = resApp.getString(VISIBLE_OPEN_SPACE);
-      String visibleAndValidationSpace = resApp.getString(VISIBLE_VALIDATION_SPACE);
-      String visibleAndCloseSpace = resApp.getString(VISIBLE_CLOSE_SPACE);
-      String hiddenSpace = resApp.getString(HIDDEN_SPACE);
-
-      //Space space = new Space();
-      //uiSpaceAddForm.invokeSetBindingBean(space);
-      UIFormInputSet uiSpaceVisibility = uiSpaceAddForm.getChildById(uiSpaceAddForm.SPACE_VISIBILITY);
-      UIFormRadioBoxInput selectPriority = uiSpaceVisibility.getChildById(UISpaceVisibility.UI_SPACE_VISIBILITY);
-      UIFormRadioBoxInput selectRegistration = uiSpaceVisibility.getChildById(UISpaceVisibility.UI_SPACE_REGISTRATION);
-      
-      UIFormInputInfo uiFormInfo = uiSpaceVisibility.getChild(UIFormInputInfo.class);
-
-      String currentVisibility = selectPriority.getValue();
-      String currentRegistration = selectRegistration.getValue();
-      boolean isPrivate = Space.PRIVATE.equals(currentVisibility);
-      boolean isOpen = Space.OPEN.equals(currentRegistration);
-      boolean isValidation = Space.VALIDATION.equals(currentRegistration);
-      boolean isClose = Space.CLOSE.equals(currentRegistration);
-      if (isPrivate && isOpen) {
-        uiFormInfo.setValue(visibleAndOpenSpace);
-      } else if (isPrivate && isValidation) {
-        uiFormInfo.setValue(visibleAndValidationSpace);
-      } else if (isPrivate && isClose) {
-        uiFormInfo.setValue(visibleAndCloseSpace);
-      } else {
-        uiFormInfo.setValue(hiddenSpace);
-      }
-    }
-  }
-
   static public class ChangeTemplateActionListener extends EventListener<UISpaceAddForm> {
     public void execute(Event<UISpaceAddForm> event) throws Exception {
       UISpaceAddForm uiSpaceAddForm = event.getSource();
@@ -303,26 +232,7 @@ public class UISpaceAddForm extends UIForm {
       uiSpaceTemplateDescription.setTemplateName(templateName);
       uiVisibility.setValue(visibility);
       uiRegistration.setValue(registration);
-      UIFormInputInfo uiFormInfo = uiSpaceVisibility.getChild(UIFormInputInfo.class);
       WebuiRequestContext ctx = event.getRequestContext();
-      ResourceBundle resApp = ctx.getApplicationResourceBundle();
-      String visibleAndOpenSpace = resApp.getString(VISIBLE_OPEN_SPACE);
-      String visibleAndValidationSpace = resApp.getString(VISIBLE_VALIDATION_SPACE);
-      String visibleAndCloseSpace = resApp.getString(VISIBLE_CLOSE_SPACE);
-      String hiddenSpace = resApp.getString(HIDDEN_SPACE);
-      boolean isPrivate = Space.PRIVATE.equals(visibility);
-      boolean isOpen = Space.OPEN.equals(registration);
-      boolean isValidation = Space.VALIDATION.equals(registration);
-      boolean isClose = Space.CLOSE.equals(registration);
-      if (isPrivate && isOpen) {
-        uiFormInfo.setValue(visibleAndOpenSpace);
-      } else if (isPrivate && isValidation) {
-        uiFormInfo.setValue(visibleAndValidationSpace);
-      } else if (isPrivate && isClose) {
-        uiFormInfo.setValue(visibleAndCloseSpace);
-      } else {
-        uiFormInfo.setValue(hiddenSpace);
-      }
       ctx.addUIComponentToUpdateByAjax(uiSpaceTemplateDescription);
       ctx.addUIComponentToUpdateByAjax(uiSpaceVisibility);
     }

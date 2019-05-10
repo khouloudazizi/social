@@ -23,8 +23,13 @@
 String placeholder = _ctx.appRes("UISpaceGroupBound.input.placeholder");
 %>
 <div class="uiSpaceGroupBound" id="$uicomponent.id">
-  <div class="mention-input">
-    <% uicomponent.renderChild("users-groups") %>
+  <div class="form-horizontal">
+    <div class="control-group">
+      <label class="control-label"><%=_ctx.appRes("UISpaceGroupBound.label.input")%>:</label>
+      <div class="controls">
+        <% uicomponent.renderChild("users-groups") %>
+      </div>
+    </div>
   </div>
 </div>
 <%

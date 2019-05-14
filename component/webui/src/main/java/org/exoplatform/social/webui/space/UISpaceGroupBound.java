@@ -42,7 +42,7 @@ public class UISpaceGroupBound extends UIContainer {
   private final String POPUP_GROUP_BOUND = "UIPopupGroupBound";
   private final String SELECTED_GROUP = "groupId";
   private final String ANY_MEMBERSHIP_TYPE = "*";
-  private final String USERS_CROUPS = "users-groups";
+  private final String USERS_SPACES = "users-spaces";
 
   /** Html attribute title. */
   private static final String HTML_ATTRIBUTE_TITLE   = "title";
@@ -52,7 +52,7 @@ public class UISpaceGroupBound extends UIContainer {
    * @throws Exception
    */
   public UISpaceGroupBound() throws Exception {
-    UIFormStringInput uiFormStringInput = new UIFormStringInput(USERS_CROUPS, null, null);
+    UIFormStringInput uiFormStringInput = new UIFormStringInput(USERS_SPACES, null, null);
     addChild(uiFormStringInput);
   }
 

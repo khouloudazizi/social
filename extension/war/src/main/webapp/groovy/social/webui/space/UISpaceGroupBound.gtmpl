@@ -27,7 +27,7 @@ String placeholder = _ctx.appRes("UISpaceGroupBound.input.placeholder");
     <div class="control-group">
       <label class="control-label"><%=_ctx.appRes("UISpaceGroupBound.label.input")%>:</label>
       <div class="controls">
-        <% uicomponent.renderChild("users-groups") %>
+        <% uicomponent.renderChild("users-spaces") %>
       </div>
     </div>
   </div>
@@ -36,6 +36,6 @@ String placeholder = _ctx.appRes("UISpaceGroupBound.input.placeholder");
 def rcontext = _ctx.getRequestContext();
 def jsManager = rcontext.getJavascriptManager();
 def requireJs = jsManager.getRequireJS();
-requireJs.require("SHARED/usersAndGroupsBound", "bound");
-requireJs.addScripts("bound.build('users-groups', '/portal/rest/social/people/suggestUsersSpacesGroups/json', '$placeholder');");
+requireJs.require("SHARED/usersAndSpacesBound", "bound");
+requireJs.addScripts("bound.build('users-spaces', '/portal/rest/social/people/suggestUsersAndSpaces/json', '$placeholder');");
 %>

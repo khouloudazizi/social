@@ -822,20 +822,18 @@ public class PeopleRestService implements ResourceContainer{
    *
    * @param uriInfo The requested URI information.
    * @param name The provided characters to be searched.
-   * @param typeOfRelation The relationship status such as "confirmed", "pending", "incoming", "member_of_space", "mention_activity_stream", "mention_comment" or "user_to_invite"
    * @param format The format of the returned result, for example, JSON, or XML.
-   * @return A list of users' names that match the input string.
+   * @return A list of user and space names that match the input string.
    * @throws Exception
    * @LevelAPI Platform
-   * @anchor PeopleRestService.suggestUsernames
+   * @anchor PeopleRestService.suggestUsersAndSpaces
    */
   @SuppressWarnings("deprecation")
   @RolesAllowed("users")
   @GET
-  @Path("/suggestUsersSpacesGroups/{format}")
-  public Response suggestUsersSpacesGroups(@Context UriInfo uriInfo,
+  @Path("/suggestUsersAndSpaces/{format}")
+  public Response suggestUsersAndSpaces(@Context UriInfo uriInfo,
                                    @QueryParam("nameToSearch") String name,
-                                   @QueryParam("typeOfRelation") String typeOfRelation,
                                    @PathParam("format") String format) throws Exception {
     String[] mediaTypes = new String[]{"json", "xml"};
     MediaType mediaType = Util.getMediaType(format, mediaTypes);
@@ -855,7 +853,6 @@ public class PeopleRestService implements ResourceContainer{
     IdentityNameList nameList = new IdentityNameList();
     Identity viewerIdentity = Util.getViewerIdentity(currentUser);
     identityFilter.setViewerIdentity(viewerIdentity);
-    Identity[] result;
     // Search in connections first
     ListAccess<Identity> connections = getRelationshipManager().getConnectionsByFilter(viewerIdentity, identityFilter);
     if (connections != null && connections.getSize() > 0) {
@@ -906,22 +903,6 @@ public class PeopleRestService implements ResourceContainer{
         opt.setAvatarUrl(id.getProfile() == null ? null : id.getProfile().getAvatarUrl());
         excludedIdentityList.add(id);
         opt.setOrder(4);
-        nameList.addOption(opt);
-      }
-    }
-    remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
-    if (remain > 0 && currentIdentity.isMemberOf(RestUtils.ADMIN_GROUP)) {
-      ListAccess<Group> listAccess = getGroupSearchService().searchGroups(name);
-      int num = (int) Math.min(remain, listAccess.getSize());
-      List<Group> groupList = Arrays.asList(listAccess.load(0, num));
-      for (Group group : groupList) {
-        Option opt = new Option();
-        String groupId = group.getId();
-        String groupName = "*:" + groupId;
-        opt.setType("group");
-        opt.setValue(groupName);
-        opt.setText(groupName);
-        opt.setOrder(5);
         nameList.addOption(opt);
       }
     }

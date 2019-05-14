@@ -9,4 +9,5 @@ import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
         template = "war:/groovy/social/webui/activity/UINewsActivity.gtmpl"
 )
 public class UINewsActivity extends BaseUIActivity {
+    public static final String ACTIVITY_TYPE = "news";
 }

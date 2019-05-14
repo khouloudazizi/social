@@ -177,6 +177,22 @@
       <type>org.exoplatform.webui.ext.UIExtensionPlugin</type>
       <init-params>
         <object-param>
+          <name>News Activity</name>
+          <object type="org.exoplatform.social.webui.activity.UIActivityExtension">
+            <field name="type"><string>org.exoplatform.social.webui.activity.BaseUIActivity</string></field>
+            <field name="name"><string>NEWS_ACTIVITY</string></field>
+            <field name="component"><string>org.exoplatform.social.webui.activity.news.UINewsActivity</string></field>
+            <field name="activityBuiderClass"><string>org.exoplatform.social.webui.activity.news.UINewsActivityBuilder</string></field>
+          </object>
+        </object-param>
+      </init-params>
+    </component-plugin>
+    <component-plugin>
+      <name>add.action</name>
+      <set-method>registerUIExtensionPlugin</set-method>
+      <type>org.exoplatform.webui.ext.UIExtensionPlugin</type>
+      <init-params>
+        <object-param>
           <name>News Composer</name>
           <object type="org.exoplatform.webui.ext.UIExtension">
             <field name="type"><string>org.exoplatform.social.webui.composer.UIActivityComposer</string></field>

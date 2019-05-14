@@ -1,5 +1,6 @@
-package org.exoplatform.social.webui.activity;
+package org.exoplatform.social.webui.activity.news;
 
+import org.exoplatform.social.webui.activity.BaseUIActivity;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
 

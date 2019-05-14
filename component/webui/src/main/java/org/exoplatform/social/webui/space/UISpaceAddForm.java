@@ -133,9 +133,11 @@ public class UISpaceAddForm extends UIForm {
       space.setDisplayName(space.getDisplayName().trim());
       String spaceDisplayName = uiAddForm.getUIStringInput(UISpaceSettings.SPACE_DISPLAY_NAME).getValue();
       String spaceDescription = uiAddForm.getUIFormTextAreaInput(UISpaceSettings.SPACE_DESCRIPTION).getValue();
+      String spaceVisibility = uiAddForm.findFirstComponentOfType(UISpaceVisibility.class).getVisibility();
       space.setDisplayName(spaceDisplayName.trim());
       space.setDescription(StringEscapeUtils.escapeHtml(spaceDescription));
       space.setPrettyName(space.getDisplayName());     
+      space.setVisibility(spaceVisibility);
       String msg = MSG_SPACE_CREATION_SUCCESS;
       try {
         // Checks user is still existing or not.
@@ -224,13 +226,11 @@ public class UISpaceAddForm extends UIForm {
       SpaceTemplate spaceTemplate = spaceTemplateService.getSpaceTemplateByName(templateName);
       String visibility = spaceTemplate.getVisibility();
       String registration = spaceTemplate.getRegistration();
-      UISpaceAddForm uiForm = uiSpaceSettings.getAncestorOfType(UISpaceAddForm.class);
-      UISpaceVisibility uiSpaceVisibility = uiForm.findFirstComponentOfType(UISpaceVisibility.class);
+      UISpaceVisibility uiSpaceVisibility = uiSpaceAddForm.findFirstComponentOfType(UISpaceVisibility.class);
       UISpaceTemplateDescription uiSpaceTemplateDescription = uiSpaceSettings.getChild(UISpaceTemplateDescription.class);
-      UIFormRadioBoxInput uiVisibility = uiSpaceVisibility.findComponentById(uiSpaceVisibility.UI_SPACE_VISIBILITY);
       UIFormRadioBoxInput uiRegistration = uiSpaceVisibility.findComponentById(uiSpaceVisibility.UI_SPACE_REGISTRATION);
       uiSpaceTemplateDescription.setTemplateName(templateName);
-      uiVisibility.setValue(visibility);
+      uiSpaceVisibility.setVisibility(visibility);
       uiRegistration.setValue(registration);
       WebuiRequestContext ctx = event.getRequestContext();
       ctx.addUIComponentToUpdateByAjax(uiSpaceTemplateDescription);

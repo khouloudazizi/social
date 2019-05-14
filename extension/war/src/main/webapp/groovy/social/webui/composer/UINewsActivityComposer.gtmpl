@@ -1,5 +1,1 @@
-<% def formDisplay = uicomponent.isDisplayed() ? "block" : "none"; %>
-
-<div id="$uicomponent.id" style="display:$formDisplay">
-<p> hello world </p>
-</div>
+<!-- Empty template for news activity composer -->

@@ -10,7 +10,7 @@
         highlight: false,
         openOnFocus: false,
         sourceProviders: ['exo:social'],
-        valueField: 'text',
+        valueField: 'value',
         labelField: 'text',
         searchField: ['text'],
         closeAfterSelect: true,

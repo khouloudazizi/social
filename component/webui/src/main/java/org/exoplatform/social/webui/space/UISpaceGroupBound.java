@@ -16,37 +16,17 @@
  */
 package org.exoplatform.social.webui.space;
 
-import java.util.Iterator;
-
-import org.exoplatform.services.organization.Group;
-import org.exoplatform.services.security.ConversationState;
-import org.exoplatform.services.security.MembershipEntry;
-import org.exoplatform.social.core.space.SpaceUtils;
-import org.exoplatform.social.webui.UISocialGroupSelector;
-import org.exoplatform.webui.application.WebuiRequestContext;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.UIContainer;
-import org.exoplatform.webui.core.UIPopupWindow;
-import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.event.EventListener;
-import org.exoplatform.webui.form.UIFormInputInfo;
 import org.exoplatform.webui.form.UIFormStringInput;
-import org.exoplatform.webui.form.input.UICheckBoxInput;
 
 @ComponentConfig(
     template = "war:/groovy/social/webui/space/UISpaceGroupBound.gtmpl"
 )
 
 public class UISpaceGroupBound extends UIContainer {
-  private final String USE_EXISTING_GROUP = "UseExistingGroupCheckBox";
-  private final String POPUP_GROUP_BOUND = "UIPopupGroupBound";
-  private final String SELECTED_GROUP = "groupId";
-  private final String ANY_MEMBERSHIP_TYPE = "*";
   private final String USERS_SPACES = "users-spaces";
 
-  /** Html attribute title. */
-  private static final String HTML_ATTRIBUTE_TITLE   = "title";
-  
   /**
    * constructor
    * @throws Exception
@@ -61,67 +41,8 @@ public class UISpaceGroupBound extends UIContainer {
    * @return selected group
    */
   @SuppressWarnings("unchecked")
-  public String getSelectedGroup() {
+  public String getSelectedUsersAndSpaces() {
     UIFormStringInput uiFormStringInput = getChild(UIFormStringInput.class);
     return uiFormStringInput.getValue();
   }
-//
-//  /**
-//   * Check current user is manager of group or not.
-//   *
-//   * @return True if current user has one group that he is manager of that group.
-//   * @throws Exception
-//   */
-//  protected boolean hasGroupWithManagerRole() throws Exception {
-//    String adminMSType = SpaceUtils.getUserACL().getAdminMSType();
-//
-//    Iterator<MembershipEntry> iter = ConversationState.getCurrent().getIdentity().getMemberships().iterator();
-//    while (iter.hasNext()) {
-//      String msType = iter.next().getMembershipType();
-//      // has any or super membership type
-//      if (ANY_MEMBERSHIP_TYPE.equals(msType) || adminMSType.equals(msType)) {
-//        return true;
-//      }
-//    }
-//
-//    return false;
-//  }
-//
-//  /**
-//   * triggers this action when user clicks on select group on UIGroupSelector
-//   */
-//  static public class SelectGroupActionListener extends EventListener<UISocialGroupSelector> {
-//    public void execute(Event<UISocialGroupSelector> event) throws Exception {
-//      WebuiRequestContext context = event.getRequestContext();
-//      String groupId = context.getRequestParameter(OBJECTID);
-//      UISocialGroupSelector uiGroupSelector = event.getSource();
-//      UISpaceGroupBound uiGroupBound = uiGroupSelector.getAncestorOfType(UISpaceGroupBound.class);
-//      UIFormInputInfo uiFormInputInfo = uiGroupBound.getChild(UIFormInputInfo.class);
-//      uiFormInputInfo.setValue(groupId);
-//      event.getRequestContext().addUIComponentToUpdateByAjax(uiGroupBound);
-//    }
-//  }
-//
-//  /**
-//   * Check if user selected a group or  not when closing the popup,
-//   * if not un-check the checked check box
-//   */
-//  static public class ClosePopupActionListener extends EventListener<UIPopupWindow> {
-//    @SuppressWarnings("unchecked")
-//    @Override
-//    public void execute(Event<UIPopupWindow> event) throws Exception {
-//      UIPopupWindow uiPopup = event.getSource();
-//      UISpaceGroupBound uiGroupBound = uiPopup.getAncestorOfType(UISpaceGroupBound.class);
-//      UISocialGroupSelector uiGroupSelector = (UISocialGroupSelector)uiPopup.getUIComponent();
-//      Group group = uiGroupSelector.getCurrentGroup();
-//      if (group == null) {
-//        UICheckBoxInput uiUseExisting = uiGroupBound.getChild(UICheckBoxInput.class);
-//        uiUseExisting.setChecked(false);
-//      } else {
-//        UIFormInputInfo uiSelected = uiGroupBound.getChild(UIFormInputInfo.class);
-//        uiSelected.setValue(group.getId());
-//      }
-//      uiPopup.setShow(false);
-//    }
-//  }
 }

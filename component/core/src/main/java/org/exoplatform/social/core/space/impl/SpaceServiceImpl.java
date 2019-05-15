@@ -17,10 +17,8 @@
 package org.exoplatform.social.core.space.impl;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -71,6 +69,7 @@ public class SpaceServiceImpl implements SpaceService {
   public static final String                   MEMBER                   = "member";
 
   public static final String                   MANAGER                  = "manager";
+  private static final String                  SPACE_PREFIX             = "space::";
 
   private IdentityRegistry                     identityRegistry;
 
@@ -334,7 +333,7 @@ public class SpaceServiceImpl implements SpaceService {
   /**
    * {@inheritDoc}
    */
-  public Space createSpace(Space space, String creator, String invitedGroupId) {
+  public Space createSpace(Space space, String creator, String invitees) {
 
     if (space.getDisplayName().length() > LIMIT) {
       throw new RuntimeException("Error while creating the space " + space.getDisplayName() + ": space name cannot exceed 200 characters");
@@ -365,17 +364,10 @@ public class SpaceServiceImpl implements SpaceService {
     }
 
     List<String> inviteds = new ArrayList<String>();
-    if (invitedGroupId != null) { // Invites user in group join to new created
-      // space.
-      // Gets users in group and then invites user to join into space.
-      OrganizationService org = getOrgService();
+    if (invitees != null) {
       try {
-
-        ListAccess<User> groupMembersAccess = org.getUserHandler().findUsersByGroupId(invitedGroupId);
-        User [] users = groupMembersAccess.load(0, groupMembersAccess.getSize());
-
-        for (User user : users) {
-          String userId = user.getUserName();
+        Set<String> userIds = getInvitedUsers(invitees);
+        for (String userId : userIds) {
           if (!userId.equals(creator)) {
             String[] invitedUsers = space.getInvitedUsers();
             if (isSuperManager(userId)) {
@@ -392,7 +384,7 @@ public class SpaceServiceImpl implements SpaceService {
           }
         }
       } catch (Exception e) {
-        throw new RuntimeException("Failed to invite users from group " + invitedGroupId, e);
+        throw new RuntimeException("Failed to invite users to the space " + space.getPrettyName(), e);
       }
     }
 
@@ -443,6 +435,34 @@ public class SpaceServiceImpl implements SpaceService {
     }
     updateSpaceBanner(space);
     return space;
+  }
+
+  private Set<String> getInvitedUsers(String invitees) throws Exception {
+    OrganizationService org = getOrgService();
+    String[] invitedList = invitees.split(",");
+    String invitedUser;
+    Set<String> invitedUserIds = new HashSet<>();
+    for (String userStr : invitedList) {
+      // If it's a space
+      if (userStr.startsWith(SPACE_PREFIX)) {
+        String spaceName = userStr.substring(SPACE_PREFIX.length());
+        Space space = getSpaceByPrettyName(spaceName);
+        if (space != null) {
+          String groupId = space.getGroupId();
+          ListAccess<User> groupMembersAccess = org.getUserHandler().findUsersByGroupId(groupId);
+          User[] users = groupMembersAccess.load(0, groupMembersAccess.getSize());
+          List<String> usersFromSpace = Arrays.stream(users).map(User::getUserName).collect(Collectors.toList());
+          invitedUserIds.addAll(usersFromSpace);
+        }
+      } else { // Otherwise, it's an user
+        invitedUser = userStr.trim();
+        if (invitedUser.length() == 0 || invitedUserIds.contains(invitedUser)) {
+          continue;
+        }
+        invitedUserIds.add(invitedUser);
+      }
+    }
+    return invitedUserIds;
   }
 
   /**

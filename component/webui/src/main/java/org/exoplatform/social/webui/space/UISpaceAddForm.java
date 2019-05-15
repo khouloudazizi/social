@@ -126,7 +126,7 @@ public class UISpaceAddForm extends UIForm {
       SpaceService spaceService = uiAddForm.getApplicationComponent(SpaceService.class);
       SpacesAdministrationService spacesAdministrationService =  CommonsUtils.getService(SpacesAdministrationService.class);
       UISpaceGroupBound uiGroupBound = uiAddForm.getChild(UISpaceGroupBound.class);
-      String selectedGroup = uiGroupBound.getSelectedGroup();
+      String selectedInvitees = uiGroupBound.getSelectedUsersAndSpaces();
       String creator = ctx.getRemoteUser();          
       Space space = new Space();
       uiAddForm.invokeSetBindingBean(space);
@@ -172,8 +172,8 @@ public class UISpaceAddForm extends UIForm {
         if(!spacesAdministrationService.canCreateSpace(ctx.getRemoteUser())) {
           throw new SpaceException(SpaceException.Code.SPACE_PERMISSION);
         } else {   
-          if (selectedGroup != null) {// create space from an existing group
-            space = spaceService.createSpace(space, creator, selectedGroup);
+          if (selectedInvitees != null) {// create space from an existing group
+            space = spaceService.createSpace(space, creator, selectedInvitees);
           } else { // Create new space
             space = spaceService.createSpace(space, creator);
           }

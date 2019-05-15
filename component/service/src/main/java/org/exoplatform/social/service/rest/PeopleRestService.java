@@ -27,7 +27,7 @@ import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
-import org.exoplatform.services.organization.Group;
+import org.exoplatform.services.organization.Query;
 import org.exoplatform.services.organization.search.GroupSearchService;
 import org.exoplatform.services.rest.resource.ResourceContainer;
 import org.exoplatform.services.security.ConversationState;
@@ -48,7 +48,6 @@ import org.exoplatform.social.core.space.SpaceException;
 import org.exoplatform.social.core.space.SpaceFilter;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.core.space.spi.SpaceService;
-import org.exoplatform.social.rest.api.RestUtils;
 import org.exoplatform.social.rest.impl.user.UserRestResourcesV1;
 import org.exoplatform.social.service.rest.api.models.IdentityNameList;
 import org.exoplatform.social.service.rest.api.models.IdentityNameList.Option;
@@ -841,9 +840,6 @@ public class PeopleRestService implements ResourceContainer{
     ProfileFilter identityFilter = new ProfileFilter();
 
     identityFilter.setName(name);
-    identityFilter.setCompany("");
-    identityFilter.setPosition("");
-    identityFilter.setSkills("");
     org.exoplatform.services.security.Identity currentIdentity = ConversationState.getCurrent().getIdentity();
     String currentUser = currentIdentity.getUserId();
     List<Identity> excludedIdentityList = identityFilter.getExcludedIdentityList();
@@ -870,7 +866,6 @@ public class PeopleRestService implements ResourceContainer{
         nameList.addOption(opt);
       }
     }
-    List<Space> exclusions = new ArrayList<Space>();
     // Includes spaces the current user is member.
     long remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
     if (remain > 0) {
@@ -885,14 +880,13 @@ public class PeopleRestService implements ResourceContainer{
         opt.setText(s.getDisplayName());
         opt.setOrder(2);
         nameList.addOption(opt);
-        exclusions.add(s);
       }
     }
     remain = SUGGEST_LIMIT - (nameList.getOptions() != null ? nameList.getOptions().size() : 0);
     if (remain > 0) {
       identityFilter.setExcludedIdentityList(excludedIdentityList);
       ListAccess<Identity> listAccess = getIdentityManager().getIdentitiesByProfileFilter(OrganizationIdentityProvider.NAME, identityFilter, false);
-      List<Identity> identities = Arrays.asList(listAccess.load(0, (int) remain));
+      Identity[] identities = listAccess.load(0, (int) remain);
       for (Identity id : identities) {
         Option opt = new Option();
         String fullName = id.getProfile().getFullName();

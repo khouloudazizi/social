@@ -643,12 +643,12 @@ public interface SpaceService {
    *
    * @param space The space to be created.
    * @param creator The user who creates the space.
-   * @param invitedGroupId Id of group who is invited to join the space.
+   * @param invitees List of spaces and users who are invited to join the space.
    * @return The space.
    * @throws SpaceException with possible code SpaceException.Code.SPACE_ALREADY_EXIST; UNABLE_TO_ADD_CREATOR
    * @LevelAPI Platform
    */
-  Space createSpace(Space space, String creator, String invitedGroupId) throws SpaceException;
+  Space createSpace(Space space, String creator, String invitees) throws SpaceException;
 
   /**
    * Saves a new space or updates a space.

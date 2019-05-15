@@ -1434,7 +1434,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
      String[] managers = {"manager"};
      String[] members = {"member1","member2","member3"};
      String creator = "root";
-     String invitedGroup = "invited";
+     String invitees = "space::invited, john";
      Space space = new Space();
      space.setDisplayName("testSpace");
      space.setDescription("Space Description for Testing");
@@ -1449,7 +1449,7 @@ public class SpaceServiceTest extends AbstractCoreTest {
      space.setType("classic");
      space.setUrl(shortName);
      space.setVisibility("public");
-     spaceService.createSpace(space,creator,invitedGroup);
+     spaceService.createSpace(space,creator,invitees);
      tearDownSpaceList.add(space);
      // 2 = 1 creator + 1 managers
      assertEquals(2,space.getManagers().length);

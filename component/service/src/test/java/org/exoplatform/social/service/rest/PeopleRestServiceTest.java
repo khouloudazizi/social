@@ -20,6 +20,7 @@ import junit.framework.AssertionFailedError;
 import org.exoplatform.services.rest.impl.ContainerResponse;
 import org.exoplatform.services.rest.impl.MultivaluedMapImpl;
 import org.exoplatform.services.rest.tools.ByteArrayContainerResponseWriter;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.identity.model.Identity;
@@ -185,5 +186,28 @@ public class PeopleRestServiceTest  extends AbstractResourceTest {
 
     relationshipManager.delete(relationship);
     spaceService.deleteSpace(space);
+  }
+
+  public void testSuggestUsersAndSpaces() throws Exception {
+    MultivaluedMap<String, String> h = new MultivaluedMapImpl();
+    String username = "root";
+    h.putSingle("username", username);
+    org.exoplatform.services.security.Identity identity = new org.exoplatform.services.security.Identity("root");
+    ConversationState conversationState = new ConversationState(identity);
+    ConversationState.setCurrent(conversationState);
+    ByteArrayContainerResponseWriter writer = new ByteArrayContainerResponseWriter();
+    Space space = new Space();
+    space.setPrettyName("space1");
+    space.setDisplayName("space1");
+    space.setRegistration(Space.OPEN);
+    space.setVisibility(Space.PUBLIC);
+    space.setManagers(new String[]{rootIdentity.getRemoteId()});
+    spaceService.createSpace(space, rootIdentity.getRemoteId());
+    ContainerResponse response = service("GET", "/social/people/suggestUsersAndSpaces/json?nameToSearch=sp", "", h, null, writer);
+    assertNotNull(response);
+    assertEquals(200, response.getStatus());
+    assertEquals("application/json;charset=utf-8", response.getContentType().toString());
+    if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode())
+      throw new AssertionFailedError("Service not found");
   }
 }

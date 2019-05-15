@@ -1,7 +1,12 @@
 package org.exoplatform.social.webui.composer;
 
+import java.time.Instant;
+
 import org.exoplatform.commons.api.settings.ExoFeatureService;
 import org.exoplatform.commons.utils.CommonsUtils;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.application.PeopleService;
@@ -11,7 +16,6 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.webui.Utils;
-import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.exoplatform.social.webui.activity.news.UINewsActivity;
 import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
 import org.exoplatform.social.webui.space.UISpaceActivitiesDisplay;
@@ -21,10 +25,8 @@ import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIComponent;
+import org.exoplatform.webui.core.UIContainer;
 import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.form.UIFormStringInput;
-
-import java.util.ResourceBundle;
 
 @ComponentConfig(
         template = "war:/groovy/social/webui/composer/UINewsActivityComposer.gtmpl",
@@ -36,6 +38,8 @@ import java.util.ResourceBundle;
 )
 
 public class UINewsActivityComposer extends UIActivityComposer {
+
+  private static final Log LOG = ExoLogger.getLogger(UINewsActivityComposer.class);
 
   private static final String NEWS_FEATURE_NAME = "news";
 
@@ -111,6 +115,24 @@ public class UINewsActivityComposer extends UIActivityComposer {
 
   @Override
   protected void onActivate(Event<UIActivityComposer> event) {
+    String userId = null;
+    ConversationState conversationState = ConversationState.getCurrent();
+    if(conversationState != null && conversationState.getIdentity() != null) {
+      userId = conversationState.getIdentity().getUserId();
+    }
+
+    Space space = null;
+    UIContainer uiContainer = event.getSource().getActivityDisplay();
+    if(uiContainer instanceof UISpaceActivitiesDisplay) {
+      space = ((UISpaceActivitiesDisplay) uiContainer).getSpace();
+    }
+
+    LOG.info("service=news operation=display_news_composer parameters=\"date:{},space_name:{},space_id:{},username:{}\"",
+            Instant.now().toString(),
+            space != null ? space.getPrettyName() : null,
+            space != null ? space.getId() : null,
+            userId);
+
     setReadyForPostingActivity(true);
   }
 }

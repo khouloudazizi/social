@@ -4,6 +4,7 @@ import org.exoplatform.commons.api.settings.ExoFeatureService;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.services.organization.Membership;
 import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
@@ -15,7 +16,6 @@ import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvide
 import org.exoplatform.social.core.identity.provider.SpaceIdentityProvider;
 import org.exoplatform.social.core.space.model.Space;
 import org.exoplatform.social.webui.Utils;
-import org.exoplatform.social.webui.activity.UIDefaultActivity;
 import org.exoplatform.social.webui.activity.news.UINewsActivity;
 import org.exoplatform.social.webui.profile.UIUserActivitiesDisplay;
 import org.exoplatform.social.webui.space.UISpaceActivitiesDisplay;
@@ -25,13 +25,10 @@ import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIComponent;
+import org.exoplatform.webui.core.UIContainer;
 import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.form.UIFormStringInput;
-import org.exoplatform.services.organization.Membership;
-import org.exoplatform.social.webui.*;
 
 import java.util.Collection;
-import java.util.ResourceBundle;
 
 @ComponentConfig(
         template = "war:/groovy/social/webui/composer/UINewsActivityComposer.gtmpl",
@@ -44,13 +41,13 @@ import java.util.ResourceBundle;
 
 public class UINewsActivityComposer extends UIActivityComposer {
 
+  private static final Log LOG = ExoLogger.getLogger(UINewsActivityComposer.class);
+
   private static final String NEWS_FEATURE_NAME = "news";
 
   private ExoFeatureService featureService;
 
   private OrganizationService organizationService;
-
-  private static final Log LOG = ExoLogger.getLogger(UIActivityComposerManager.class);
 
   public UINewsActivityComposer() {
     featureService = CommonsUtils.getService(ExoFeatureService.class);
@@ -61,20 +58,20 @@ public class UINewsActivityComposer extends UIActivityComposer {
 
   @Override
   public boolean isEnabled() {
-    boolean isSpaceContext =false;
-    boolean isRedactor =false;
-    if (getActivityDisplay().getClass().getSimpleName().equals("UISpaceActivitiesDisplay")) {
+    boolean isSpaceContext = false;
+    boolean isRedactor = false;
+    if (getActivityDisplay() instanceof UISpaceActivitiesDisplay) {
       UISpaceActivitiesDisplay uiDisplaySpaceActivities = (UISpaceActivitiesDisplay) getActivityDisplay();
       isSpaceContext = uiDisplaySpaceActivities.getSpace() != null ? true : false;
       Space space = uiDisplaySpaceActivities.getSpace();
       String userId = ConversationState.getCurrent().getIdentity().getUserId();
       Collection<Membership> memberships;
       try {
-        memberships = organizationService.getMembershipHandler().findMembershipsByUserAndGroup(userId,space.getGroupId());
+        memberships = organizationService.getMembershipHandler().findMembershipsByUserAndGroup(userId, space.getGroupId());
       } catch (Exception e) {
-        throw new RuntimeException("Can't get user '" + userId + "' memberships in "+space+" space", e);
+        throw new RuntimeException("Can't get user '" + userId + "' memberships in " + space + " space", e);
       }
-      isRedactor = memberships.stream().anyMatch(membership ->  membership.getMembershipType().equals("redactor") || membership.getMembershipType().equals("manager"));
+      isRedactor = memberships.stream().anyMatch(membership -> membership.getMembershipType().equals("redactor") || membership.getMembershipType().equals("manager"));
     }
 
     return isRedactor && isSpaceContext && featureService.isActiveFeature(NEWS_FEATURE_NAME);
@@ -139,6 +136,23 @@ public class UINewsActivityComposer extends UIActivityComposer {
 
   @Override
   protected void onActivate(Event<UIActivityComposer> event) {
+    String userId = null;
+    ConversationState conversationState = ConversationState.getCurrent();
+    if (conversationState != null && conversationState.getIdentity() != null) {
+      userId = conversationState.getIdentity().getUserId();
+    }
+
+    Space space = null;
+    UIContainer uiContainer = event.getSource().getActivityDisplay();
+    if (uiContainer instanceof UISpaceActivitiesDisplay) {
+      space = ((UISpaceActivitiesDisplay) uiContainer).getSpace();
+    }
+
+    LOG.info("service=news operation=display_news_composer parameters=\"space_name:{},space_id:{},username:{}\"",
+            space != null ? space.getPrettyName() : null,
+            space != null ? space.getId() : null,
+            userId);
+
     setReadyForPostingActivity(true);
   }
 }

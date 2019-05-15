@@ -1,7 +1,5 @@
 package org.exoplatform.social.webui.composer;
 
-import java.time.Instant;
-
 import org.exoplatform.commons.api.settings.ExoFeatureService;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.services.log.ExoLogger;
@@ -127,8 +125,7 @@ public class UINewsActivityComposer extends UIActivityComposer {
       space = ((UISpaceActivitiesDisplay) uiContainer).getSpace();
     }
 
-    LOG.info("service=news operation=display_news_composer parameters=\"date:{},space_name:{},space_id:{},username:{}\"",
-            Instant.now().toString(),
+    LOG.info("service=news operation=display_news_composer parameters=\"space_name:{},space_id:{},username:{}\"",
             space != null ? space.getPrettyName() : null,
             space != null ? space.getId() : null,
             userId);

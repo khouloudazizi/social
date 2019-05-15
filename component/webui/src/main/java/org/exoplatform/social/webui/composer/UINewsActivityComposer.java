@@ -2,6 +2,10 @@ package org.exoplatform.social.webui.composer;
 
 import org.exoplatform.commons.api.settings.ExoFeatureService;
 import org.exoplatform.commons.utils.CommonsUtils;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
+import org.exoplatform.services.organization.OrganizationService;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.social.core.activity.model.ExoSocialActivity;
 import org.exoplatform.social.core.activity.model.ExoSocialActivityImpl;
 import org.exoplatform.social.core.application.PeopleService;
@@ -23,7 +27,10 @@ import org.exoplatform.webui.core.UIApplication;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.event.Event;
 import org.exoplatform.webui.form.UIFormStringInput;
+import org.exoplatform.services.organization.Membership;
+import org.exoplatform.social.webui.*;
 
+import java.util.Collection;
 import java.util.ResourceBundle;
 
 @ComponentConfig(
@@ -41,15 +48,36 @@ public class UINewsActivityComposer extends UIActivityComposer {
 
   private ExoFeatureService featureService;
 
+  private OrganizationService organizationService;
+
+  private static final Log LOG = ExoLogger.getLogger(UIActivityComposerManager.class);
+
   public UINewsActivityComposer() {
     featureService = CommonsUtils.getService(ExoFeatureService.class);
+    organizationService = CommonsUtils.getService(OrganizationService.class);
 
     setReadyForPostingActivity(true);
   }
 
   @Override
   public boolean isEnabled() {
-    return featureService.isActiveFeature(NEWS_FEATURE_NAME);
+    boolean isSpaceContext =false;
+    boolean isRedactor =false;
+    if (getActivityDisplay().getClass().getSimpleName().equals("UISpaceActivitiesDisplay")) {
+      UISpaceActivitiesDisplay uiDisplaySpaceActivities = (UISpaceActivitiesDisplay) getActivityDisplay();
+      isSpaceContext = uiDisplaySpaceActivities.getSpace() != null ? true : false;
+      Space space = uiDisplaySpaceActivities.getSpace();
+      String userId = ConversationState.getCurrent().getIdentity().getUserId();
+      Collection<Membership> memberships;
+      try {
+        memberships = organizationService.getMembershipHandler().findMembershipsByUserAndGroup(userId,space.getGroupId());
+      } catch (Exception e) {
+        throw new RuntimeException("Can't get user '" + userId + "' memberships in "+space+" space", e);
+      }
+      isRedactor = memberships.stream().anyMatch(membership ->  membership.getMembershipType().equals("redactor") || membership.getMembershipType().equals("manager"));
+    }
+
+    return isRedactor && isSpaceContext && featureService.isActiveFeature(NEWS_FEATURE_NAME);
   }
 
   @Override

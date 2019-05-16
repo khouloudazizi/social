@@ -27,6 +27,7 @@ import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.profile.ProfileListener;
 import org.exoplatform.social.core.profile.ProfileListenerPlugin;
 import org.exoplatform.social.core.space.model.Space;
+import org.exoplatform.social.core.storage.IdentityStorageException;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
 import org.exoplatform.webui.exception.MessageException;
 
@@ -572,4 +573,11 @@ public interface IdentityManager {
    * @return
    */
   public List<String> sortIdentities(List<String> identityRemoteIds, String sortField);
+
+
+  /**
+   * Gets the default sort field for identities
+   * @throws IdentityStorageException
+   */
+  public String getDefaultIdentitiesSortField ();
 }

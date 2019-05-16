@@ -25,6 +25,8 @@ import java.util.Map;
 
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.PortalContainer;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.social.core.identity.IdentityProvider;
@@ -77,6 +79,12 @@ public class IdentityManagerImpl implements IdentityManager {
   /** lifecycle for profile */
   protected ProfileLifeCycle                 profileLifeCycle  = new ProfileLifeCycle();
 
+
+  /** Default sort for identities display */
+  protected String defaultIdentitiesSortField = Profile.FULL_NAME;
+
+  protected String DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME = "defaultIdentitiesSortField";
+
   /**
    * Instantiates a new identity manager.
    *
@@ -85,9 +93,16 @@ public class IdentityManagerImpl implements IdentityManager {
    *          when no other provider matches
    */
   public IdentityManagerImpl(IdentityStorage identityStorage,
-                             IdentityProvider<?> defaultIdentityProvider) {
+                             IdentityProvider<?> defaultIdentityProvider, InitParams initParams) {
     this.identityStorage = identityStorage;
     this.addIdentityProvider(defaultIdentityProvider);
+
+    if (initParams != null) {
+      ValueParam defaultIdentitiesSortFieldParam = initParams.getValueParam(DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME);
+      if (defaultIdentitiesSortFieldParam != null && defaultIdentitiesSortFieldParam.getValue() != null && !defaultIdentitiesSortFieldParam.getValue().isEmpty()) {
+        defaultIdentitiesSortField = defaultIdentitiesSortFieldParam.getValue();
+      }
+    }
   }
 
   /**
@@ -111,7 +126,7 @@ public class IdentityManagerImpl implements IdentityManager {
    */
   public ListAccess<Identity> getIdentitiesByProfileFilter(String providerId, ProfileFilter profileFilter,
                                                            boolean forceLoadProfile) {
-    return (new ProfileFilterListAccess(identityStorage, providerId, profileFilter, forceLoadProfile));
+    return (new ProfileFilterListAccess(identityStorage, providerId, profileFilter, this, forceLoadProfile));
   }
 
   
@@ -567,5 +582,10 @@ public class IdentityManagerImpl implements IdentityManager {
   @Override
   public List<String> sortIdentities(List<String> identityRemoteIds, String sortField) {
     return identityStorage.sortIdentities(identityRemoteIds, sortField);
+  }
+
+  @Override
+  public String getDefaultIdentitiesSortField() {
+    return this.defaultIdentitiesSortField;
   }
 }

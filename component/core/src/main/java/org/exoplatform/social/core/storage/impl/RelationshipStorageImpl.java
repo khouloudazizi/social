@@ -42,6 +42,7 @@ import org.chromattic.core.query.QueryImpl;
 import org.exoplatform.commons.notification.impl.AbstractService;
 import org.exoplatform.commons.utils.CommonsUtils;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
@@ -53,6 +54,7 @@ import org.exoplatform.social.core.chromattic.entity.RelationshipListEntity;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.identity.provider.OrganizationIdentityProvider;
+import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.manager.RelationshipManager;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.profile.ProfileLoader;
@@ -300,7 +302,8 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
     StorageUtils.applyFilter(whereExpression, filter);
 
     //
-    builder.where(whereExpression.toString()).orderBy(identityStorage.getDefaultIdentitiesSortField(), Ordering.ASC);
+    IdentityManager identityManager = ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+    builder.where(whereExpression.toString()).orderBy(identityManager.getDefaultIdentitiesSortField(), Ordering.ASC);
     
     QueryImpl<ProfileEntity> queryImpl = (QueryImpl<ProfileEntity>) builder.get();
     ((org.exoplatform.services.jcr.impl.core.query.QueryImpl) queryImpl.getNativeQuery()).setCaseInsensitiveOrder(true);
@@ -1143,7 +1146,8 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       throws RelationshipStorageException {
     //
     if (profileFilter.isEmpty()) {
-      return StorageUtils.sortIdentitiesBySortField(getIncomingRelationships(existingIdentity, offset, limit), identityStorage.getDefaultIdentitiesSortField(), true);
+      IdentityManager identityManager = ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+      return StorageUtils.sortIdentitiesBySortField(getIncomingRelationships(existingIdentity, offset, limit), identityManager.getDefaultIdentitiesSortField(), true);
     }
 
     List<Identity> identities = getStorage().getIncomingRelationships(existingIdentity, 0, -1);
@@ -1159,7 +1163,9 @@ public class RelationshipStorageImpl extends AbstractStorage implements Relation
       throws RelationshipStorageException {
 
     if (profileFilter.isEmpty()) {
-      return StorageUtils.sortIdentitiesBySortField(getOutgoingRelationships(existingIdentity, offset, limit), identityStorage.getDefaultIdentitiesSortField(), true);
+      IdentityManager identityManager = ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+
+      return StorageUtils.sortIdentitiesBySortField(getOutgoingRelationships(existingIdentity, offset, limit), identityManager.getDefaultIdentitiesSortField(), true);
     }
     
     List<Identity> identities = getStorage().getOutgoingRelationships(existingIdentity, 0, -1);

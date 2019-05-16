@@ -1026,11 +1026,6 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
   }
 
   @Override
-  public String getDefaultIdentitiesSortField() {
-    return Profile.FULL_NAME;
-  }
-
-  @Override
   public List<Identity> getIdentities(String providerId, long offset, long limit) {
     // this is a placeholder impl to run tests
     return getIdentitiesByProfileFilter(providerId, new ProfileFilter(), offset, limit, true);
@@ -1485,7 +1480,13 @@ public class IdentityStorageImpl extends AbstractStorage implements IdentityStor
       LOG.debug(e.getMessage(), e);
     }
   }
-  
+
+  @Override
+  public List<IdentityWithRelationship> getIdentitiesWithRelationships(String identityId, String sortField,
+                                                                       int offset, int limit) {
+    return getIdentitiesWithRelationships(identityId,offset,limit);
+  }
+
   private void _applyUnifiedSearchFilter(WhereExpression whereExpression, ProfileFilter profileFilter) {
 
     if (profileFilter == null) return;

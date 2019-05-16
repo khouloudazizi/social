@@ -132,12 +132,6 @@ public interface IdentityStorage {
   public int getIdentitiesCount (final String providerId) throws IdentityStorageException;
 
   /**
-   * Gets the default sort field for identities
-   * @throws IdentityStorageException
-   */
-  public String getDefaultIdentitiesSortField ();
-
-  /**
    * Gets the identities by profile filter.
    *
    * @param providerId Id of provider.
@@ -322,6 +316,18 @@ public interface IdentityStorage {
   public void processEnabledIdentity(Identity identity, boolean isEnable);
 
   /**
+   * Gets all identities from the store with the relationship that they have with current user identity. Identities are sorted
+   *
+   * @param identityId user viewer identity id.
+   * @param sortField field on which sort identities
+   * @param offset   Start index of list to be get.
+   * @param limit    End index of list to be get.
+   * @return Identities that have name start with the first character.
+   * @since 4.4.0
+   */
+  List<IdentityWithRelationship> getIdentitiesWithRelationships(String identityId, String sortField, int offset, int limit);
+
+  /**
    * Gets all identities from the store with the relationship that they have with current user identity.
    *
    * @param identityId user viewer identity id.
@@ -387,4 +393,6 @@ public interface IdentityStorage {
    * @param sortField
    * @return
    */
-  public List<String> sortIdentities(List<String> identityRemoteIds, String sortField);}
+  public List<String> sortIdentities(List<String> identityRemoteIds, String sortField);
+
+}

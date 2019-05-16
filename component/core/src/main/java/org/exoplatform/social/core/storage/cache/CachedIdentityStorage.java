@@ -402,11 +402,6 @@ public class CachedIdentityStorage implements IdentityStorage {
 
   }
 
-  @Override
-  public String getDefaultIdentitiesSortField() {
-    return storage.getDefaultIdentitiesSortField();
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -649,7 +644,13 @@ public class CachedIdentityStorage implements IdentityStorage {
     clearCache();
     getCachedRelationshipStorage().clearAllRelationshipCache();
   }
-  
+
+  @Override
+  public List<IdentityWithRelationship> getIdentitiesWithRelationships(String identityId, String sortField,
+                                                                       int offset, int limit) {
+    return storage.getIdentitiesWithRelationships(identityId, sortField, offset, limit);
+  }
+
   /**
    * {@inheritDoc}
    */

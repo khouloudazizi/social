@@ -114,12 +114,6 @@
   <component>
     <key>org.exoplatform.social.core.jpa.storage.dao.IdentityDAO</key>
     <type>org.exoplatform.social.core.jpa.storage.dao.jpa.IdentityDAOImpl</type>
-    <init-params>
-      <value-param>
-        <name>defaultIdentitiesSortField</name>
-        <value>${exo.people.directory.sortField:}</value>
-      </value-param>
-    </init-params>
   </component>
   
   <component>
@@ -362,6 +356,12 @@
         </init-params>
       </component-plugin>
     </component-plugins>
+    <init-params>
+      <value-param>
+        <name>defaultIdentitiesSortField</name>
+        <value>${exo.people.directory.sortField:}</value>
+      </value-param>
+    </init-params>
   </component>
   
   <component>

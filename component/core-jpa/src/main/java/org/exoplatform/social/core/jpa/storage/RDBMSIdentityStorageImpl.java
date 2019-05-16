@@ -37,6 +37,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.commons.lang.StringUtils;
+import org.exoplatform.container.xml.InitParams;
+import org.exoplatform.container.xml.ValueParam;
+import org.exoplatform.social.core.manager.IdentityManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -525,10 +528,6 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
     return (int)getIdentityDAO().countIdentityByProvider(providerId);
   }
 
-  @Override
-  public String getDefaultIdentitiesSortField() {
-    return identityDAO.getDefaultIdentitiesSortField();
-  }
 
   /**
    * Gets the type.
@@ -896,9 +895,16 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
   }
 
   @Override
-  public List<IdentityWithRelationship> getIdentitiesWithRelationships(final String identityId, int offset, int limit)  throws IdentityStorageException {
-    ListAccess<Entry<IdentityEntity, ConnectionEntity>> list = getIdentityDAO().findAllIdentitiesWithConnections(Long.valueOf(identityId), identityDAO.getDefaultIdentitiesSortField());
+  public List<IdentityWithRelationship> getIdentitiesWithRelationships(final String identityId, String sortField, int offset, int limit)  throws IdentityStorageException {
+    ListAccess<Entry<IdentityEntity, ConnectionEntity>> list = getIdentityDAO().findAllIdentitiesWithConnections(Long.valueOf(identityId), sortField);
     return EntityConverterUtils.convertToIdentitiesWithRelationship(list, offset, limit);
+  }
+
+  @Override
+  public List<IdentityWithRelationship> getIdentitiesWithRelationships(final String identityId, int offset, int limit)  throws IdentityStorageException {
+    IdentityManager identityManager = (IdentityManager) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+
+    return getIdentitiesWithRelationships(identityId,identityManager.getDefaultIdentitiesSortField(),offset,limit);
   }
 
   @Override

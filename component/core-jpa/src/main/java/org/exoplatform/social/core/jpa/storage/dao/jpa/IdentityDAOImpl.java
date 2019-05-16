@@ -37,6 +37,7 @@ import javax.persistence.TypedQuery;
 import org.exoplatform.commons.api.persistence.ExoTransactional;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
 import org.exoplatform.commons.utils.ListAccess;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.xml.InitParams;
 import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.services.log.ExoLogger;
@@ -49,6 +50,7 @@ import org.exoplatform.social.core.jpa.storage.dao.IdentityDAO;
 import org.exoplatform.social.core.jpa.storage.dao.jpa.query.ProfileQueryBuilder;
 import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
 import org.exoplatform.social.core.jpa.storage.entity.IdentityEntity;
+import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.relationship.model.Relationship.Type;
 import org.exoplatform.social.core.search.Sorting;
 
@@ -58,19 +60,7 @@ import org.exoplatform.social.core.search.Sorting;
 public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> implements IdentityDAO {
   
   private static final Log LOG = ExoLogger.getLogger(IdentityDAOImpl.class);
-  private String defaultIdentitiesSortField = Profile.FULL_NAME;
-  private String DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME = "defaultIdentitiesSortField";
 
-  public IdentityDAOImpl (InitParams initParams) {
-    super();
-    if (initParams != null) {
-      ValueParam defaultIdentitiesSortFieldParam = initParams.getValueParam(DEFAULT_IDENTITIES_SORT_FIELD_PARAM_NAME);
-      if (defaultIdentitiesSortFieldParam != null && defaultIdentitiesSortFieldParam.getValue() != null) {
-        defaultIdentitiesSortField = defaultIdentitiesSortFieldParam.getValue();
-      }
-    }
-
-  }
   @Override
   public IdentityEntity create(IdentityEntity entity) {
     IdentityEntity exists = findByProviderAndRemoteId(entity.getProviderId(), entity.getRemoteId());
@@ -167,11 +157,6 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
   public List<String> getAllIdsByProviderSorted(String providerId, String sortField, long offset, long limit) {
     Query query = getIdentitiesQuerySortedByField(providerId, sortField);
     return getResultsFromQuery(query, 0, offset, limit, String.class);
-  }
-
-  @Override
-  public String getDefaultIdentitiesSortField() {
-    return this.defaultIdentitiesSortField;
   }
 
   @Override
@@ -372,9 +357,11 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
     String dbBoolTrue = isOrcaleDialect() || isMSSQLDialect() ? "1" : "TRUE";
     // Oracle Dialect in Hibernate 4 is not registering NVARCHAR correctly, see HHH-10495
 
-    String sortField = this.defaultIdentitiesSortField;
+    IdentityManager identityManager = ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(IdentityManager.class);
+
     Sorting sorting = profileFilter.getSorting();
-    if (sorting != null && (Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) || Sorting.SortBy.LASTNAME.equals(sorting.sortBy) || Sorting.SortBy.FULLNAME.equals(sorting.sortBy))) {
+    String sortField = identityManager.getDefaultIdentitiesSortField();
+    if (sorting != null && (Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) || Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {
       sortField=sorting.sortBy.getFieldName();
     }
 

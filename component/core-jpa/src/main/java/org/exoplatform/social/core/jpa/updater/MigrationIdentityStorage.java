@@ -127,11 +127,6 @@ public class MigrationIdentityStorage implements IdentityStorage {
   }
 
   @Override
-  public String getDefaultIdentitiesSortField() {
-    return jpaStorage.getDefaultIdentitiesSortField();
-  }
-
-  @Override
   public List<Identity> getIdentitiesByProfileFilter(String providerId, ProfileFilter profileFilter, long offset, long limit, boolean forceLoadOrReloadProfile) throws IdentityStorageException {
     return jpaStorage.getIdentitiesByProfileFilter(providerId, profileFilter, offset, limit, forceLoadOrReloadProfile);
   }
@@ -203,6 +198,11 @@ public class MigrationIdentityStorage implements IdentityStorage {
     jpaStorage.processEnabledIdentity(identity, isEnable);
   }
 
+
+  @Override
+  public List<IdentityWithRelationship> getIdentitiesWithRelationships(String identityId, String sortField, int offset, int limit) {
+    return jpaStorage.getIdentitiesWithRelationships(identityId, sortField, offset, limit);
+  }
   @Override
   public List<IdentityWithRelationship> getIdentitiesWithRelationships(String identityId, int offset, int limit) {
     return jpaStorage.getIdentitiesWithRelationships(identityId, offset, limit);

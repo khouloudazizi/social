@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.social.core.identity.model.Identity;
-import org.exoplatform.social.core.identity.model.Profile;
+import org.exoplatform.social.core.manager.IdentityManager;
 import org.exoplatform.social.core.profile.ProfileFilter;
 import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.core.storage.api.IdentityStorage;
@@ -37,6 +37,7 @@ import org.exoplatform.social.core.storage.api.IdentityStorage;
 public class ProfileFilterListAccess implements ListAccess<Identity> {
   private static final char EMPTY_CHARACTER = '\u0000';
   private IdentityStorage identityStorage; 
+  private IdentityManager identityManager;
   private ProfileFilter profileFilter;
   
   /**
@@ -74,13 +75,15 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
    * @param profileFilter Filter object as extract's condition.
    * @param forceLoadProfile True then force to load profile.
    */
-  public ProfileFilterListAccess(IdentityStorage identityStorage, String providerId, ProfileFilter profileFilter,
+  public ProfileFilterListAccess(IdentityStorage identityStorage, String providerId, ProfileFilter profileFilter, IdentityManager identityManager,
                                  boolean forceLoadProfile) {
     this.identityStorage = identityStorage;
     this.profileFilter = profileFilter;
     this.providerId = providerId;
     this.forceLoadProfile = forceLoadProfile;
-    this.profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityStorage.getDefaultIdentitiesSortField().toUpperCase()), Sorting.OrderBy.ASC));
+    this.identityManager = identityManager;
+
+    this.profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(identityManager.getDefaultIdentitiesSortField().toUpperCase()), Sorting.OrderBy.ASC));
 
 
   }

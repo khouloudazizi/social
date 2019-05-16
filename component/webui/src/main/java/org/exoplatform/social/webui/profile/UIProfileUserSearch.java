@@ -29,6 +29,7 @@ import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.social.core.identity.model.Identity;
 import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.profile.ProfileFilter;
+import org.exoplatform.social.core.search.Sorting;
 import org.exoplatform.social.webui.Utils;
 import org.exoplatform.web.controller.QualifiedName;
 import org.exoplatform.webui.application.WebuiRequestContext;
@@ -282,6 +283,8 @@ public class UIProfileUserSearch extends UIForm {
     addUIFormInput(new UIFormStringInput(Profile.EXPERIENCES_SKILLS, Profile.EXPERIENCES_SKILLS, ""));
     profileFilter = new ProfileFilter();
     profileFilter.setViewerIdentity(Utils.getViewerIdentity());
+    profileFilter.setSorting(new Sorting(Sorting.SortBy.valueOf(Utils.getIdentityManager().getDefaultIdentitiesSortField().toUpperCase()), Sorting.OrderBy.ASC));
+
     setHasPeopleTab(false);
     setSubmitAction("return false;");
   }
@@ -319,7 +322,8 @@ public class UIProfileUserSearch extends UIForm {
       UIProfileUserSearch uiSearch = event.getSource();
       ProfileFilter filter = new ProfileFilter();
       filter.setViewerIdentity(Utils.getViewerIdentity());
-      
+      filter.setSorting(new Sorting(Sorting.SortBy.valueOf(Utils.getIdentityManager().getDefaultIdentitiesSortField().toUpperCase()), Sorting.OrderBy.ASC));
+
       uiSearch.invokeSetBindingBean(filter);
       normalizeInputValues(filter);
 

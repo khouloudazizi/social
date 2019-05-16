@@ -37,8 +37,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.commons.lang.StringUtils;
-import org.exoplatform.container.xml.InitParams;
-import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.social.core.manager.IdentityManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -527,7 +525,6 @@ public class RDBMSIdentityStorageImpl implements IdentityStorage {
   public int getIdentitiesCount (final String providerId) throws IdentityStorageException {
     return (int)getIdentityDAO().countIdentityByProvider(providerId);
   }
-
 
   /**
    * Gets the type.

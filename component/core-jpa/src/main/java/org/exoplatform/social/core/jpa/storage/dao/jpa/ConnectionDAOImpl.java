@@ -16,7 +16,6 @@
  */
 package org.exoplatform.social.core.jpa.storage.dao.jpa;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -26,10 +25,7 @@ import javax.persistence.TypedQuery;
 
 import org.exoplatform.commons.api.persistence.ExoTransactional;
 import org.exoplatform.commons.persistence.impl.GenericDAOJPAImpl;
-import org.exoplatform.container.xml.InitParams;
-import org.exoplatform.container.xml.ValueParam;
 import org.exoplatform.social.core.identity.model.Identity;
-import org.exoplatform.social.core.identity.model.Profile;
 import org.exoplatform.social.core.jpa.storage.dao.ConnectionDAO;
 import org.exoplatform.social.core.jpa.storage.dao.jpa.query.RelationshipQueryBuilder;
 import org.exoplatform.social.core.jpa.storage.entity.ConnectionEntity;
@@ -88,14 +84,14 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
 
     String queryName = null;
     if (status == null || status == Type.ALL) {
-      return get2DirectionsConnections(false, ownerId, status, (int) offset,(int) limit, sorting);
+      return getTwoDirectionsConnections(false, ownerId, status, (int) offset,(int) limit, sorting);
     } else {
       if(status == Type.INCOMING) {
         return getSenders(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else if(status == Type.OUTGOING) {
         return getReceivers(ownerId, Type.PENDING, (int) offset, (int) limit,sorting);
       } else {
-        return get2DirectionsConnections(true, ownerId, status, (int) offset,(int) limit, sorting);
+        return getTwoDirectionsConnections(true, ownerId, status, (int) offset,(int) limit, sorting);
       }
     }
   }
@@ -338,10 +334,10 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     return query;
   }
 
-  private List<ConnectionEntity> get2DirectionsConnections(boolean withStatus, long receiverId, Type status, int offset, int limit, Sorting sorting) {
+  private List<ConnectionEntity> getTwoDirectionsConnections(boolean withStatus, long receiverId, Type status, int offset, int limit, Sorting sorting) {
 
 
-    Query query = get2DirectionConnectionQuery(withStatus, receiverId,status, sorting);
+    Query query = getTwoDirectionConnectionQuery(withStatus, receiverId,status, sorting);
 
     if (offset > 0) {
       query.setFirstResult(offset);
@@ -353,7 +349,7 @@ public class ConnectionDAOImpl extends GenericDAOJPAImpl<ConnectionEntity, Long>
     return receiversList;
   }
 
-  private Query get2DirectionConnectionQuery(boolean withStatus, long currentId, Type status, Sorting sorting) {
+  private Query getTwoDirectionConnectionQuery(boolean withStatus, long currentId, Type status, Sorting sorting) {
     StringBuilder queryStringBuilder = new StringBuilder("SELECT c.CONNECTION_ID, c.SENDER_ID, c.RECEIVER_ID, c.STATUS, c.UPDATED_DATE FROM SOC_CONNECTIONS c\n");
 
     if (sorting!=null && (Sorting.SortBy.FULLNAME.equals(sorting.sortBy) ||Sorting.SortBy.FIRSTNAME.equals(sorting.sortBy) ||Sorting.SortBy.LASTNAME.equals(sorting.sortBy))) {

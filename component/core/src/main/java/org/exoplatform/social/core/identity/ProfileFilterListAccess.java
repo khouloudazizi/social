@@ -135,7 +135,10 @@ public class ProfileFilterListAccess implements ListAccess<Identity> {
           break;
       }
     } else {
-      if (profileFilter.isEmpty()) {
+      if (profileFilter.getFirstCharacterOfName() != EMPTY_CHARACTER) {
+        identities = identityStorage.getIdentitiesByFirstCharacterOfName(providerId, profileFilter, offset,
+                usedLimit, forceLoadProfile);
+      } else if (profileFilter.isEmpty()) {
         if(profileFilter.getViewerIdentity() == null) {
           identities = identityStorage.getIdentities(providerId, offset, usedLimit);
         } else {

@@ -52,7 +52,7 @@ import org.exoplatform.social.core.relationship.model.Relationship.Type;
  * @author <a href="mailto:tuyennt@exoplatform.com">Tuyen Nguyen The</a>.
  */
 public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> implements IdentityDAO {
-  
+
   private static final Log LOG = ExoLogger.getLogger(IdentityDAOImpl.class);
 
   @Override
@@ -166,9 +166,25 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
   }
 
   public List<IdentityEntity> findIdentitiesByIDs(List<?> ids) {
+    LOG.warn("findIdentitiesByIDs started");
     TypedQuery<IdentityEntity> query = getEntityManager().createNamedQuery("SocIdentity.findIdentitiesByIDs", IdentityEntity.class);
-    query.setParameter("ids", ids);
-    return query.getResultList();
+    if(ids.size() <= 999) {
+      query.setParameter("ids", ids);
+      return query.getResultList();
+    }else {
+      List<IdentityEntity> temp = new ArrayList<IdentityEntity>();
+      while(ids.size()>= 1000){
+        query.setParameter("ids", ids.subList(0,1000));
+        temp.addAll(query.getResultList());
+        ids = ids.subList(1000,ids.size());
+      }
+      if(ids.size() > -1){
+        query.setParameter("ids", ids);
+        temp.addAll(query.getResultList());
+      }
+      return temp;
+    }
+
   }
 
   @SuppressWarnings("unchecked")
@@ -224,7 +240,7 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
       this.selectQuery = null;
       this.countQuery = null;
     }
-                         
+
     public JPAListAccess(Class<T> clazz, TypedQuery<T> selectQuery, TypedQuery<Long> countQuery) {
       this.clazz = clazz;
       this.selectQuery = selectQuery;
@@ -286,9 +302,26 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
       List<IdentityEntity> identitiesList = findIdentitiesByIDs(idsLong);
       Map<Long, IdentityEntity> identitiesMap = identitiesList.stream().collect(Collectors.toMap(identity -> identity.getId(), Function.identity()));
       connectionsQuery.setParameter("identityId", identityId);
-      connectionsQuery.setParameter("ids", idsLong);
       connectionsQuery.setMaxResults(Integer.MAX_VALUE);
-      List<ConnectionEntity> connectionsList = connectionsQuery.getResultList();
+      List<ConnectionEntity> connectionsList = new ArrayList<ConnectionEntity>();
+      if(idsLong.size() <= 999) {
+        connectionsQuery.setParameter("ids", idsLong);
+        connectionsList =  connectionsQuery.getResultList();
+      }else {
+        List<ConnectionEntity> temp = new ArrayList<ConnectionEntity>();
+        List<Long> idsLongTemp = idsLong;
+        while(idsLongTemp.size() >= 1000){
+          connectionsQuery.setParameter("ids", idsLongTemp.subList(0,1000));
+          temp.addAll(connectionsQuery.getResultList());
+          idsLongTemp = idsLongTemp.subList(1000,ids.size());
+        }
+        if(idsLongTemp.size() > -1){
+          connectionsQuery.setParameter("ids", idsLongTemp);
+          temp.addAll(connectionsQuery.getResultList());
+        }
+        connectionsList = temp;
+      }
+
       Map<IdentityEntity, ConnectionEntity> map = new LinkedHashMap<IdentityEntity, ConnectionEntity>();
       for (Long identityId : idsLong) {
         IdentityEntity identityEntity = identitiesMap.get(identityId);
@@ -321,9 +354,9 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
     String dbBoolTrue = isOrcaleDialect() || isMSSQLDialect() ? "1" : "TRUE";
     // Oracle Dialect in Hibernate 4 is not registering NVARCHAR correctly, see HHH-10495
     StringBuilder queryStringBuilder =
-                                      isOrcaleDialect() ? new StringBuilder("SELECT to_char(identity_1.remote_id), identity_1.identity_id, to_char(identity_prop.value) \n")
-                                      :isMSSQLDialect() ? new StringBuilder("SELECT try_convert(varchar(200), identity_1.remote_id) as remote_id , identity_1.identity_id, try_convert(varchar(200), identity_prop.value) as identity_prop_value \n")
-                                                        : new StringBuilder("SELECT (identity_1.remote_id), identity_1.identity_id, (identity_prop.value) \n");
+            isOrcaleDialect() ? new StringBuilder("SELECT to_char(identity_1.remote_id), identity_1.identity_id, to_char(identity_prop.value) \n")
+                    :isMSSQLDialect() ? new StringBuilder("SELECT try_convert(varchar(200), identity_1.remote_id) as remote_id , identity_1.identity_id, try_convert(varchar(200), identity_prop.value) as identity_prop_value \n")
+                    : new StringBuilder("SELECT (identity_1.remote_id), identity_1.identity_id, (identity_prop.value) \n");
     queryStringBuilder.append(" FROM SOC_IDENTITIES identity_1 \n");
     queryStringBuilder.append(" LEFT JOIN SOC_IDENTITY_PROPERTIES identity_prop \n");
     queryStringBuilder.append("   ON identity_1.identity_id = identity_prop.identity_id \n");

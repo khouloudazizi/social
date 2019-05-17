@@ -16,7 +16,7 @@ jsmanager.require("SHARED/social-ui-customize-control", "customizeControl").addS
         <div class="control-group">
             <label class="control-label"><%=_ctx.appRes(uicomponent.getName() + ".label.UIVisibility")%>:</label>
             <div class="controls">
-                <div class="spaceVisibility" style="margin-top:5px;margin-bottom:-5px;" onclick="<%=uicomponent.event('ChangeVisibility')%>">
+                <div class="spaceVisibility" style="margin-top:5px;margin-bottom:-5px;width:60px" onclick="<%=uicomponent.event('ChangeVisibility')%>">
                     <% if(isHidden) { %>
                         <input type="checkbox" class="yesno" checked="checked" style="visibility: hidden;">
                     <% }else { %>

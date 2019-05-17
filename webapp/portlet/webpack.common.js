@@ -7,7 +7,7 @@ let config = {
   // can use multiple entry
   entry: {
     spaceInfos: './src/main/webapp/space-infos-app/main.js',
-    spaceNews :'./src/main/webapp/space-news-app/main.js',
+    newsActivityComposer :'./src/main/webapp/news-activity-composer-app/main.js',
   },
   module: {
     rules: [

@@ -79,6 +79,11 @@
             return true;
         }
     },
+      isNewsComposerSelected: function () {
+          if ($(UIComposer.composer).find('.ActivityComposerExtItemSelected').hasClass('UINewActivityComposer'))
+              return true;
+          return false
+      },
     refreshShareButton : function() {
         var pureText = UIComposer.getEditorData().replace(/\<p\>\s*\<\/p\>/g,"");
 

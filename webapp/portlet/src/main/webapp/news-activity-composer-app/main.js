@@ -5,11 +5,11 @@ import { spacesConstants } from '../js/spacesConstants.js';
 const lang = typeof eXo !== 'undefined' ? eXo.env.portal.language : 'en';
 
 // should expose the locale ressources as REST API 
-const url = `${spacesConstants.PORTAL}/${spacesConstants.PORTAL_REST}/i18n/bundle/locale.portlet.social.SpaceNewsPortlet-${lang}.json`;
+const url = `${spacesConstants.PORTAL}/${spacesConstants.PORTAL_REST}/i18n/bundle/locale.portlet.social.NewsActivityComposer-${lang}.json`;
 
 // get overrided components if exists
 if (extensionRegistry) {
-  const components = extensionRegistry.loadComponents('SpaceNews');
+  const components = extensionRegistry.loadComponents('NewsActivityComposer');
   if (components && components.length > 0) {
     components.forEach(cmp => {
       Vue.component(cmp.componentName, cmp.componentOptions);
@@ -22,8 +22,8 @@ export function init() {
   exoi18n.loadLanguageAsync(lang, url).then(i18n => {
   // init Vue app when locale ressources are ready
     new Vue({
-      el: '#spaceNews',
-      template: '<exo-space-news></exo-space-news>',
+      el: '#newsActivityComposer',
+      template: '<exo-newsActivity-composer></exo-newsActivity-composer>',
       i18n
     });
   });

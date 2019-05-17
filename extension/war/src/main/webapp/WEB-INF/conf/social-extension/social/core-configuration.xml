@@ -324,7 +324,7 @@
     <init-params>
       <value-param>
         <name>defaultSpaceTemplate</name>
-        <value>community</value>
+        <value>${exo.social.template.default:community}</value>
       </value-param>
     </init-params>
   </component>
@@ -923,7 +923,7 @@
       <init-params>
         <value-param>
           <name>templateName</name>
-          <value>community</value>
+          <value>${exo.social.template.default:community}</value>
         </value-param>
       </init-params>
     </component-plugin>

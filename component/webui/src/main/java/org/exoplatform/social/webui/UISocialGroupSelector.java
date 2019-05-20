@@ -18,17 +18,15 @@
 package org.exoplatform.social.webui;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.exoplatform.portal.config.UserACL;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.Group;
-import org.exoplatform.services.organization.Membership;
-import org.exoplatform.services.organization.OrganizationService;
 import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.services.security.Identity;
 import org.exoplatform.services.security.MembershipEntry;
+import org.exoplatform.social.core.space.SpacesAdministrationService;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.config.annotation.ComponentConfigs;
 import org.exoplatform.webui.config.annotation.EventConfig;
@@ -46,11 +44,12 @@ import org.exoplatform.webui.organization.account.UIGroupSelector;
     @ComponentConfig(type = UIBreadcumbs.class, id = "BreadcumbGroupSelector", template = "system:/groovy/webui/core/UIBreadcumbs.gtmpl", events = @EventConfig(phase = Phase.DECODE, listeners = UIBreadcumbs.SelectPathActionListener.class)) })
 public class UISocialGroupSelector extends UIGroupSelector {
 
-  private static final Log LOG = ExoLogger.getLogger(UISocialGroupSelector.class);
-
   public static final String MANAGER = "manager";
-  public static final String ANY = "*";
-  
+
+  public static final String ANY     = "*";
+
+  private List<String>       spacesAdministratorsGroups;
+
   public UISocialGroupSelector() throws Exception {
     super();
   }
@@ -58,28 +57,26 @@ public class UISocialGroupSelector extends UIGroupSelector {
   @Override
   protected boolean canUserSeeGroup(Group group) {
     UserACL userACL = getApplicationComponent(UserACL.class);
+
     Identity userIdentity = ConversationState.getCurrent().getIdentity();
-    Collection<MembershipEntry> userMemberships = userIdentity.getMemberships();
-    return userACL.getSuperUser().equals(userIdentity.getUserId())
-            || isManagerOfGroup(userIdentity.getUserId(), group.getId())
-            || userMemberships.stream().anyMatch(userMembership -> userMembership.getGroup().startsWith(group.getId() + "/")
-                && (userMembership.getMembershipType().equals(ANY) || userMembership.getMembershipType().equals(MANAGER)));
-  }
-
-  private boolean isManagerOfGroup(String remoteUser, String groupId) {
-    OrganizationService organizationService = getApplicationComponent(OrganizationService.class);
-
-    Membership membership = null;
-    try {
-      membership = organizationService.getMembershipHandler().findMembershipByUserGroupAndType(remoteUser, groupId, ANY);
-
-      if (membership == null) {
-        membership = organizationService.getMembershipHandler().findMembershipByUserGroupAndType(remoteUser, groupId, MANAGER);
-      }
-    } catch (Exception e) {
-      LOG.error("Error while getting memberships of user " + remoteUser + " for group " + groupId, e);
+    if (userACL.getSuperUser().equals(userIdentity.getUserId()) || userACL.isUserInGroup(userACL.getAdminGroups())) {
+      return true;
     }
-    
-    return membership != null;
+
+    SpacesAdministrationService spacesAdministrationService = getApplicationComponent(SpacesAdministrationService.class);
+    Collection<MembershipEntry> userMemberships = userIdentity.getMemberships();
+    if (spacesAdministratorsGroups == null) {
+      spacesAdministratorsGroups = spacesAdministrationService.getSpacesAdministratorsMemberships()
+                                                              .stream()
+                                                              .map(membershipEntry -> membershipEntry.getGroup())
+                                                              .collect(Collectors.toList());
+    }
+    return userMemberships.stream()
+                          .anyMatch(userMembership -> (group.getId().startsWith("/spaces/")
+                              && spacesAdministratorsGroups.contains(userMembership.getGroup()))
+                              || ((userMembership.getGroup().equals(group.getId())
+                                  || userMembership.getGroup().startsWith(group.getId() + "/"))
+                                  && (userMembership.getMembershipType().equals(ANY)
+                                      || userMembership.getMembershipType().equals(MANAGER))));
   }
 }

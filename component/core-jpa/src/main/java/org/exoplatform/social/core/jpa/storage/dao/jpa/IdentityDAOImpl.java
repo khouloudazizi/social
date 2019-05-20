@@ -168,17 +168,17 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
   public List<IdentityEntity> findIdentitiesByIDs(List<?> ids) {
     LOG.warn("findIdentitiesByIDs started");
     TypedQuery<IdentityEntity> query = getEntityManager().createNamedQuery("SocIdentity.findIdentitiesByIDs", IdentityEntity.class);
-    if(ids.size() <= 999) {
+    if (ids.size() <= 999) {
       query.setParameter("ids", ids);
       return query.getResultList();
-    }else {
+    } else {
       List<IdentityEntity> temp = new ArrayList<IdentityEntity>();
-      while(ids.size()>= 1000){
-        query.setParameter("ids", ids.subList(0,1000));
+      while (ids.size() >= 1000) {
+        query.setParameter("ids", ids.subList(0, 1000));
         temp.addAll(query.getResultList());
-        ids = ids.subList(1000,ids.size());
+        ids = ids.subList(1000, ids.size());
       }
-      if(ids.size() > -1){
+      if (ids.size() > -1) {
         query.setParameter("ids", ids);
         temp.addAll(query.getResultList());
       }
@@ -304,18 +304,18 @@ public class IdentityDAOImpl extends GenericDAOJPAImpl<IdentityEntity, Long> imp
       connectionsQuery.setParameter("identityId", identityId);
       connectionsQuery.setMaxResults(Integer.MAX_VALUE);
       List<ConnectionEntity> connectionsList = new ArrayList<ConnectionEntity>();
-      if(idsLong.size() <= 999) {
+      if (idsLong.size() <= 999) {
         connectionsQuery.setParameter("ids", idsLong);
-        connectionsList =  connectionsQuery.getResultList();
-      }else {
+        connectionsList = connectionsQuery.getResultList();
+      } else {
         List<ConnectionEntity> temp = new ArrayList<ConnectionEntity>();
         List<Long> idsLongTemp = idsLong;
-        while(idsLongTemp.size() >= 1000){
-          connectionsQuery.setParameter("ids", idsLongTemp.subList(0,1000));
+        while (idsLongTemp.size() >= 1000) {
+          connectionsQuery.setParameter("ids", idsLongTemp.subList(0, 1000));
           temp.addAll(connectionsQuery.getResultList());
-          idsLongTemp = idsLongTemp.subList(1000,ids.size());
+          idsLongTemp = idsLongTemp.subList(1000, ids.size());
         }
-        if(idsLongTemp.size() > -1){
+        if (idsLongTemp.size() > -1) {
           connectionsQuery.setParameter("ids", idsLongTemp);
           temp.addAll(connectionsQuery.getResultList());
         }

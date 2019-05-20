@@ -41,25 +41,25 @@ import org.exoplatform.webui.event.EventListener;
 /**
  * Displays the list of all existing users and their information. By using this UIAllPeople component, users could manage
  * his connections: invite to connect, revoke invitations, validate invited requests or remove connections.
- *
+ * 
  * @author <a href="mailto:hanhvq@exoplatform.com">Hanh Vi Quoc</a>
  * @since Aug 25, 2011
  * @since 1.2.2
  */
 @ComponentConfig(
-        template = "war:/groovy/social/webui/connections/UIAllPeople.gtmpl",
-        events = {
-                @EventConfig(listeners = UIAllPeople.ConnectActionListener.class),
-                @EventConfig(listeners = UIAllPeople.ConfirmActionListener.class),
-                @EventConfig(listeners = UIAllPeople.IgnoreActionListener.class),
-                @EventConfig(listeners = UIAllPeople.SearchActionListener.class),
-                @EventConfig(listeners = UIAllPeople.LoadMorePeopleActionListener.class)
-        }
+  template = "war:/groovy/social/webui/connections/UIAllPeople.gtmpl",
+  events = {
+    @EventConfig(listeners = UIAllPeople.ConnectActionListener.class),
+    @EventConfig(listeners = UIAllPeople.ConfirmActionListener.class),
+    @EventConfig(listeners = UIAllPeople.IgnoreActionListener.class),
+    @EventConfig(listeners = UIAllPeople.SearchActionListener.class),
+    @EventConfig(listeners = UIAllPeople.LoadMorePeopleActionListener.class)
+  }
 )
 public class UIAllPeople extends UIContainer {
-
+  
   private static final Log LOG = ExoLogger.getLogger(UIAllPeople.class);
-
+  
   /**
    * Label for display invoke action
    */
@@ -77,11 +77,11 @@ public class UIAllPeople extends UIContainer {
 
   /** All people filter. */
   private static final String ALL_FILTER = "All";
-
+  
   public static final String SEARCH = "Search";
-
+  
   private static final char EMPTY_CHARACTER = '\u0000';
-
+  
   /**
    * The search object variable.
    */
@@ -96,7 +96,7 @@ public class UIAllPeople extends UIContainer {
   private int peopleNum;
   String selectedChar = null;
   private Identity lastOwner = null;
-
+  
   /**
    * Gets selected character when search by alphabet.
    *
@@ -114,7 +114,7 @@ public class UIAllPeople extends UIContainer {
   public final void setSelectedChar(final String selectedChar) {
     this.selectedChar = selectedChar;
   }
-
+  
   /**
    * Constructor to initialize iterator.
    *
@@ -128,7 +128,7 @@ public class UIAllPeople extends UIContainer {
     setSelectedChar(ALL_FILTER);
     init();
   }
-
+  
   /**
    * Inits at the first loading.
    */
@@ -144,10 +144,10 @@ public class UIAllPeople extends UIContainer {
       LOG.error(e.getMessage(), e);
     }
   }
-
+  
   /**
    * Sets loading capacity.
-   *
+   * 
    * @param loadingCapacity
    */
   public void setLoadingCapacity(int loadingCapacity) {
@@ -156,7 +156,7 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Gets flag to display LoadNext button or not.
-   *
+   * 
    * @return the enableLoadNext
    */
   public boolean isEnableLoadNext() {
@@ -165,7 +165,7 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Sets flag to display LoadNext button or not.
-   *
+   * 
    * @param enableLoadNext the enableLoadNext to set
    */
   public void setEnableLoadNext(boolean enableLoadNext) {
@@ -173,8 +173,8 @@ public class UIAllPeople extends UIContainer {
   }
 
   /**
-   * Gets flags to clarify that load at the last element or not.
-   *
+   * Gets flags to clarify that load at the last element or not. 
+   * 
    * @return the loadAtEnd
    */
   public boolean isLoadAtEnd() {
@@ -183,7 +183,7 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Sets flags to clarify that load at the last element or not.
-   *
+   * 
    * @param loadAtEnd the loadAtEnd to set
    */
   public void setLoadAtEnd(boolean loadAtEnd) {
@@ -192,36 +192,36 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Gets list of all type of people.
-   *
+   * 
    * @return the peopleList
-   * @throws Exception
+   * @throws Exception 
    */
   public List<Identity> getPeopleList() throws Exception {
     if (!uiProfileUserSearch.isLoadFromSearch()) {
       this.peopleList = loadPeople(0, currentLoadIndex + loadingCapacity);
     }
     uiProfileUserSearch.setLoadFromSearch(false);
-
+    
     int realPeopleListSize = this.peopleList.size();
 
     setEnableLoadNext((realPeopleListSize >= PEOPLE_PER_PAGE)
             && (realPeopleListSize < getPeopleNum()));
-
+    
     return this.peopleList;
   }
 
   /**
    * Sets list of all type of people.
-   *
+   * 
    * @param peopleList the peopleList to set
    */
   public void setPeopleList(List<Identity> peopleList) {
     this.peopleList = peopleList;
   }
-
+  
   /**
    * Gets number of people for displaying.
-   *
+   * 
    * @return the peopleNum
    */
   public int getPeopleNum() {
@@ -238,7 +238,7 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Gets people with ListAccess type.
-   *
+   * 
    * @return the peopleListAccess
    */
   public ListAccess<Identity> getPeopleListAccess() {
@@ -247,13 +247,13 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Sets people with ListAccess type.
-   *
+   * 
    * @param peopleListAccess the peopleListAccess to set
    */
   public void setPeopleListAccess(ListAccess<Identity> peopleListAccess) {
     this.peopleListAccess = peopleListAccess;
   }
-
+  
   /**
    * increase offset.
    * @throws Exception
@@ -261,7 +261,7 @@ public class UIAllPeople extends UIContainer {
   public void increaseOffset() throws Exception {
     currentLoadIndex += loadingCapacity;
   }
-
+  
   /**
    * Loads people when searching.
    * @throws Exception
@@ -270,7 +270,7 @@ public class UIAllPeople extends UIContainer {
     currentLoadIndex = 0;
     setPeopleList(loadPeople(currentLoadIndex, loadingCapacity));
   }
-
+  
   private List<Identity> loadPeople(int index, int length) throws Exception {
 
     lastOwner = Utils.getOwnerIdentity();
@@ -278,7 +278,7 @@ public class UIAllPeople extends UIContainer {
     ProfileFilter filter = uiProfileUserSearch.getProfileFilter();
 
     ListAccess<Identity> listAccess = Utils.getIdentityManager().getIdentitiesByProfileFilter(lastOwner.getProviderId(), filter,
-            false);
+                                                                                              false);
     Identity[] identities = listAccess.load(index, length);
     setPeopleNum(identities.length < PEOPLE_PER_PAGE? identities.length : listAccess.getSize());
     //
@@ -288,7 +288,7 @@ public class UIAllPeople extends UIContainer {
     return Arrays.asList(identities);
 
   }
-
+  
   /**
    * Checks need to refresh relationship list or not.
    * @return
@@ -298,10 +298,10 @@ public class UIAllPeople extends UIContainer {
     if (this.lastOwner == null || current == null) return false;
     return !this.lastOwner.getRemoteId().equals(current.getRemoteId());
   }
-
+  
   /**
    * Listeners loading more people action.
-   *
+   * 
    * @author <a href="mailto:hanhvq@exoplatform.com">Hanh Vi Quoc</a>
    * @since Aug 18, 2011
    */
@@ -315,7 +315,7 @@ public class UIAllPeople extends UIContainer {
       }
     }
   }
-
+  
   /**
    * Listens to add action then make request to invite person to make connection.<br> - Gets
    * information of user is invited.<br> - Checks the relationship to confirm that there have not
@@ -330,13 +330,13 @@ public class UIAllPeople extends UIContainer {
 
       Relationship relationship = Utils.getRelationshipManager().get(invitingIdentity, invitedIdentity);
       uiAllPeople.setLoadAtEnd(false);
-
+      
       if (relationship != null && (Relationship.Type.CONFIRMED.equals(relationship.getStatus()) || Relationship.Type.PENDING.equals(relationship.getStatus())) ) {
         UIApplication uiApplication = event.getRequestContext().getUIApplication();
         uiApplication.addMessage(new ApplicationMessage(INVITATION_ESTABLISHED_INFO, null, ApplicationMessage.INFO));
         return;
       }
-
+      
       relationship = Utils.getRelationshipManager().inviteToConnect(invitingIdentity, invitedIdentity);
       Utils.clearCacheOnUserPopup();
       //
@@ -360,13 +360,13 @@ public class UIAllPeople extends UIContainer {
 
       Relationship relationship = Utils.getRelationshipManager().get(invitingIdentity, invitedIdentity);
       uiAllPeople.setLoadAtEnd(false);
-
+      
       if (relationship == null || relationship.getStatus() != Relationship.Type.PENDING) {
         UIApplication uiApplication = event.getRequestContext().getUIApplication();
         uiApplication.addMessage(new ApplicationMessage(INVITATION_REVOKED_INFO, null, ApplicationMessage.INFO));
         return;
       }
-
+      
       Utils.getRelationshipManager().confirm(invitedIdentity, invitingIdentity);
       Utils.clearCacheOnUserPopup();
       //
@@ -390,13 +390,13 @@ public class UIAllPeople extends UIContainer {
       Identity sender = Utils.getViewerIdentity();
 
       Relationship relationship = Utils.getRelationshipManager().get(sender, receiver);
-
+      
       if (relationship == null) {
         UIApplication uiApplication = event.getRequestContext().getUIApplication();
         uiApplication.addMessage(new ApplicationMessage(INVITATION_REVOKED_INFO, null, ApplicationMessage.INFO));
         return;
       }
-
+      
       uiAllPeople.setLoadAtEnd(false);
       Utils.getRelationshipManager().deny(sender, receiver);
       Utils.clearCacheOnUserPopup();
@@ -408,7 +408,7 @@ public class UIAllPeople extends UIContainer {
 
   /**
    * Listens event that broadcast from UIProfileUserSearch.
-   *
+   * 
    * @author <a href="mailto:hanhvq@exoplatform.com">Hanh Vi Quoc</a>
    * @since Aug 25, 2011
    */
@@ -418,10 +418,10 @@ public class UIAllPeople extends UIContainer {
       WebuiRequestContext ctx = event.getRequestContext();
       UIAllPeople uiAllPeople = event.getSource();
       UIProfileUserSearch uiSearch = uiAllPeople.uiProfileUserSearch;
-
+      
       String charSearch = ctx.getRequestParameter(OBJECTID);
       ProfileFilter filter = uiAllPeople.uiProfileUserSearch.getProfileFilter();
-
+      
       try {
         uiAllPeople.setSelectedChar(charSearch);
         if (charSearch != null) { // search by alphabet
@@ -437,7 +437,7 @@ public class UIAllPeople extends UIContainer {
         } else if (ALL_FILTER.equals(uiSearch.getRawSearchConditional())) {
           uiAllPeople.setSelectedChar(ALL_FILTER);
         }
-
+        
         uiSearch.setProfileFilter(filter);
         uiSearch.setNewSearch(true);
         uiAllPeople.uiProfileUserSearch.setLoadFromSearch(true);
